@@ -2,6 +2,10 @@
 
 一个用于翻译 SillyTavern 角色卡的工具，支持从 PNG 文件中提取文本并输出翻译后的角色卡json。
 
+## 在线体验
+
+<https://translator.nullskymc.site/>
+
 ## 功能特点
 
 - 支持从 PNG 文件中提取嵌入的角色卡数据
