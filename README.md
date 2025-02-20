@@ -14,7 +14,7 @@
 
 1. 克隆仓库：
 ```bash
-git clone <repository-url>
+git clone https://github.com/nullskymc/tavernTranslator.git
 cd tavernTranslator
 ```
 
