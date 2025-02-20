@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 import gradio as gr
-from extract_text import extract_embedded_text
+from extract_text import extract_embedded_text, embed_text_in_png
 from translate import create_llm, translate_greetings_sync, translate_description_sync, translate_single_text_sync
 
 class GradioHandler(logging.Handler):
@@ -32,11 +32,11 @@ def process_image_and_translate(image_file, model_name, base_url, api_key):
     gradio_handler.clear()
     try:
         input_path = Path(image_file)
-        output_filename = input_path.stem + ".json"
-        current_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-        output_dir = current_dir.parent / ".output"
+        output_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent / ".output"
         output_dir.mkdir(exist_ok=True)
-        output_path = output_dir / output_filename
+        
+        json_output = output_dir / f"{input_path.stem}.json"
+        image_output = output_dir / f"{input_path.stem}_translated{input_path.suffix}"
         
         llm_instance = create_llm(model_name, base_url, api_key)
         text_data = extract_embedded_text(image_file)
@@ -58,20 +58,24 @@ def process_image_and_translate(image_file, model_name, base_url, api_key):
                         data[field] = translate_greetings_sync(data[field], llm_instance)
                     else:
                         data[field] = translate_single_text_sync(data[field], content_type, llm_instance)
-                    yield update_progress(), None
+                    yield update_progress(), None, None
             
-            with open(output_path, "w", encoding="utf-8") as f:
+            # 保存JSON文件
+            with open(json_output, "w", encoding="utf-8") as f:
                 json.dump(text_data, f, ensure_ascii=False, indent=4)
             
-            logging.info(f"翻译完成，已保存结果文件：{output_filename}")
-            yield update_progress(), str(output_path)
+            # 生成带有翻译数据的新图片
+            embed_text_in_png(image_file, text_data, str(image_output))
+            
+            logging.info(f"翻译完成，已保存结果文件")
+            yield update_progress(), str(json_output), str(image_output)
             return
             
     except Exception as e:
         logging.error(f"处理过程中出错：{str(e)}")
-        yield f"处理失败：{str(e)}", None
+        yield f"处理失败：{str(e)}", None, None
     
-    yield "处理失败", None
+    yield "处理失败", None, None
 
 # Gradio 界面配置
 with gr.Blocks() as iface:
@@ -85,12 +89,13 @@ with gr.Blocks() as iface:
         
         with gr.Column():
             progress_output = gr.Textbox(label="翻译进度", lines=10, interactive=False)
-            file_output = gr.File(label="翻译结果")
+            json_output = gr.File(label="JSON结果文件")
+            image_output = gr.File(label="翻译后的图片文件")
     
     submit_btn.click(
         fn=process_image_and_translate,
         inputs=[image_input, model_name, base_url, api_key],
-        outputs=[progress_output, file_output]
+        outputs=[progress_output, json_output, image_output]
     )
 
 if __name__ == "__main__":
