@@ -31,6 +31,7 @@ def process_image_and_translate(image_file, model_name, base_url, api_key):
     """处理图片提取和翻译的主函数"""
     gradio_handler.clear()
     try:
+        # 创建输出路径和LLM实例
         input_path = Path(image_file)
         output_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent / ".output"
         output_dir.mkdir(exist_ok=True)
@@ -41,41 +42,49 @@ def process_image_and_translate(image_file, model_name, base_url, api_key):
         llm_instance = create_llm(model_name, base_url, api_key)
         text_data = extract_embedded_text(image_file)
         
-        if text_data:
-            data = text_data['data']
-            def update_progress(): return gradio_handler.get_logs()
+        if not text_data or 'data' not in text_data:
+            logging.error("无法提取文本数据")
+            return "处理失败：无法提取文本数据", None, None
             
-            # 翻译流程
-            for field, content_type in [
-                ('first_mes', "对话内容"),
-                ('alternate_greetings', "可选问候语"),
-                ('description', "角色描述"),
-                ('personality', "性格设定")
-            ]:
-                if data.get(field):
-                    logging.info(f"开始翻译{content_type}...")
-                    if field == 'alternate_greetings':
-                        data[field] = translate_greetings_sync(data[field], llm_instance)
-                    else:
-                        data[field] = translate_single_text_sync(data[field], content_type, llm_instance)
-                    yield update_progress(), None, None
-            
-            # 保存JSON文件
-            with open(json_output, "w", encoding="utf-8") as f:
-                json.dump(text_data, f, ensure_ascii=False, indent=4)
-            
-            # 生成带有翻译数据的新图片
-            embed_text_in_png(image_file, text_data, str(image_output))
-            
-            logging.info(f"翻译完成，已保存结果文件")
-            yield update_progress(), str(json_output), str(image_output)
-            return
-            
+        data = text_data['data']
+        
+        # 翻译所有需要的字段
+        fields_to_translate = [
+            ('first_mes', "对话内容"),
+            ('alternate_greetings', "可选问候语"),
+            ('description', "角色描述"),
+            ('personality', "性格设定"),
+            ('mes_example', "对话示例"),
+            ('system_prompt', "系统提示词"),
+            ('scenario', "场景描述")
+        ]
+        
+        for field, content_type in fields_to_translate:
+            if data.get(field):
+                logging.info(f"开始翻译{content_type}...")
+                if field == 'alternate_greetings':
+                    data[field] = translate_greetings_sync(data[field], llm_instance)
+                else:
+                    data[field] = translate_single_text_sync(data[field], content_type, llm_instance)
+                # 更新进度
+                yield gradio_handler.get_logs(), None, None
+        
+        # 更新text_data中的数据
+        text_data['data'] = data
+        
+        # 保存JSON文件
+        with open(json_output, "w", encoding="utf-8") as f:
+            json.dump(text_data, f, ensure_ascii=False, indent=4)
+        
+        # 生成新图片
+        embed_text_in_png(image_file, text_data, str(image_output))
+        
+        logging.info(f"翻译完成，已保存结果文件")
+        yield gradio_handler.get_logs(), str(json_output), str(image_output)
+        
     except Exception as e:
         logging.error(f"处理过程中出错：{str(e)}")
         yield f"处理失败：{str(e)}", None, None
-    
-    yield "处理失败", None, None
 
 # Gradio 界面配置
 with gr.Blocks() as iface:
