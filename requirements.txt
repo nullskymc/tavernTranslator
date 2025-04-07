@@ -1,3 +1,8 @@
 Gradio
 langchain_core
 langchain-openai
+fastapi
+uvicorn
+python-multipart
+Pillow
+websockets
