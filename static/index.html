@@ -256,14 +256,14 @@
       </div>
       <el-form ref="translationForm" :model="translationParams" label-width="120px">
         <el-form-item label="模型名称" required>
-          <el-input v-model="translationParams.model_name" placeholder="输入模型名称，例如: gpt-3.5-turbo" autocomplete="on" name="model-name"></el-input>
+          <el-input v-model="translationParams.model_name" placeholder="输入模型名称，例如gemini-2.0-flash" autocomplete="on" name="model-name"></el-input>
           <div v-if="savedModels.length > 0" class="history-suggestions">
             <el-tag v-for="model in savedModels" :key="model" size="small" @click="selectModel(model)" style="margin-right:5px;margin-top:5px;cursor:pointer">{{model}}</el-tag>
           </div>
         </el-form-item>
         <el-form-item label="API地址" required>
           <el-input v-model="translationParams.base_url" placeholder="输入API基础URL，后缀包含/v1" autocomplete="on" name="api-url"></el-input>
-          <div v-if="savedUrls.length > 0" class="history-suggestions">
+          <div v-if="savedUrls.length > 0" class="history-suggestions"> 
             <el-tag v-for="url in savedUrls" :key="url" size="small" @click="selectUrl(url)" style="margin-right:5px;margin-top:5px;cursor:pointer">{{url}}</el-tag>
           </div>
         </el-form-item>
