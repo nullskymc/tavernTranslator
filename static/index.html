@@ -80,14 +80,118 @@
       transform: scale(1.05);
       background-color: #ecf5ff;
     }
+    .github-link {
+      color: #409EFF;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .github-link:hover {
+      color: #66b1ff;
+      text-decoration: underline;
+    }
+    .github-icon {
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+    .disclaimer {
+      background-color: #fef0f0;
+      border-left: 3px solid #f56c6c;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #f56c6c;
+    }
+    .disclaimer a {
+      color: #f56c6c;
+      text-decoration: underline;
+    }
+    /* 欢迎对话框样式 */
+    .welcome-content {
+      padding: 10px;
+    }
+    .welcome-content h3 {
+      color: #409EFF;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .welcome-content h4 {
+      color: #606266;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .welcome-content ol {
+      line-height: 1.8;
+      color: #606266;
+      padding-left: 20px;
+    }
+    .welcome-content p {
+      line-height: 1.6;
+      margin: 10px 0;
+      color: #606266;
+    }
+    .welcome-content a {
+      color: #409EFF;
+      text-decoration: none;
+    }
+    .welcome-content a:hover {
+      text-decoration: underline;
+    }
+    .welcome-content .tip {
+      background-color: #ecf8ff;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 20px;
+      color: #409EFF;
+      border-left: 5px solid #409EFF;
+    }
+    .el-dialog__header {
+      border-bottom: 1px solid #ebeef5;
+      padding-bottom: 15px;
+    }
+    .el-dialog__footer {
+      border-top: 1px solid #ebeef5;
+      padding-top: 15px;
+    }
   </style>
 </head>
 <body>
   <div id="app" class="container">
     <div class="header">
-      <h1>Tavern Translator</h1>
+      <h1><a href="https://github.com/nullskymc/tavernTranslator" target="_blank" class="github-link" title="查看GitHub项目">Tavern Translator</a></h1>
       <p>SillyTavern 角色卡翻译工具 - 轻松翻译PNG角色卡</p>
     </div>
+
+    <!-- 欢迎对话框 -->
+    <el-dialog
+      title="欢迎使用 Tavern Translator"
+      :visible.sync="welcomeDialogVisible"
+      width="50%"
+      center
+      :show-close="false"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false">
+      <div class="welcome-content">
+        <h3>欢迎使用 Tavern Translator 角色卡翻译工具！</h3>
+        <p>这是一个专为 SillyTavern 角色卡设计的翻译工具，可以帮助你将英文角色卡翻译成中文。</p>
+        
+        <h4>使用步骤：</h4>
+        <ol>
+          <li>上传 PNG 格式的角色卡文件</li>
+          <li>设置翻译参数（需要提供自己的 API 密钥）</li>
+          <li>等待翻译完成</li>
+          <li>下载翻译后的角色卡文件</li>
+        </ol>
+
+        <h4>说明：</h4>
+        <p>项目仅用于演示，所有记录保存在本地浏览器中，建议<a href="https://github.com/nullskymc/tavernTranslator" target="_blank">前往 GitHub 仓库</a>自行部署。</p>
+        
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="closeWelcomeDialog">开始使用</el-button>
+      </span>
+    </el-dialog>
 
     <el-steps :active="currentStep" finish-status="success" style="margin-bottom: 30px">
       <el-step title="上传文件"></el-step>
@@ -192,7 +296,7 @@
     </el-card>
 
     <div class="footer">
-      <p>Tavern Translator - © 2025 MIT License</p>
+    <p><a href="https://github.com/nullskymc/tavernTranslator" target="_blank" class="github-link">Tavern Translator</a> - © 2025 nullskymc. All Rights Reserved.</p>
     </div>
   </div>
 

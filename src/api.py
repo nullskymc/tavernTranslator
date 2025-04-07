@@ -48,8 +48,13 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
         output_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent / ".output"
         output_dir.mkdir(exist_ok=True)
         
-        json_output = output_dir / f"{input_path.stem}.json"
-        image_output = output_dir / f"{input_path.stem}_translated{input_path.suffix}"
+        # 获取原始文件名（从任务信息中）
+        original_filename = tasks[task_id].get('original_filename', input_path.name)
+        original_stem = Path(original_filename).stem
+        
+        # 使用原始文件名作为基础，添加_translated后缀
+        json_output = output_dir / f"{original_stem}.json"
+        image_output = output_dir / f"{original_stem}_translated{input_path.suffix}"
         
         # 更新任务状态
         tasks[task_id].update({

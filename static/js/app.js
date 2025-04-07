@@ -31,12 +31,15 @@ new Vue({
       completedFields: [], // 已翻译完成的字段
       savedModels: [], // 保存的模型名称历史记录
       savedUrls: [], // 保存的API URL历史记录
-      savedApiKeys: [] // 保存的API密钥历史记录（仅最后一个）
+      savedApiKeys: [], // 保存的API密钥历史记录（仅最后一个）
+      welcomeDialogVisible: true, // 欢迎对话框默认显示
     }
   },
   created() {
     // 页面加载时从localStorage加载历史记录
     this.loadHistoryFromStorage();
+    
+    // 不再检查是否首次访问，每次刷新都显示
   },
   computed: {
     // 计算WebSocket URL
@@ -54,6 +57,11 @@ new Vue({
     }
   },
   methods: {
+    // 关闭欢迎对话框
+    closeWelcomeDialog() {
+      this.welcomeDialogVisible = false;
+    },
+    
     // 载入历史记录
     loadHistoryFromStorage() {
       try {
