@@ -154,6 +154,31 @@
       border-top: 1px solid #ebeef5;
       padding-top: 15px;
     }
+    
+    /* 响应式样式调整 */
+    @media screen and (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      /* 移动端对话框样式调整 */
+      .el-dialog {
+        width: 90% !important;
+        margin: 10px auto !important;
+      }
+      
+      .el-dialog__body {
+        padding: 15px !important;
+      }
+      
+      .welcome-content {
+        padding: 5px;
+      }
+      
+      .el-dialog__footer {
+        padding: 10px 20px !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -167,11 +192,13 @@
     <el-dialog
       title="欢迎使用 Tavern Translator"
       :visible.sync="welcomeDialogVisible"
-      width="50%"
+      :width="isMobile ? '90%' : '50%'"
       center
       :show-close="false"
       :close-on-click-modal="false"
-      :close-on-press-escape="false">
+      :close-on-press-escape="false"
+      class="welcome-dialog"
+      append-to-body>
       <div class="welcome-content">
         <h3>欢迎使用 Tavern Translator 角色卡翻译工具！</h3>
         <p>这是一个专为 SillyTavern 角色卡设计的翻译工具，可以帮助你将英文角色卡翻译成中文。</p>

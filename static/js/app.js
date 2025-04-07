@@ -1,5 +1,5 @@
 // Tavern Translator 前端应用
-document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('load', function() {
   new Vue({
     el: '#app',
     data() {
@@ -34,11 +34,24 @@ document.addEventListener('DOMContentLoaded', function() {
         savedUrls: [], // 保存的API URL历史记录
         savedApiKeys: [], // 保存的API密钥历史记录（仅最后一个）
         welcomeDialogVisible: true, // 欢迎对话框默认显示
+        isMobile: false, // 是否为移动设备
       }
     },
     created() {
+      // 检测是否为移动设备
+      this.checkMobile();
+      
       // 页面加载时从localStorage加载历史记录
       this.loadHistoryFromStorage();
+      
+      // 确保欢迎对话框能够正常显示
+      this.$nextTick(() => {
+        // 强制重新渲染对话框，解决某些浏览器不显示的问题
+        this.welcomeDialogVisible = false;
+        setTimeout(() => {
+          this.welcomeDialogVisible = true;
+        }, 100);
+      });
     },
     computed: {
       // 计算WebSocket URL
@@ -56,6 +69,12 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     },
     methods: {
+      // 检测是否为移动设备
+      checkMobile() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        this.isMobile = /android|webos|iphone|ipad|ipod|blackberry|windows phone/i.test(userAgent);
+      },
+      
       // 关闭欢迎对话框
       closeWelcomeDialog() {
         this.welcomeDialogVisible = false;
