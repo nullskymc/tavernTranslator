@@ -262,7 +262,7 @@
           </div>
         </el-form-item>
         <el-form-item label="API地址" required>
-          <el-input v-model="translationParams.base_url" placeholder="输入API基础URL" autocomplete="on" name="api-url"></el-input>
+          <el-input v-model="translationParams.base_url" placeholder="输入API基础URL，后缀包含/v1" autocomplete="on" name="api-url"></el-input>
           <div v-if="savedUrls.length > 0" class="history-suggestions">
             <el-tag v-for="url in savedUrls" :key="url" size="small" @click="selectUrl(url)" style="margin-right:5px;margin-top:5px;cursor:pointer">{{url}}</el-tag>
           </div>
