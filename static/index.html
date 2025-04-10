@@ -262,7 +262,16 @@
           </div>
         </el-form-item>
         <el-form-item label="API地址" required>
-          <el-input v-model="translationParams.base_url" placeholder="输入API基础URL，后缀包含/v1" autocomplete="on" name="api-url"></el-input>
+            <el-input v-model="translationParams.base_url" placeholder="输入API基础URL，例如: https://api.example.com/v1" autocomplete="on" name="api-url"></el-input>
+            <div class="el-form-item__description" style="font-size: 12px; color: #909399; margin-top: 5px;">
+            示例：
+            <ul style="margin-top: 5px; padding-left: 20px;">
+              <li>OpenAI: https://api.openai.com/v1</li>
+              <li>Google AI: https://generativelanguage.googleapis.com/v1beta</li>
+              <li>Azure: https://YOUR_RESOURCE_NAME.openai.azure.com/openai/deployments/YOUR_DEPLOYMENT_NAME</li>
+              <li>自建API: http://localhost:8000/v1</li>
+            </ul>
+            </div>
           <div v-if="savedUrls.length > 0" class="history-suggestions"> 
             <el-tag v-for="url in savedUrls" :key="url" size="small" @click="selectUrl(url)" style="margin-right:5px;margin-top:5px;cursor:pointer">{{url}}</el-tag>
           </div>
