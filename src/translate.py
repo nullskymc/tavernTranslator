@@ -65,6 +65,7 @@ class CharacterCardTranslator:
     def translate_field(self, field_name: str, text: str) -> str:
         """根据字段类型选择合适的模板翻译"""
         if not text or text.strip() == "":
+            logging.info(f"字段 {field_name} 为空，跳过翻译")
             return text
             
         template = self.base_template
@@ -75,16 +76,23 @@ class CharacterCardTranslator:
             
         messages = template.format_messages(text=text)
         response = self.llm.invoke(messages)
+        logging.info(f"字段 {field_name} 翻译完成")
         return response.content
     
     def translate_greeting_list(self, greetings: List[str]) -> List[str]:
         """并发翻译问候语列表"""
+        if not greetings or len(greetings) == 0:
+            logging.info("问候语列表为空，跳过翻译")
+            return greetings
+            
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = [
                 executor.submit(self.translate_field, "alternate_greetings", greeting)
                 for greeting in greetings if greeting.strip()
             ]
-            return [future.result() for future in concurrent.futures.as_completed(futures)]
+            result = [future.result() for future in concurrent.futures.as_completed(futures)]
+            logging.info("问候语列表翻译完成")
+            return result
     
     def translate_character_card(self, card_data: Dict[str, Any]) -> Dict[str, Any]:
         """翻译完整的角色卡数据"""
@@ -101,18 +109,22 @@ class CharacterCardTranslator:
                 "system_prompt"
             ]
             
-            # 翻译主要字段
+            # 记录所有需要翻译的字段，无论是否为空
             for field in fields_to_translate:
+                logging.info(f"开始翻译{get_field_display_name(field)}...")
                 if data.get(field):
-                    logging.info(f"正在翻译 {field}...")
                     data[field] = self.translate_field(field, data[field])
+                else:
+                    logging.info(f"字段 {field} 不存在或为空，跳过翻译")
             
-            # 翻译问候语列表
+            # 特殊处理问候语列表
+            logging.info("开始翻译可选问候语...")
             if data.get("alternate_greetings"):
-                logging.info("正在翻译问候语...")
                 data["alternate_greetings"] = self.translate_greeting_list(
                     data["alternate_greetings"]
                 )
+            else:
+                logging.info("可选问候语不存在或为空，跳过翻译")
                 
             card_data["data"] = data
             return card_data
@@ -120,6 +132,19 @@ class CharacterCardTranslator:
         except Exception as e:
             logging.error(f"翻译角色卡时出错：{str(e)}")
             raise
+
+def get_field_display_name(field_name: str) -> str:
+    """获取字段的显示名称，用于日志显示"""
+    field_map = {
+        "first_mes": "对话内容",
+        "alternate_greetings": "可选问候语",
+        "description": "角色描述",
+        "personality": "角色性格",
+        "mes_example": "对话示例",
+        "system_prompt": "系统提示",
+        "scenario": "场景描述"
+    }
+    return field_map.get(field_name, field_name)
 
 # 修改兼容层函数
 def create_llm(model_name: str, base_url: str, api_key: str):
@@ -129,6 +154,7 @@ def create_llm(model_name: str, base_url: str, api_key: str):
 def translate_single_text_sync(text: str, content_type: str, translator) -> str:
     """同步翻译单个文本"""
     if not text or text.strip() == "":
+        logging.info(f"{content_type}为空，跳过翻译")
         return text
         
     try:
@@ -151,6 +177,7 @@ def translate_single_text_sync(text: str, content_type: str, translator) -> str:
 def translate_greetings_sync(greetings_list, translator):
     """并发翻译问候语列表"""
     if not greetings_list:
+        logging.info("可选问候语为空，跳过翻译")
         return greetings_list
         
     try:
@@ -162,6 +189,7 @@ def translate_greetings_sync(greetings_list, translator):
 def translate_description_sync(desc: str, translator):
     """翻译角色描述"""
     if not desc or desc.strip() == "":
+        logging.info("角色描述为空，跳过翻译")
         return desc
         
     try:

@@ -4,341 +4,215 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tavern Translator - 角色卡翻译工具</title>
+  <!-- 添加网站图标 -->
+  <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
   <!-- 引入Element UI样式 -->
   <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+  <!-- 先引入主题设置，再引入自定义样式 -->
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/styles.css">
   <!-- 引入Vue和Element UI的CDN -->
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
   <script src="https://unpkg.com/element-ui/lib/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <style>
-    body {
-      font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f7fa;
-      color: #333;
-    }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .header h1 {
-      color: #409EFF;
-      margin-bottom: 10px;
-    }
-    .header p {
-      color: #666;
-      font-size: 16px;
-    }
-    .el-card {
-      margin-bottom: 20px;
-    }
-    .log-container {
-      max-height: 300px;
-      overflow-y: auto;
-      background-color: #303133;
-      color: #dcdfe6;
-      font-family: monospace;
-      padding: 10px;
-      border-radius: 4px;
-      white-space: pre-wrap;
-    }
-    .step-title {
-      display: flex;
-      align-items: center;
-    }
-    .step-number {
-      display: inline-flex;
-      justify-content: center;
-      align-items: center;
-      width: 24px;
-      height: 24px;
-      background-color: #409EFF;
-      color: white;
-      border-radius: 50%;
-      margin-right: 10px;
-      font-size: 14px;
-    }
-    .footer {
-      text-align: center;
-      margin-top: 50px;
-      color: #909399;
-      font-size: 14px;
-    }
-    .history-suggestions {
-      margin-top: 5px;
-    }
-    .history-suggestions .el-tag {
-      transition: all 0.2s;
-    }
-    .history-suggestions .el-tag:hover {
-      transform: scale(1.05);
-      background-color: #ecf5ff;
-    }
-    .github-link {
-      color: #409EFF;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    .github-link:hover {
-      color: #66b1ff;
-      text-decoration: underline;
-    }
-    .github-icon {
-      vertical-align: middle;
-      margin-right: 4px;
-    }
-    .disclaimer {
-      background-color: #fef0f0;
-      border-left: 3px solid #f56c6c;
-      padding: 10px 15px;
-      margin-bottom: 20px;
-      border-radius: 4px;
-      font-size: 14px;
-      color: #f56c6c;
-    }
-    .disclaimer a {
-      color: #f56c6c;
-      text-decoration: underline;
-    }
-    /* 欢迎对话框样式 */
-    .welcome-content {
-      padding: 10px;
-    }
-    .welcome-content h3 {
-      color: #409EFF;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .welcome-content h4 {
-      color: #606266;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-    .welcome-content ol {
-      line-height: 1.8;
-      color: #606266;
-      padding-left: 20px;
-    }
-    .welcome-content p {
-      line-height: 1.6;
-      margin: 10px 0;
-      color: #606266;
-    }
-    .welcome-content a {
-      color: #409EFF;
-      text-decoration: none;
-    }
-    .welcome-content a:hover {
-      text-decoration: underline;
-    }
-    .welcome-content .tip {
-      background-color: #ecf8ff;
-      border-radius: 4px;
-      padding: 10px;
-      margin-top: 20px;
-      color: #409EFF;
-      border-left: 5px solid #409EFF;
-    }
-    .el-dialog__header {
-      border-bottom: 1px solid #ebeef5;
-      padding-bottom: 15px;
-    }
-    .el-dialog__footer {
-      border-top: 1px solid #ebeef5;
-      padding-top: 15px;
-    }
-    
-    /* 响应式样式调整 */
-    @media screen and (max-width: 768px) {
-      .container {
-        padding: 10px;
-      }
-      
-      /* 移动端对话框样式调整 */
-      .el-dialog {
-        width: 90% !important;
-        margin: 10px auto !important;
-      }
-      
-      .el-dialog__body {
-        padding: 15px !important;
-      }
-      
-      .welcome-content {
-        padding: 5px;
-      }
-      
-      .el-dialog__footer {
-        padding: 10px 20px !important;
-      }
-    }
-  </style>
+  <!-- 引入字体图标 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-  <div id="app" class="container">
-    <div class="header">
-      <h1><a href="https://github.com/nullskymc/tavernTranslator" target="_blank" class="github-link" title="查看GitHub项目">Tavern Translator</a></h1>
-      <p>SillyTavern 角色卡翻译工具 - 轻松翻译PNG角色卡</p>
+  <div id="app">
+    <!-- 主题切换按钮 -->
+    <div class="theme-toggle" @click="toggleTheme" :title="isDarkTheme ? '切换到亮色模式' : '切换到暗色模式'">
+      <i :class="isDarkTheme ? 'fas fa-sun' : 'fas fa-moon'"></i>
+    </div>
+    
+    <!-- 重新设计的顶部区域，精确还原截图 -->
+    <div class="header-banner">
+      <div class="hero-content">
+        <div class="logo-container">
+          <img src="/img/index.png" alt="Tavern Translator" class="hero-logo">
+          <a href="https://github.com/nullskymc/tavernTranslator" target="_blank" class="hero-title-link">
+            <h1 class="hero-title">Tavern Translator</h1>
+          </a>
+        </div>
+        <p class="hero-subtitle">SillyTavern 角色卡翻译工具 - 轻松翻译PNG角色卡</p>
+        <div class="hero-divider"></div>
+      </div>
     </div>
 
-    <!-- 欢迎对话框 -->
-    <el-dialog
-      title="欢迎使用 Tavern Translator"
-      :visible.sync="welcomeDialogVisible"
-      :width="isMobile ? '90%' : '50%'"
-      center
-      :show-close="false"
-      :close-on-click-modal="false"
-      :close-on-press-escape="false"
-      class="welcome-dialog"
-      append-to-body>
-      <div class="welcome-content">
-        <h3>欢迎使用 Tavern Translator 角色卡翻译工具！</h3>
-        <p>这是一个专为 SillyTavern 角色卡设计的翻译工具，可以帮助你将英文角色卡翻译成中文。</p>
-        
-        <h4>使用步骤：</h4>
-        <ol>
-          <li>上传 PNG 格式的角色卡文件</li>
-          <li>设置翻译参数（需要提供自己的 API 密钥）</li>
-          <li>等待翻译完成</li>
-          <li>下载翻译后的角色卡文件</li>
-        </ol>
+    <div class="container steps-container">
+      <!-- 欢迎对话框 -->
+      <el-dialog
+        title="欢迎使用 Tavern Translator"
+        :visible.sync="welcomeDialogVisible"
+        :width="isMobile ? '95%' : '500px'"
+        center
+        :show-close="false"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        class="welcome-dialog"
+        append-to-body>
+        <div class="welcome-content">
+          <h3><i class="fas fa-magic" style="margin-right:8px;"></i>欢迎使用 Tavern Translator 角色卡翻译工具</h3>
+          <p>这是一个专为 SillyTavern 角色卡设计的翻译工具，可以帮助你将英文角色卡翻译成中文。</p>
+          
+          <h4><i class="fas fa-list-ol" style="margin-right:8px;color:var(--primary-color)"></i>使用步骤：</h4>
+          <ol>
+            <li>上传 PNG 格式的角色卡文件</li>
+            <li>设置翻译参数（需要提供自己的 API 密钥）</li>
+            <li>等待翻译完成</li>
+            <li>下载翻译后的角色卡文件</li>
+          </ol>
 
-        <h4>说明：</h4>
-        <p>项目仅作演示，所有记录保存在本地浏览器中，如有隐私需求建议<a href="https://github.com/nullskymc/tavernTranslator" target="_blank">前往 GitHub 仓库</a>自行部署。</p>
-        
-      </div>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="closeWelcomeDialog">开始使用</el-button>
-      </span>
-    </el-dialog>
-
-    <el-steps :active="currentStep" finish-status="success" style="margin-bottom: 30px">
-      <el-step title="上传文件"></el-step>
-      <el-step title="设置翻译参数"></el-step>
-      <el-step title="翻译过程"></el-step>
-      <el-step title="下载结果"></el-step>
-    </el-steps>
-
-    <!-- 步骤1: 上传文件 -->
-    <el-card v-show="currentStep === 0">
-      <div slot="header" class="step-title">
-        <span class="step-number">1</span>
-        <span>上传角色卡图片</span>
-      </div>
-      <el-upload
-        class="upload-demo"
-        drag
-        action="/upload"
-        :on-success="onUploadSuccess"
-        :on-error="onUploadError"
-        :before-upload="beforeUpload"
-        accept="image/png"
-      >
-        <i class="el-icon-upload"></i>
-        <div class="el-upload__text">拖拽PNG文件到此处，或 <em>点击上传</em></div>
-        <div class="el-upload__tip" slot="tip">只能上传PNG格式的角色卡文件</div>
-      </el-upload>
-    </el-card>
-
-    <!-- 步骤2: 设置翻译参数 -->
-    <el-card v-show="currentStep === 1">
-      <div slot="header" class="step-title">
-        <span class="step-number">2</span>
-        <span>设置翻译参数</span>
-      </div>
-      <el-form ref="translationForm" :model="translationParams" label-width="120px">
-        <el-form-item label="模型名称" required>
-          <el-input v-model="translationParams.model_name" placeholder="输入模型名称，例如gemini-2.0-flash" autocomplete="on" name="model-name"></el-input>
-          <div v-if="savedModels.length > 0" class="history-suggestions">
-            <el-tag v-for="model in savedModels" :key="model" size="small" @click="selectModel(model)" style="margin-right:5px;margin-top:5px;cursor:pointer">{{model}}</el-tag>
+          <h4><i class="fas fa-info-circle" style="margin-right:8px;color:var(--primary-color)"></i>说明：</h4>
+          <p>项目仅作演示，所有记录保存在本地浏览器中，如有隐私需求建议<a href="https://github.com/nullskymc/tavernTranslator" target="_blank">前往 GitHub 仓库</a>自行部署。</p>
+          
+          <div class="tip">
+            <i class="fas fa-lightbulb" style="margin-right:8px;"></i>
+            <strong>提示：</strong> 翻译质量取决于您选择的语言模型，请确保使用高质量的API和适当的模型名称。
           </div>
-        </el-form-item>
-        <el-form-item label="API地址" required>
-            <el-input v-model="translationParams.base_url" placeholder="输入API基础URL，例如: https://api.example.com/v1" autocomplete="on" name="api-url"></el-input>
-            <div class="el-form-item__description" style="font-size: 12px; color: #909399; margin-top: 5px;">
-              本工具仅支持兼容 OpenAI API 格式的服务
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="closeWelcomeDialog" size="medium" icon="el-icon-right">开始使用</el-button>
+        </span>
+      </el-dialog>
+
+      <el-steps :active="currentStep" finish-status="success" style="margin-bottom: 40px" class="fade-in">
+        <el-step title="上传文件" icon="el-icon-upload"></el-step>
+        <el-step title="设置翻译参数" icon="el-icon-setting"></el-step>
+        <el-step title="翻译过程" icon="el-icon-refresh"></el-step>
+        <el-step title="下载结果" icon="el-icon-download"></el-step>
+      </el-steps>
+
+      <!-- 步骤1: 上传文件 -->
+      <el-card v-show="currentStep === 0" class="fade-in">
+        <div slot="header" class="step-title">
+          <span class="step-number">1</span>
+          <span class="step-text">上传角色卡图片</span>
+        </div>
+        <el-upload
+          class="upload-demo"
+          drag
+          action="/upload"
+          :on-success="onUploadSuccess"
+          :on-error="onUploadError"
+          :before-upload="beforeUpload"
+          accept="image/png">
+          <i class="el-icon-upload" style="font-size:48px;color:var(--primary-color);margin-bottom:10px"></i>
+          <div class="el-upload__text">拖拽PNG文件到此处，或 <em>点击上传</em></div>
+          <div class="el-upload__tip" slot="tip">只能上传PNG格式的角色卡文件</div>
+        </el-upload>
+      </el-card>
+
+      <!-- 步骤2: 设置翻译参数 -->
+      <el-card v-show="currentStep === 1" class="fade-in">
+        <div slot="header" class="step-title">
+          <span class="step-number">2</span>
+          <span class="step-text">设置翻译参数</span>
+        </div>
+        <el-form ref="translationForm" :model="translationParams" label-width="120px">
+          <el-form-item label="模型名称" required>
+            <el-input v-model="translationParams.model_name" placeholder="输入模型名称，例如gemini-2.0-flash" autocomplete="on" name="model-name">
+              <template slot="prepend"><i class="fas fa-robot"></i></template>
+            </el-input>
+            <div v-if="savedModels.length > 0" class="history-suggestions">
+              <el-tag v-for="model in savedModels" :key="model" size="small" @click="selectModel(model)" style="margin-right:5px;margin-top:5px;cursor:pointer" effect="plain"><i class="fas fa-history" style="margin-right:4px;"></i>{{model}}</el-tag>
             </div>
-            <div class="el-form-item__description" style="font-size: 12px; color: #909399; margin-top: 5px;">
-              示例：
-              <ul style="margin-top: 5px; padding-left: 20px;">
-              <li>OpenAI: https://api.openai.com/v1</li>
-              <li>Claude API (via OpenAI 兼容): https://api.anthropic.com/v1</li>
-              <li>自建兼容服务: http://localhost:1234/v1</li>
-              </ul>
+          </el-form-item>
+          <el-form-item label="API地址" required>
+              <el-input v-model="translationParams.base_url" placeholder="输入API基础URL，例如: https://api.example.com/v1" autocomplete="on" name="api-url">
+                <template slot="prepend"><i class="fas fa-link"></i></template>
+              </el-input>
+              <div class="el-form-item__description" style="font-size: 13px; color: #909399; margin-top: 8px;">
+                本工具仅支持兼容 OpenAI API 格式的服务
+              </div>
+              <div class="el-form-item__description" style="font-size: 13px; color: #909399; margin-top: 8px;">
+                示例：
+                <ul style="margin-top: 8px; padding-left: 20px;">
+                <li>OpenAI: https://api.openai.com/v1</li>
+                <li>Claude API (via OpenAI 兼容): https://api.anthropic.com/v1</li>
+                <li>自建兼容服务: http://localhost:1234/v1</li>
+                </ul>
+              </div>
+            <div v-if="savedUrls.length > 0" class="history-suggestions"> 
+              <el-tag v-for="url in savedUrls" :key="url" size="small" @click="selectUrl(url)" style="margin-right:5px;margin-top:5px;cursor:pointer" effect="plain"><i class="fas fa-history" style="margin-right:4px;"></i>{{url}}</el-tag>
             </div>
-          <div v-if="savedUrls.length > 0" class="history-suggestions"> 
-            <el-tag v-for="url in savedUrls" :key="url" size="small" @click="selectUrl(url)" style="margin-right:5px;margin-top:5px;cursor:pointer">{{url}}</el-tag>
+          </el-form-item>
+          <el-form-item label="API密钥" required>
+            <el-input v-model="translationParams.api_key" placeholder="输入API密钥" show-password autocomplete="off" name="api-key">
+              <template slot="prepend"><i class="fas fa-key"></i></template>
+            </el-input>
+          </el-form-item>
+          <el-form-item>
+            <div class="action-buttons">
+              <el-button type="primary" @click="startTranslation" icon="el-icon-check">开始翻译</el-button>
+              <el-button @click="currentStep = 0" icon="el-icon-back">返回上传</el-button>
+              <el-button type="text" @click="clearHistory" style="margin-left:10px"><i class="fas fa-trash-alt" style="margin-right:4px;"></i>清除历史记录</el-button>
+            </div>
+          </el-form-item>
+        </el-form>
+      </el-card>
+
+      <!-- 步骤3: 翻译过程 -->
+      <el-card v-show="currentStep === 2" class="fade-in">
+        <div slot="header" class="step-title">
+          <span class="step-number">3</span>
+          <span class="step-text">翻译过程</span>
+        </div>
+        
+        <div style="margin:20px 0;font-weight:500;">
+          <i class="fas fa-terminal" style="margin-right:8px;"></i>翻译日志:
+        </div>
+        <div class="log-container">{{ logs || '等待开始翻译...' }}</div>
+        
+        <el-alert
+          title="翻译过程中请勿关闭或刷新页面，否则可能导致任务失败"
+          type="warning"
+          :closable="false"
+          show-icon>
+        </el-alert>
+      </el-card>
+      
+      <!-- 步骤4: 下载结果 -->
+      <el-card v-show="currentStep === 3" class="fade-in">
+        <div slot="header" class="step-title">
+          <span class="step-number">4</span>
+          <span class="step-text">下载翻译结果</span>
+        </div>
+        
+        <el-alert
+          title="翻译完成！请选择下载格式"
+          type="success"
+          :closable="false"
+          show-icon
+          style="margin-bottom:20px;">
+        </el-alert>
+        
+        <div class="download-options">
+          <div class="download-card" @click="downloadImage">
+            <div class="download-icon"><i class="fas fa-image"></i></div>
+            <div class="download-title">PNG 角色卡</div>
+            <div class="download-desc">下载翻译后的PNG格式角色卡，可直接导入SillyTavern使用</div>
           </div>
-        </el-form-item>
-        <el-form-item label="API密钥" required>
-          <el-input v-model="translationParams.api_key" placeholder="输入API密钥" show-password autocomplete="off" name="api-key"></el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="startTranslation">开始翻译</el-button>
-          <el-button @click="currentStep = 0">返回上传</el-button>
-          <el-button type="text" @click="clearHistory" style="margin-left:10px">清除历史记录</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <!-- 步骤3: 翻译过程 -->
-    <el-card v-show="currentStep === 2">
-      <div slot="header" class="step-title">
-        <span class="step-number">3</span>
-        <span>翻译过程</span>
+          
+          <div class="download-card" @click="downloadJson">
+            <div class="download-icon"><i class="fas fa-file-code"></i></div>
+            <div class="download-title">JSON 数据</div>
+            <div class="download-desc">下载翻译后的JSON格式数据，可用于进一步编辑或备份</div>
+          </div>
+        </div>
+        
+        <div class="action-buttons" style="margin-top:30px;">
+          <el-button type="primary" @click="resetTranslation" icon="el-icon-refresh">翻译新角色卡</el-button>
+        </div>
+      </el-card>
+      
+      <div class="footer fade-in">
+        <p>© 2023 Tavern Translator - <a href="https://github.com/nullskymc/tavernTranslator" target="_blank" class="github-link"><i class="fab fa-github"></i> GitHub</a></p>
       </div>
-      <div class="log-container">{{ logs }}</div>
-      <div style="margin-top: 15px">
-        <el-progress :percentage="translationProgress" v-bind="translationStatus ? {status: translationStatus} : {}"></el-progress>
-      </div>
-    </el-card>
-
-    <!-- 步骤4: 下载结果 -->
-    <el-card v-show="currentStep === 3">
-      <div slot="header" class="step-title">
-        <span class="step-number">4</span>
-        <span>下载结果</span>
-      </div>
-      <p>翻译已完成！您可以下载翻译后的文件：</p>
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-card shadow="hover">
-            <div slot="header">
-              <span>翻译后的角色卡 JSON</span>
-            </div>
-            <el-button type="primary" icon="el-icon-download" @click="downloadJson">下载 JSON</el-button>
-            <p style="margin-top: 10px">包含所有翻译后的角色数据</p>
-          </el-card>
-        </el-col>
-        <el-col :span="12">
-          <el-card shadow="hover">
-            <div slot="header">
-              <span>翻译后的角色卡图片</span>
-            </div>
-            <el-button type="success" icon="el-icon-picture" @click="downloadImage">下载图片</el-button>
-            <p style="margin-top: 10px">可直接用于SillyTavern的角色卡</p>
-          </el-card>
-        </el-col>
-      </el-row>
-      <div style="margin-top: 20px; text-align: center">
-        <el-button @click="resetTranslation">开始新的翻译</el-button>
-      </div>
-    </el-card>
-
-    <div class="footer">
-    <p><a href="https://github.com/nullskymc/tavernTranslator" target="_blank" class="github-link">Tavern Translator</a> - © 2025 nullskymc. All Rights Reserved.</p>
     </div>
   </div>
-
-  <!-- 引入自定义脚本 -->
-  <script src="/js/app.js"></script>
+  
+  <!-- 引入应用脚本 -->
+  <script type="module" src="/js/app.js"></script>
 </body>
 </html>
