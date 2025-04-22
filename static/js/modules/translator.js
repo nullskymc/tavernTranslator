@@ -39,7 +39,8 @@ const TranslatorModule = {
         'mes_example': '对话示例',
         'system_prompt': '系统提示',
         'scenario': '场景描述'
-      }
+      },
+      isTranslationFailed: false
     };
   },
   
@@ -67,6 +68,7 @@ const TranslatorModule = {
       this.logs = '';
       this.completedFields = [];
       this.inProgressFields = [];
+      this.isTranslationFailed = false;
       this.currentStep = 2; // 进入翻译过程步骤
       
       // 向后端发送翻译请求
@@ -81,8 +83,34 @@ const TranslatorModule = {
       })
       .catch(error => {
         console.error('Translation error:', error);
-        this.$message.error('启动翻译任务失败');
-        this.translationStatus = 'exception';
+        this.handleTranslationError('启动翻译任务失败: ' + (error.response?.data?.error || error.message));
+      });
+    },
+    
+    // 处理翻译错误
+    handleTranslationError(errorMessage) {
+      // 标记翻译失败
+      this.isTranslationFailed = true;
+      this.translationStatus = 'exception';
+      
+      // 添加到日志
+      this.logs += '错误: ' + errorMessage + '\n';
+      
+      // 只显示一个错误提示 - 使用通知框而非消息提示，因为通知框更醒目
+      this.$notify({
+        title: '翻译失败',
+        message: errorMessage,
+        type: 'error',
+        duration: 8000,
+        showClose: true
+      });
+      
+      // 滚动日志到底部
+      this.$nextTick(() => {
+        const logContainers = document.querySelectorAll('.log-container');
+        logContainers.forEach(container => {
+          container.scrollTop = container.scrollHeight;
+        });
       });
     },
     
@@ -104,11 +132,25 @@ const TranslatorModule = {
           
           this.websocket.onmessage = (event) => {
             try {
+              // 检查是否是简单的pong响应
+              if (event.data === 'pong') {
+                console.log('收到pong响应');
+                return;
+              }
+              
               const data = JSON.parse(event.data);
               
               // 处理不同类型的消息
               if (data.type === 'log') {
                 this.logs += data.message + '\n';
+                
+                // 检查日志消息是否包含ERROR
+                if (data.message.toLowerCase().includes('error') || data.message.toLowerCase().includes('错误')) {
+                  const errorMessage = data.message;
+                  // 如果日志包含ERROR，则按错误处理
+                  this.handleTranslationError(errorMessage);
+                  return;
+                }
                 
                 // 1. 检测HTTP请求完成消息
                 if (data.message.includes('HTTP Request:') && data.message.includes('HTTP/1.1 200 OK')) {
@@ -176,27 +218,45 @@ const TranslatorModule = {
                   json: `/download/json/${this.taskId}`,
                   image: `/download/image/${this.taskId}`
                 };
+                
+                // 显示成功通知
+                this.$notify({
+                  title: '翻译成功',
+                  message: '角色卡翻译完成，请下载结果文件',
+                  type: 'success',
+                  duration: 5000
+                });
+                
+                // 翻译完成后立即关闭WebSocket连接
+                this.closeWebsocket();
               } else if (data.type === 'error') {
-                this.logs += '错误: ' + data.message + '\n';
-                this.translationStatus = 'exception';
+                // 处理服务器发送的错误消息
+                this.handleTranslationError(data.message);
               }
             } catch (e) {
               console.error('Error parsing WebSocket message:', e);
+              this.handleTranslationError('解析WebSocket消息时发生错误: ' + e.message);
             }
           };
           
           this.websocket.onerror = (error) => {
             console.error('WebSocket error:', error);
-            this.translationStatus = 'exception';
+            this.handleTranslationError('WebSocket连接错误');
           };
           
           this.websocket.onclose = () => {
             console.log('WebSocket connection closed');
             clearInterval(this.pingInterval);
+            
+            // 如果连接意外关闭且任务未完成，显示错误
+            if (this.translationStatus !== 'success' && !this.isTranslationFailed && this.translationProgress < 100) {
+              this.handleTranslationError('WebSocket连接意外关闭');
+            }
           };
           
         } catch (error) {
           console.error('Failed to connect WebSocket:', error);
+          this.handleTranslationError('无法连接到WebSocket: ' + error.message);
         }
       }
     },
@@ -295,10 +355,26 @@ const TranslatorModule = {
       this.currentStep = 0;
       this.completedFields = [];
       this.inProgressFields = [];
+      this.isTranslationFailed = false;
       this.downloadUrls = {
         json: '',
         image: ''
       };
+    },
+    
+    // 安全关闭WebSocket连接
+    closeWebsocket() {
+      if (this.websocket && this.websocket.readyState !== WebSocket.CLOSED) {
+        try {
+          this.websocket.close();
+          console.log('WebSocket连接已关闭');
+        } catch (e) {
+          console.error('关闭WebSocket时出错:', e);
+        } finally {
+          this.websocket = null;
+          clearInterval(this.pingInterval);
+        }
+      }
     },
     
     // 清理资源

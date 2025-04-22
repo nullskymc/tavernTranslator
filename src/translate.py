@@ -171,8 +171,10 @@ def translate_single_text_sync(text: str, content_type: str, translator) -> str:
         field_type = field_map.get(content_type, "base")
         return translator.translate_field(field_type, text)
     except Exception as e:
+        # 记录错误信息并抛出异常，而不是返回原文
+        # 这样会中断处理流程并触发错误处理
         logging.error(f"翻译文本时出错: {str(e)}")
-        return text
+        raise
 
 def translate_greetings_sync(greetings_list, translator):
     """并发翻译问候语列表"""
@@ -183,8 +185,9 @@ def translate_greetings_sync(greetings_list, translator):
     try:
         return translator.translate_greeting_list(greetings_list)
     except Exception as e:
+        # 记录错误信息并抛出异常，而不是返回原文
         logging.error(f"翻译问候语列表时出错: {str(e)}")
-        return greetings_list
+        raise
 
 def translate_description_sync(desc: str, translator):
     """翻译角色描述"""
@@ -195,5 +198,6 @@ def translate_description_sync(desc: str, translator):
     try:
         return translator.translate_field("description", desc)
     except Exception as e:
+        # 记录错误信息并抛出异常，而不是返回原文
         logging.error(f"翻译描述时出错: {str(e)}")
-        return desc
+        raise

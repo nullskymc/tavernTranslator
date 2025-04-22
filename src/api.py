@@ -10,9 +10,41 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import sys
+from io import StringIO
 
 from extract_text import extract_embedded_text, embed_text_in_png
 from translate import create_llm, translate_greetings_sync, translate_single_text_sync
+
+# 自定义日志处理器，用于捕获并转发错误日志
+class WebSocketLogHandler(logging.Handler):
+    def __init__(self, task_id):
+        super().__init__()
+        self.task_id = task_id
+        self.setLevel(logging.INFO)  # 设置为INFO级别，可以捕获所有INFO及以上级别的日志
+    
+    def emit(self, record):
+        try:
+            log_message = self.format(record)
+            asyncio.create_task(self.send_log(log_message, record))
+        except Exception:
+            self.handleError(record)
+    
+    async def send_log(self, log_message, record):
+        if self.task_id in active_connections:
+            ws = active_connections[self.task_id]
+            # 对于ERROR级别的日志，发送特殊的错误消息
+            if record.levelno >= logging.ERROR:
+                await ws.send_json({
+                    'type': 'error',
+                    'message': log_message
+                })
+            else:
+                # 普通日志作为log类型发送
+                await ws.send_json({
+                    'type': 'log',
+                    'message': log_message
+                })
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -32,6 +64,7 @@ app.add_middleware(
 # 存储正在处理的任务
 tasks: Dict[str, Dict] = {}
 active_connections: Dict[str, WebSocket] = {}
+task_log_handlers: Dict[str, WebSocketLogHandler] = {}
 
 class TranslationInput(BaseModel):
     task_id: str
@@ -43,6 +76,15 @@ class TranslationInput(BaseModel):
 async def process_translation(task_id: str, image_path: str, model_name: str, base_url: str, api_key: str):
     """处理图片提取和翻译，发送进度更新到WebSocket"""
     try:
+        # 为此任务添加自定义日志处理器
+        task_handler = WebSocketLogHandler(task_id)
+        task_formatter = logging.Formatter('%(message)s')
+        task_handler.setFormatter(task_formatter)
+        logger.addHandler(task_handler)
+        task_log_handlers[task_id] = task_handler
+        
+        logger.info('开始处理翻译任务...')
+        
         # 创建输出路径和LLM实例
         input_path = Path(image_path)
         output_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent / ".output"
@@ -63,20 +105,22 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             'image_output': str(image_output)
         })
         
-        # 发送开始处理消息
-        if task_id in active_connections:
-            await active_connections[task_id].send_json({
-                'type': 'log',
-                'message': '开始处理翻译任务...'
-            })
-        
         # 创建LLM实例
-        llm_instance = create_llm(model_name, base_url, api_key)
+        try:
+            llm_instance = create_llm(model_name, base_url, api_key)
+        except Exception as e:
+            logger.error(f"创建LLM实例失败: {str(e)}")
+            raise
         
         # 提取文本数据
-        text_data = extract_embedded_text(image_path)
-        if not text_data or 'data' not in text_data:
-            raise ValueError("无法提取文本数据")
+        try:
+            text_data = extract_embedded_text(image_path)
+            if not text_data or 'data' not in text_data:
+                logger.error("无法提取文本数据，请确保上传了有效的角色卡")
+                raise ValueError("无法提取文本数据，请确保上传了有效的角色卡")
+        except Exception as e:
+            logger.error(f"解析角色卡数据失败: {str(e)}")
+            raise
             
         data = text_data['data']
         
@@ -96,27 +140,37 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
                 log_message = f"开始翻译{content_type}..."
                 logger.info(log_message)
                 
-                # 发送进度消息到WebSocket
-                if task_id in active_connections:
-                    await active_connections[task_id].send_json({
-                        'type': 'log',
-                        'message': log_message
-                    })
-                
-                if field == 'alternate_greetings':
-                    data[field] = translate_greetings_sync(data[field], llm_instance)
-                else:
-                    data[field] = translate_single_text_sync(data[field], content_type, llm_instance)
+                try:
+                    if field == 'alternate_greetings':
+                        data[field] = translate_greetings_sync(data[field], llm_instance)
+                    else:
+                        data[field] = translate_single_text_sync(data[field], content_type, llm_instance)
+                except Exception as e:
+                    logger.error(f"翻译{content_type}时出错: {str(e)}")
+                    raise
         
         # 更新text_data中的数据
         text_data['data'] = data
         
         # 保存JSON文件
-        with open(json_output, "w", encoding="utf-8") as f:
-            json.dump(text_data, f, ensure_ascii=False, indent=4)
+        try:
+            with open(json_output, "w", encoding="utf-8") as f:
+                json.dump(text_data, f, ensure_ascii=False, indent=4)
+            logger.info(f"已保存JSON文件: {json_output}")
+        except Exception as e:
+            logger.error(f"保存JSON文件失败: {str(e)}")
+            raise
         
         # 生成新图片
-        embed_text_in_png(image_path, text_data, str(image_output))
+        try:
+            result = embed_text_in_png(image_path, text_data, str(image_output))
+            if not result:
+                logger.error("嵌入文本到PNG失败")
+                raise ValueError("嵌入文本到PNG失败")
+            logger.info(f"已生成翻译后的角色卡图片: {image_output}")
+        except Exception as e:
+            logger.error(f"生成图片文件失败: {str(e)}")
+            raise
         
         # 更新任务状态为完成
         tasks[task_id].update({
@@ -131,6 +185,8 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
                 'image_output': str(image_output),
                 'message': '翻译任务完成!'
             })
+            
+        logger.info("翻译任务完成！")
         
     except Exception as e:
         error_message = f"处理过程中出错: {str(e)}"
@@ -142,17 +198,24 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             'error': error_message
         })
         
-        # 发送错误消息
-        if task_id in active_connections:
-            await active_connections[task_id].send_json({
-                'type': 'error',
-                'message': error_message
-            })
+    finally:
+        # 清理任务专用的日志处理器
+        if task_id in task_log_handlers:
+            logger.removeHandler(task_log_handlers[task_id])
+            del task_log_handlers[task_id]
 
 @app.websocket("/ws/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
     await websocket.accept()
     active_connections[task_id] = websocket
+    
+    # 如果该任务已经有错误，立即发送错误消息
+    if task_id in tasks and tasks[task_id].get('status') == 'failed':
+        await websocket.send_json({
+            'type': 'error',
+            'message': tasks[task_id].get('error', '未知错误')
+        })
+    
     try:
         while True:
             # 保持连接活跃
@@ -178,6 +241,13 @@ async def upload_image(file: UploadFile = File(...)):
         file_path = upload_dir / f"{task_id}_{file.filename}"
         with open(file_path, "wb") as f:
             f.write(content)
+        
+        # 验证文件是PNG格式
+        if not file.filename.lower().endswith('.png'):
+            return JSONResponse(
+                status_code=400,
+                content={"error": "只接受PNG格式的文件"}
+            )
         
         # 保存任务信息
         tasks[task_id] = {
@@ -214,6 +284,19 @@ async def translate_image(data: TranslationInput):
             return JSONResponse(
                 status_code=400,
                 content={"error": f"任务状态不正确: {task['status']}"}
+            )
+        
+        # 验证参数
+        if not data.model_name.strip():
+            return JSONResponse(
+                status_code=400,
+                content={"error": "模型名称不能为空"}
+            )
+            
+        if not data.base_url.strip():
+            return JSONResponse(
+                status_code=400,
+                content={"error": "API地址不能为空"}
             )
         
         # 启动异步翻译任务
