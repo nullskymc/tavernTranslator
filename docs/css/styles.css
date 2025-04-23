@@ -1,0 +1,760 @@
+/* 移除重复的CSS变量，它们会覆盖theme.css中的定义 */
+/* 导入主题设置 */
+@import 'theme.css';
+
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* 完全重新设计顶部区域，降低高度并兼容黑暗模式 */
+.header-banner {
+  background: var(--gradient-primary) !important;
+  width: 100%;
+  text-align: center;
+  padding: 30px 0; /* 降低了顶部横幅的高度，原来是60px */
+  margin-bottom: 30px; /* 相应减小下方间距，原来是40px */
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.hero-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  margin-right: 20px;
+}
+
+.hero-title {
+  color: var(--header-text);
+  font-size: 3rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 1px;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.hero-title-link {
+  color: var(--header-text);
+  text-decoration: none;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.hero-title-link:hover {
+  opacity: 0.9;
+}
+
+.hero-subtitle {
+  color: var(--header-text);
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin: 10px 0 0;
+  opacity: 0.9;
+  transition: color 0.3s ease;
+}
+
+.hero-divider {
+  width: 80px;
+  height: 3px;
+  background-color: var(--header-divider);
+  margin: 25px auto 0;
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+.steps-container {
+  padding: 0 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.el-card {
+  margin-bottom: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  border: none;
+  overflow: hidden;
+}
+
+.el-card:hover {
+  box-shadow: var(--box-shadow-hover);
+  transform: translateY(-3px);
+}
+
+.el-card__header {
+  background: var(--gradient-secondary);
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.el-card__body {
+  padding: 25px;
+}
+
+.log-container {
+  max-height: 350px;
+  overflow-y: auto;
+  background-color: var(--code-bg);
+  color: var(--code-text);
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  white-space: pre-wrap;
+  transition: var(--transition);
+  margin-bottom: 20px;
+}
+
+.log-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.log-container::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+.step-title {
+  display: flex;
+  align-items: center;
+}
+
+.step-number {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  background: var(--gradient-primary);
+  color: var(--header-text);
+  border-radius: 50%;
+  margin-right: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: var(--step-number-shadow);
+}
+
+.step-text {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 60px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+}
+
+.history-suggestions {
+  margin-top: 8px;
+}
+
+.history-suggestions .el-tag {
+  transition: var(--transition);
+  margin-right: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.history-suggestions .el-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow);
+}
+
+.github-link {
+  color: var(--link-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.github-link:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+.github-icon {
+  margin-right: 4px;
+}
+
+.disclaimer {
+  background-color: rgba(231, 76, 60, 0.1);
+  border-left: 4px solid var(--danger-color);
+  padding: 15px;
+  margin-bottom: 25px;
+  border-radius: var(--border-radius);
+  font-size: 14px;
+  color: var(--danger-color);
+}
+
+.disclaimer a {
+  color: var(--danger-color);
+  text-decoration: underline;
+}
+
+.welcome-content {
+  padding: 15px;
+}
+
+.welcome-content h3 {
+  color: var(--primary-color);
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 24px;
+}
+
+.welcome-content h4 {
+  color: var(--text-primary);
+  margin-top: 25px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.welcome-content ol {
+  line-height: 2;
+  color: var(--text-primary);
+  padding-left: 25px;
+}
+
+.welcome-content p {
+  line-height: 1.8;
+  margin: 15px 0;
+  color: var(--text-primary);
+}
+
+.welcome-content a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.welcome-content a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+.welcome-content .tip {
+  background-color: rgba(37, 99, 235, 0.1);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  margin-top: 20px;
+  color: var(--primary-color);
+  border-left: 5px solid var(--primary-color);
+}
+
+/* 自定义 Element UI 样式 */
+.el-steps {
+  margin-bottom: 35px;
+  position: relative;
+  z-index: 1;
+}
+
+.el-step__title {
+  font-weight: 500;
+}
+
+.el-step__head.is-process {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.el-step__head.is-finish {
+  color: var (--success-color);
+  border-color: var (--success-color);
+}
+
+/* 改进步骤图标样式，增加渐变效果 */
+.el-step__head {
+  transition: all 0.4s ease;
+}
+
+.el-step__icon {
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--gradient-primary);
+  color: var(--header-text);
+  transition: all 0.4s ease;
+  box-shadow: var(--step-icon-shadow);
+}
+
+.el-step__icon.is-text {
+  border: none;
+  background: var(--gradient-primary);
+  color: var(--header-text);
+}
+
+.el-step__head.is-process .el-step__icon {
+  background: var(--gradient-primary);
+  color: var(--header-text);
+  transform: scale(1.05);
+}
+
+.el-step__head.is-wait .el-step__icon {
+  background: var(--icon-wait-gradient);
+  color: var(--header-text);
+  opacity: 0.6;
+}
+
+.el-step__head.is-finish .el-step__icon {
+  background: var(--success-gradient);
+  color: var(--header-text);
+}
+
+.el-step__line {
+  background-color: transparent;
+  position: relative;
+  height: 2px;
+  overflow: hidden;
+}
+
+.el-step__line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--step-line-color);
+  border-radius: 2px;
+}
+
+.el-step__line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--success-gradient);
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.el-step.is-finish .el-step__line::before {
+  background: var(--success-gradient);
+}
+
+.el-step.is-process .el-step__line::before {
+  background: var(--gradient-primary);
+}
+
+.el-step.is-finish .el-step__line::after {
+  width: 100%;
+}
+
+.el-step.is-process .el-step__line::after {
+  width: 50%;
+  background: var(--gradient-primary);
+}
+
+.el-step__title {
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.el-step__title.is-process {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.el-step__title.is-wait {
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.el-step__title.is-finish {
+  color: var(--success-color);
+}
+
+.el-step__head.is-process {
+  color: var(--primary-color);
+  border-color: transparent;
+}
+
+.el-step__head.is-finish {
+  color: var(--success-color);
+  border-color: transparent;
+}
+
+.el-step__head.is-wait {
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.el-button--primary {
+  background: var(--gradient-primary);
+  border: none;
+  box-shadow: 0 4px 10px rgba(105, 66, 239, 0.3);
+  transition: var(--transition);
+}
+
+.el-button--primary:hover, 
+.el-button--primary:focus {
+  background: var(--button-hover-gradient);
+  transform: translateY(-2px);
+  box-shadow: var(--button-hover-shadow);
+}
+
+.el-upload-dragger {
+  border: 2px dashed var(--border-color);
+  background-color: var(--card-bg);
+  transition: var(--transition);
+  padding: 30px;
+  height: auto !important;
+}
+
+.el-upload-dragger:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb, 37, 99, 235), 0.05);
+}
+
+/* 强制应用暗黑模式下上传区域的样式 */
+html.dark-theme .el-upload-dragger {
+  border-color: var(--border-color);
+  background-color: var(--card-bg);
+}
+
+html.dark-theme .el-upload-dragger:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1);
+}
+
+/* 添加暗黑模式下Element UI输入框的样式 */
+html.dark-theme .el-input__inner {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+html.dark-theme .el-input__inner:focus,
+html.dark-theme .el-input__inner:hover {
+  border-color: var(--primary-color);
+}
+
+html.dark-theme .el-input-group__prepend,
+html.dark-theme .el-input-group__append {
+  background-color: rgba(30, 58, 138, 0.2);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+html.dark-theme .el-input.is-disabled .el-input__inner {
+  background-color: rgba(18, 24, 40, 0.5);
+  border-color: var(--border-color-light);
+  color: var(--text-secondary);
+}
+
+/* 调整暗黑模式下输入框中的占位文本颜色 */
+html.dark-theme .el-input__inner::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* 确保系统暗黑模式下也能正确显示 */
+@media (prefers-color-scheme: dark) {
+  .el-upload-dragger {
+    border-color: var(--border-color);
+    background-color: var(--card-bg);
+  }
+  
+  .el-upload-dragger:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(var(--primary-color-rgb, 59, 130, 246), 0.1);
+  }
+  
+  /* Element UI输入框暗色样式 */
+  .el-input__inner {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+  
+  .el-input__inner:focus,
+  .el-input__inner:hover {
+    border-color: var(--primary-color);
+  }
+  
+  .el-input-group__prepend,
+  .el-input-group__append {
+    background-color: rgba(30, 58, 138, 0.2);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+  }
+  
+  .el-input.is-disabled .el-input__inner {
+    background-color: rgba(18, 24, 40, 0.5);
+    border-color: var(--border-color-light);
+    color: var(--text-secondary);
+  }
+  
+  .el-input__inner::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+  }
+}
+
+.el-upload__text {
+  color: var(--text-secondary);
+}
+
+.el-upload__text em {
+  color: var (--primary-color);
+  font-style: normal;
+}
+
+.el-progress-bar__outer {
+  border-radius: 10px;
+  height: 10px !important;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.el-progress-bar__inner {
+  border-radius: 10px;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.download-options {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.download-card {
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  text-align: center;
+  transition: var(--transition);
+  cursor: pointer;
+  background-color: var(--card-bg);
+}
+
+.download-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--box-shadow);
+  border-color: var(--primary-color);
+}
+
+.download-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+}
+
+.download-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.download-desc {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.action-buttons {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.action-buttons .el-button {
+  padding: 12px 25px;
+}
+
+.site-logo {
+  vertical-align: middle;
+  margin-right: 8px;
+  border-radius: 5px;
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: var(--gradient-primary);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: var(--box-shadow-hover);
+}
+
+/* 上传区域样式 */
+.upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  background-color: var(--card-bg);
+  text-align: center;
+  padding: 40px 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-area:hover {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.05);
+}
+
+.upload-area.drag-over {
+  border-color: var(--primary-color);
+  background-color: rgba(var(--primary-color-rgb), 0.1);
+  transform: scale(1.02);
+}
+
+/* 响应式样式调整 */
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 20px 15px;
+  }
+  
+  .header-banner {
+    padding: 40px 15px;
+  }
+  
+  .logo-container {
+    flex-direction: column;
+    margin-bottom: 10px;
+  }
+  
+  .hero-logo {
+    margin-right: 0;
+    margin-bottom: 15px;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .hero-title {
+    font-size: 2.2rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+    padding: 0 10px;
+  }
+  
+  .el-card__header,
+  .el-card__body {
+    padding: 15px;
+  }
+  
+  .download-options {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  /* 移动端对话框样式调整 */
+  .el-dialog {
+    width: 95% !important;
+    margin: 10px auto !important;
+  }
+  
+  .el-dialog__body {
+    padding: 15px !重要;
+  }
+  
+  .welcome-content {
+    padding: 5px;
+  }
+  
+  .el-dialog__footer {
+    padding: 10px 20px !important;
+  }
+
+  .hero-section {
+    padding: 40px 15px 50px;
+    border-radius: 0 0 50% 50% / 20px;
+  }
+}
+
+/* 修复最后一步未正确显示的问题 */
+.el-step.is-finish:last-child .el-step__line::after {
+  width: 100%;
+  background: var(--success-gradient);
+}
+
+.el-step.is-finish:last-child .el-step__head {
+  background: var(--success-gradient);
+  color: var(--header-text);
+}
+
+.el-step.is-finish:last-child .el-step__title {
+  color: var(--success-color);
+  font-weight: bold;
+}
