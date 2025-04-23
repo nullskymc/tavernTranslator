@@ -45,9 +45,8 @@ pip install -r requirements.txt
 ```bash
 python src/app.py
 ```
-你可以使用任何静态文件服务器来运行本项目，例如 Nginx、Apache 或 Python 的内置 HTTP 服务器,本项目示例使用 FastAPI 作为静态文件服务器。
 
-```bash
+你可以使用任何静态文件服务器来运行本项目，例如 Nginx、Apache 或 Python 的内置 HTTP 服务器,本项目示例使用 FastAPI 作为静态文件服务器。
 
 2. 在浏览器中访问：`http://localhost:8080`
 
