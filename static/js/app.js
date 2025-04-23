@@ -39,18 +39,16 @@ window.addEventListener('load', function() {
       });
     },
     
-    watch: {
-      // 监听TaskID变化，建立WebSocket连接
-      taskId(newVal) {
-        if (newVal) {
-          this.connectWebSocket();
+    beforeDestroy() {
+      // 处理页面销毁前的清理工作，如释放Blob URL等
+      if (this.downloadUrls) {
+        if (this.downloadUrls.json) {
+          URL.revokeObjectURL(this.downloadUrls.json);
+        }
+        if (this.downloadUrls.image) {
+          URL.revokeObjectURL(this.downloadUrls.image);
         }
       }
-    },
-    
-    beforeDestroy() {
-      // 组件销毁前关闭WebSocket连接
-      this.destroyTranslator();
     }
   });
 });
