@@ -1,6 +1,14 @@
 # Tavern Translator
 
-使用 Next.js 重新实现的 SillyTavern 角色卡翻译工具。项目提供纯前端翻译能力，支持从 PNG 文件中提取嵌入数据并写回译文。
+一个用于翻译 SillyTavern 角色卡的工具，支持从 PNG 文件中提取文本并输出翻译后的角色卡json。
+
+## 纯前端版
+
+在js分支上已更新纯前端版的翻译器实现，只需任意运行HTTP 服务器的进行时，所有数据在本地浏览器交互 [js](https://github.com/nullskymc/tavernTranslator/tree/js)
+
+## 在线体验
+
+<https://translator.nullskymc.site/>
 
 ## 功能特点
 
