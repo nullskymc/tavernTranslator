@@ -15,8 +15,6 @@
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
   <script src="https://unpkg.com/element-ui/lib/index.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <!-- 引入pako库用于zlib解压缩 -->
-  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
   <!-- 引入字体图标 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -66,8 +64,8 @@
           </ol>
 
           <h4><i class="fas fa-info-circle" style="margin-right:8px;color:var(--primary-color)"></i>说明：</h4>
-          <p>所有处理均在浏览器本地完成，您的角色卡不会上传到任何服务器。</p>
-          <p>如有问题欢迎加入QQ群 1043662159 交流，或在 <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">GitHub 仓库</a>提交 issue。</p>
+          <p>项目仅作演示，所有记录保存在本地浏览器中，如有隐私需求建议<a href="https://github.com/nullskymc/tavernTranslator" target="_blank">前往 GitHub 仓库</a>自行部署。</p>
+          <p>欢迎加入秋秋群 1043662159 交流项目出现的问题，或在 github issue中提交你面对的问题</p>
           <div class="tip">
             <i class="fas fa-lightbulb" style="margin-right:8px;"></i>
             <strong>提示：</strong> 翻译质量取决于您选择的语言模型，请确保使用高质量的API和适当的模型名称。
@@ -91,21 +89,18 @@
           <span class="step-number">1</span>
           <span class="step-text">上传角色卡图片</span>
         </div>
-        <div 
-          class="upload-area" 
-          @dragover="handleDragOver" 
-          @drop="handleDrop"
-          @click="triggerFileInput">
-          <input 
-            type="file" 
-            id="file-input" 
-            accept="image/png" 
-            style="display:none" 
-            @change="handleFileInputChange">
+        <el-upload
+          class="upload-demo"
+          drag
+          action="/upload"
+          :on-success="onUploadSuccess"
+          :on-error="onUploadError"
+          :before-upload="beforeUpload"
+          accept="image/png">
           <i class="el-icon-upload" style="font-size:48px;color:var(--primary-color);margin-bottom:10px"></i>
           <div class="el-upload__text">拖拽PNG文件到此处，或 <em>点击上传</em></div>
-          <div class="el-upload__tip">只能上传PNG格式的角色卡文件</div>
-        </div>
+          <div class="el-upload__tip" slot="tip">只能上传PNG格式的角色卡文件</div>
+        </el-upload>
       </el-card>
 
       <!-- 步骤2: 设置翻译参数 -->
