@@ -648,32 +648,6 @@ html.dark-theme .el-input__inner::placeholder {
   box-shadow: var(--box-shadow-hover);
 }
 
-/* 上传区域样式 */
-.upload-area {
-  border: 2px dashed var(--border-color);
-  border-radius: var(--border-radius);
-  background-color: var(--card-bg);
-  text-align: center;
-  padding: 40px 20px;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.upload-area:hover {
-  border-color: var(--primary-color);
-  background-color: rgba(var(--primary-color-rgb), 0.05);
-}
-
-.upload-area.drag-over {
-  border-color: var(--primary-color);
-  background-color: rgba(var(--primary-color-rgb), 0.1);
-  transform: scale(1.02);
-}
-
 /* 响应式样式调整 */
 @media screen and (max-width: 768px) {
   .container {

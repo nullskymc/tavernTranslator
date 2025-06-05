@@ -12,50 +12,79 @@
 
 ## 功能特点
 
-- 纯浏览器端处理，角色卡数据不会上传到服务器
-- 支持从 PNG 文件中解析嵌入的角色卡 JSON
-- 调用兼容 OpenAI API 的服务完成翻译
-- 生成带有译文的 PNG 文件，可直接下载
+- 支持从 PNG 文件中提取嵌入的角色卡数据
+- 自动翻译角色描述、对话内容和性格设定
+- 支持自定义 LLM API 配置
+- 实时显示翻译进度
+- 导出翻译后的 JSON 文件
 
-## 安装
+## 交流群
 
-1. 克隆仓库并进入项目目录：
+> 1043662159
 
+## 安装说明
+
+1. 克隆仓库：
 ```bash
 git clone https://github.com/nullskymc/tavernTranslator.git
 cd tavernTranslator
 ```
 
-2. 安装前端依赖并启动开发服务器：
-
+2. 创建虚拟环境：
 ```bash
-cd frontend
-npm install
-npm run dev
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/Mac
 ```
 
-浏览器访问 `http://localhost:3000` 即可使用。
-
-## 环境变量
-
-前端通过环境变量配置翻译接口：
-
-- `NEXT_PUBLIC_MODEL_NAME` 模型名称
-- `NEXT_PUBLIC_API_BASE` API 基础地址
-- `NEXT_PUBLIC_API_KEY`  API 密钥
-
-在开发环境下可在 `frontend/.env.local` 中设置这些变量。
-
-## 构建与部署
-
-运行下列命令构建静态文件：
-
+3. 安装依赖：
 ```bash
-npm run build
-npm run start
+pip install -r requirements.txt
 ```
 
-默认端口为 `3000`。也可以将构建产物部署到任意静态资源服务器。仓库中仍保留 `src/api.py` 作为简单的静态文件服务器示例。
+## 使用方法
+
+1. 启动应用：
+```bash
+python src/app.py
+```
+
+2. 在浏览器中访问：`http://localhost:8080`
+
+3. 使用界面：
+   - 上传 PNG 格式的角色卡文件
+   - 配置翻译 API（可选）
+   - 点击"开始翻译"按钮
+   - 等待翻译完成，下载生成的 JSON 文件
+
+## 目录结构
+
+```
+tavernTranslator/
+├── .output/            # 翻译结果输出目录
+├── src/
+│   ├── app.py         # 主程序入口
+│   ├── extract_text.py # PNG文本提取模块
+│   ├── translate.py   # 翻译处理模块
+│   └── utils.py       # 工具函数
+├── requirements.txt    # 项目依赖
+└── README.md          # 项目文档
+```
+
+## API 配置说明
+
+使用前需要配置：
+- Model Name: 要使用的语言模型名称
+- API Base URL: API服务器地址
+- API Key: API访问密钥
+
+支持任何兼容 OpenAI API 的服务
+
+## 注意事项
+
+- 只支持包含角色卡数据的 PNG 文件
+- 翻译结果保存在 .output 目录下
+- 输出文件名与输入文件名相同（扩展名改为.json）
 
 ## License
 
