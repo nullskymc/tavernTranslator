@@ -185,6 +185,31 @@ cleanup() {
     print_success "清理完成"
 }
 
+# Docker构建模式（在容器内使用）
+docker_build() {
+    print_step "Docker容器内构建模式..."
+    
+    # 安装Python依赖
+    print_info "安装Python依赖..."
+    pip install --no-cache-dir -r requirements.txt
+    
+    # 安装Node.js依赖
+    print_info "安装Node.js依赖..."
+    cd "$FRONTEND_PATH"
+    npm install --silent
+    
+    # 构建前端
+    print_info "构建前端..."
+    npm run build --silent
+    
+    # 部署前端
+    cd "$PROJECT_ROOT"
+    rm -rf "$STATIC_PATH"
+    cp -r "$FRONTEND_PATH/dist" "$STATIC_PATH"
+    
+    print_success "Docker构建完成"
+}
+
 # 显示帮助信息
 show_help() {
     echo "用法: $0 [选项]"
@@ -197,6 +222,7 @@ show_help() {
     echo "  dev         开发模式（前端热重载）"
     echo "  cleanup     清理临时文件"
     echo "  full        完整部署（默认）"
+    echo "  --docker-build  Docker容器内构建模式"
     echo "  help        显示此帮助信息"
     echo ""
     echo "示例:"
@@ -279,6 +305,9 @@ main() {
             ;;
         "dev")
             dev_mode
+            ;;
+        "--docker-build")
+            docker_build
             ;;
         "cleanup")
             cleanup

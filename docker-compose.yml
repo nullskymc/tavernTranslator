@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  tavern-translator:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # 持久化上传和输出目录
+      - ./uploads:/app/.uploads
+      - ./output:/app/.output
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NODE_ENV=production
+    restart: unless-stopped
+    container_name: tavern-translator
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
