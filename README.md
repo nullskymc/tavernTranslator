@@ -6,6 +6,8 @@
 
 在js分支上已更新纯前端版的翻译器实现，只需任意运行HTTP 服务器的进行时，所有数据在本地浏览器交互 [js](https://github.com/nullskymc/tavernTranslator/tree/js)
 
+本仓库的 `frontend/` 目录提供基于 Vue 3 的组件化前端源码，使用 Vite 构建，编译后的文件会输出到 `static/` 目录，由 Python 服务直接提供。
+
 ## 在线体验
 
 <https://translator.nullskymc.site/>
@@ -37,9 +39,17 @@ python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 ```
 
-3. 安装依赖：
+3. 安装后端依赖：
 ```bash
 pip install -r requirements.txt
+```
+
+4. 安装并构建前端（需要 Node.js 和 npm）：
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
 ```
 
 ## 使用方法
@@ -56,6 +66,7 @@ python src/app.py
    - 配置翻译 API（可选）
    - 点击"开始翻译"按钮
    - 等待翻译完成，下载生成的 JSON 文件
+   - 如需修改前端代码，请在 `frontend/` 目录执行 `npm run build` 后重新启动
 
 ## 目录结构
 
@@ -67,6 +78,7 @@ tavernTranslator/
 │   ├── extract_text.py # PNG文本提取模块
 │   ├── translate.py   # 翻译处理模块
 │   └── utils.py       # 工具函数
+├── frontend/          # Vue 3 前端项目源码
 ├── requirements.txt    # 项目依赖
 └── README.md          # 项目文档
 ```
