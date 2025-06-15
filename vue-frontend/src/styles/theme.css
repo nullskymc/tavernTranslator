@@ -1,0 +1,194 @@
+/* 主题变量定义 */
+:root {
+  /* 基础颜色 */
+  --primary-color: #2563eb;
+  --primary-color-hover: #1d4ed8;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #3b82f6;
+
+  /* 背景色 */
+  --background-color: #ffffff;
+  --background-secondary: #f8fafc;
+  --background-hover: #f1f5f9;
+  
+  /* 文字颜色 */
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  
+  /* 边框颜色 */
+  --border-color: #e5e7eb;
+  --border-light: #f3f4f6;
+  
+  /* 头部相关 */
+  --header-text: #ffffff;
+  --header-divider: rgba(255, 255, 255, 0.8);
+  --gradient-primary: linear-gradient(135deg, #2563eb, #0ea5e9, #0d9488);
+  
+  /* 主题切换按钮 */
+  --theme-toggle-bg: #ffffff;
+  --theme-toggle-text: #374151;
+  
+  /* 过渡效果 */
+  --transition: all 0.3s ease;
+}
+
+/* 暗色主题 */
+.dark-theme {
+  /* 基础颜色 */
+  --primary-color: #3b82f6;
+  --primary-color-hover: #2563eb;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+  --info-color: #3b82f6;
+
+  /* 背景色 */
+  --background-color: #111827;
+  --background-secondary: #1f2937;
+  --background-hover: #374151;
+  
+  /* 文字颜色 */
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  
+  /* 边框颜色 */
+  --border-color: #374151;
+  --border-light: #4b5563;
+  
+  /* 头部相关 */
+  --header-text: #ffffff;
+  --header-divider: rgba(255, 255, 255, 0.8);
+  --gradient-primary: linear-gradient(135deg, #1e3a8a, #0c4a6e, #134e4a);
+  
+  /* 主题切换按钮 */
+  --theme-toggle-bg: #374151;
+  --theme-toggle-text: #f9fafb;
+}
+
+/* 主题切换过渡效果 */
+.theme-transition,
+.theme-transition *,
+.theme-transition *:before,
+.theme-transition *:after {
+  transition: all 300ms !important;
+  transition-delay: 0 !important;
+}
+
+/* Element Plus 暗色主题适配 */
+.dark-theme .el-card {
+  background-color: var(--background-secondary);
+  border-color: var(--border-color);
+}
+
+.dark-theme .el-card__header {
+  background-color: var(--background-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-theme .el-card__body {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-input__wrapper {
+  background-color: var(--background-secondary);
+  border-color: var(--border-color);
+}
+
+.dark-theme .el-input__inner {
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+.dark-theme .el-input__wrapper:hover {
+  border-color: var(--primary-color);
+}
+
+.dark-theme .el-input__wrapper.is-focus {
+  border-color: var(--primary-color);
+}
+
+.dark-theme .el-textarea__inner {
+  background-color: var(--background-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-theme .el-button--default {
+  background-color: var(--background-secondary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-theme .el-button--default:hover {
+  background-color: var(--background-hover);
+  border-color: var(--primary-color);
+}
+
+.dark-theme .el-dialog {
+  background-color: var(--background-secondary);
+}
+
+.dark-theme .el-dialog__header {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-dialog__body {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-alert {
+  background-color: var(--background-secondary);
+  border-color: var(--border-color);
+}
+
+.dark-theme .el-alert__title {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-upload-dragger {
+  background-color: var(--background-secondary);
+  border-color: var(--border-color);
+}
+
+.dark-theme .el-upload-dragger:hover {
+  border-color: var(--primary-color);
+}
+
+.dark-theme .el-tag {
+  background-color: var(--background-hover);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-theme .el-tag--success {
+  background-color: rgba(16, 185, 129, 0.1);
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+.dark-theme .el-tag--warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: var(--warning-color);
+  color: var(--warning-color);
+}
+
+.dark-theme .el-form-item__label {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-steps {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-step__title {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-step__description {
+  color: var(--text-secondary);
+}

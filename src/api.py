@@ -375,7 +375,9 @@ async def download_image(task_id: str):
     )
 
 # 挂载前端静态文件
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# 支持Vue 3构建的单页应用
+static_dir = Path(os.path.dirname(os.path.abspath(__file__))).parent / "static"
+app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn

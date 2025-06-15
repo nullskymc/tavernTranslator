@@ -1,0 +1,24 @@
+{
+  "name": "tavern-translator-vue3",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "element-plus": "^2.7.0",
+    "@element-plus/icons-vue": "^2.3.0",
+    "pinia": "^2.1.0",
+    "axios": "^1.6.0",
+    "@vueuse/core": "^10.9.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.2.0",
+    "unplugin-vue-components": "^0.26.0",
+    "unplugin-auto-import": "^0.17.0"
+  }
+}

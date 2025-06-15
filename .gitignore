@@ -1,4 +1,53 @@
+# Python 缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 项目运行时目录
 src/__pycache__/
 .gradio/
 .output/
 .uploads/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# Node.js 依赖
+node_modules/
+.node_modules/
+
+# 前端构建产物和临时目录
+static-vue3/
+static-backup/
+dist/
+build/
+
+# IDE 文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+logs/
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 临时文件
+*.tmp
+*.temp

@@ -24,22 +24,84 @@
 
 ## 安装说明
 
-1. 克隆仓库：
+### 一键部署（推荐）
+
+使用统一部署脚本，自动完成环境安装、前端构建和后端启动：
+
 ```bash
 git clone https://github.com/nullskymc/tavernTranslator.git
 cd tavernTranslator
+
+# 完整部署并启动服务
+./deploy.sh
+
+# 访问 http://localhost:8080 使用应用
 ```
 
-2. 创建虚拟环境：
+### 其他部署选项
+
+```bash
+# 仅安装依赖
+./deploy.sh install
+
+# 仅构建前端
+./deploy.sh build
+
+# 构建并部署前端
+./deploy.sh deploy
+
+# 开发模式（前端热重载）
+./deploy.sh dev
+
+# 仅启动后端服务
+./deploy.sh start
+
+# 清理临时文件
+./deploy.sh cleanup
+
+# 显示帮助信息
+./deploy.sh help
+```
+
+### 开发模式
+
+启动开发环境，支持前端热重载：
+
+```bash
+./deploy.sh dev
+```
+
+访问地址：
+- 前端开发服务器: http://localhost:3000
+- 后端API服务: http://localhost:8080
+
+### 手动安装（不推荐）
+
+如果需要手动安装：
+
+1. 创建虚拟环境：
 ```bash
 python -m venv .venv
-.venv\Scripts\activate  # Windows
 source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate  # Windows
 ```
 
-3. 安装依赖：
+2. 安装后端依赖：
 ```bash
 pip install -r requirements.txt
+```
+
+3. 安装前端依赖：
+```bash
+cd vue-frontend
+npm install
+npm run build
+cd ..
+```
+
+4. 启动服务：
+```bash
+python src/app.py
 ```
 
 ## 使用方法
