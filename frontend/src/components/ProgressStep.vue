@@ -8,4 +8,3 @@
 <script setup>
 defineProps({ progress: Number, logs: String })
 </script>
-

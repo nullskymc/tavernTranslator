@@ -78,6 +78,7 @@ onMounted(() => {
   applyTheme()
 })
 
+
 function onUpload(id) {
   taskId.value = id
   step.value = 1
