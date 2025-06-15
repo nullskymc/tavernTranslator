@@ -85,10 +85,35 @@
       </el-form-item>
       
       <el-form-item>
+        <!-- 翻译失败提示 -->
+        <el-alert
+          v-if="isTranslationFailed"
+          title="上次翻译失败"
+          type="error"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 15px;"
+        >
+          <template #default>
+            <p>检测到上次翻译任务失败，请检查并调整以下参数后重试：</p>
+            <ul style="margin-top: 8px; padding-left: 20px;">
+              <li>确认模型名称是否正确</li>
+              <li>确认API地址是否可用</li>
+              <li>确认API密钥是否有效</li>
+              <li>检查网络连接是否正常</li>
+            </ul>
+          </template>
+        </el-alert>
+        
         <div class="action-buttons">
-          <el-button type="primary" @click="handleStartTranslation">
-            <el-icon><Check /></el-icon>
-            开始翻译
+          <el-button 
+            type="primary" 
+            @click="handleStartTranslation"
+            :loading="isStartingTranslation"
+            :disabled="!canStartTranslation"
+          >
+            <el-icon v-if="!isStartingTranslation"><Check /></el-icon>
+            {{ isStartingTranslation ? '启动中...' : (isTranslationFailed ? '重新开始翻译' : '开始翻译') }}
           </el-button>
           <el-button @click="goBackToUpload">
             <el-icon><Back /></el-icon>
@@ -104,7 +129,7 @@
 </template>
 
 <script setup>
-import { reactive, onMounted } from 'vue'
+import { reactive, onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Check, Back } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -117,6 +142,7 @@ const storageStore = useStorageStore()
 const translatorStore = useTranslatorStore()
 
 const { savedModels, savedUrls } = storeToRefs(storageStore)
+const { isTranslationFailed } = storeToRefs(translatorStore)
 
 // 表单数据
 const formData = reactive({
@@ -125,11 +151,27 @@ const formData = reactive({
   api_key: ''
 })
 
+// 控制状态
+const isStartingTranslation = ref(false)
+
+// 计算属性
+const canStartTranslation = computed(() => {
+  return formData.model_name.trim() && 
+         formData.base_url.trim() && 
+         formData.api_key.trim() && 
+         !isStartingTranslation.value
+})
+
 // 组件挂载时加载历史记录
 onMounted(() => {
   formData.model_name = storageStore.getLastUsedModel()
   formData.base_url = storageStore.getLastUsedUrl()
   formData.api_key = storageStore.getSavedApiKey()
+  
+  // 如果是翻译失败后回到此页面，清除失败状态
+  if (isTranslationFailed.value) {
+    ElMessage.info('请调整翻译参数后重新尝试')
+  }
 })
 
 // 选择历史记录中的模型名称
@@ -144,18 +186,35 @@ const selectUrl = (url) => {
 
 // 开始翻译
 const handleStartTranslation = async () => {
-  if (!formData.model_name || !formData.base_url) {
-    ElMessage.warning('请填写必要的翻译参数')
+  if (!canStartTranslation.value) {
+    ElMessage.warning('请填写完整的翻译参数')
     return
   }
   
-  // 保存当前参数到历史记录
-  storageStore.saveHistoryToStorage(formData.model_name, formData.base_url, formData.api_key)
+  isStartingTranslation.value = true
   
-  // 开始翻译
-  const success = await translatorStore.startTranslation(formData)
-  if (success) {
-    uiStore.nextStep() // 进入翻译过程步骤
+  try {
+    // 保存当前参数到历史记录
+    storageStore.saveHistoryToStorage(formData.model_name, formData.base_url, formData.api_key)
+    
+    // 如果之前翻译失败，先重置状态
+    if (isTranslationFailed.value) {
+      translatorStore.resetTranslation()
+    }
+    
+    // 开始翻译
+    const success = await translatorStore.startTranslation(formData)
+    
+    if (success) {
+      uiStore.nextStep() // 进入翻译过程步骤
+    } else {
+      ElMessage.error('启动翻译失败，请检查参数后重试')
+    }
+  } catch (error) {
+    console.error('启动翻译时发生错误:', error)
+    ElMessage.error('启动翻译时发生错误，请重试')
+  } finally {
+    isStartingTranslation.value = false
   }
 }
 

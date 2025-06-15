@@ -34,6 +34,9 @@
       <!-- 页脚 -->
       <Footer />
     </div>
+    
+    <!-- 错误恢复组件 -->
+    <ErrorRecovery />
   </div>
 </template>
 
@@ -45,6 +48,7 @@ import { useUIStore } from './stores/ui'
 import { useThemeStore } from './stores/theme'
 import { useStorageStore } from './stores/storage'
 import { useTranslatorStore } from './stores/translator'
+import { globalErrorHandler } from './utils/errorHandler'
 
 // 导入组件
 import ThemeToggle from './components/ThemeToggle.vue'
@@ -55,6 +59,7 @@ import TranslationSettings from './components/TranslationSettings.vue'
 import TranslationProgress from './components/TranslationProgress.vue'
 import DownloadResults from './components/DownloadResults.vue'
 import Footer from './components/Footer.vue'
+import ErrorRecovery from './components/ErrorRecovery.vue'
 
 // 使用 stores
 const uiStore = useUIStore()
@@ -66,6 +71,9 @@ const translatorStore = useTranslatorStore()
 const { currentStep } = storeToRefs(uiStore)
 
 onMounted(() => {
+  // 初始化全局错误处理器
+  console.log('全局错误处理器已初始化')
+  
   // 检测是否为移动设备
   uiStore.checkMobile()
   

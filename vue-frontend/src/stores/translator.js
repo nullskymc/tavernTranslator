@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
 import { ElMessage, ElNotification } from 'element-plus'
+import { handleTranslationError, handleWebSocketError, handleNetworkError, handleApiError } from '../utils/errorHandler'
 
 export const useTranslatorStore = defineStore('translator', () => {
   // 状态
@@ -11,11 +12,12 @@ export const useTranslatorStore = defineStore('translator', () => {
     base_url: '',
     api_key: ''
   })
-  const logs = ref('')
   const translationProgress = ref(0)
   const translationStatus = ref('')
   const websocket = ref(null)
   const pingInterval = ref(null)
+  const isClosingWebSocket = ref(false)  // 标记是否正在主动关闭WebSocket
+  const progressMonitoringInterval = ref(null)  // 备用进度监控
   const downloadUrls = ref({
     json: '',
     image: ''
@@ -37,9 +39,9 @@ export const useTranslatorStore = defineStore('translator', () => {
     'first_mes': '对话内容',
     'alternate_greetings': '可选问候语',
     'description': '角色描述',
-    'personality': '角色性格',
+    'personality': '性格设定',
     'mes_example': '对话示例',
-    'system_prompt': '系统提示',
+    'system_prompt': '系统提示词',
     'scenario': '场景描述'
   }
 
@@ -64,9 +66,8 @@ export const useTranslatorStore = defineStore('translator', () => {
     translationParams.value = { ...params }
     
     // 重置状态
-    translationStatus.value = ''
+    translationStatus.value = 'starting'  // 标记翻译正在启动
     translationProgress.value = 0
-    logs.value = ''
     completedFields.value = []
     inProgressFields.value = []
     isTranslationFailed.value = false
@@ -81,30 +82,86 @@ export const useTranslatorStore = defineStore('translator', () => {
       })
       
       console.log('Translation started:', response.data)
+      
+      // 启动翻译成功后立即连接WebSocket
+      translationStatus.value = 'processing'  // 标记翻译正在进行
+      translationProgress.value = 5  // 设置初始进度
+      connectWebSocket()
+      
       return true
     } catch (error) {
       console.error('Translation error:', error)
-      handleTranslationError('启动翻译任务失败: ' + (error.response?.data?.error || error.message))
+      
+      let errorMessage = '启动翻译任务失败'
+      
+      if (error.response) {
+        // 服务器响应错误
+        const statusCode = error.response.status
+        const serverMessage = error.response.data?.error || error.response.data?.message
+        errorMessage = serverMessage || `服务器错误 (${statusCode})`
+        
+        handleApiError(errorMessage, statusCode, error)
+      } else if (error.request) {
+        // 网络错误
+        errorMessage = '网络连接失败，请检查网络连接'
+        handleNetworkError(errorMessage, error)
+      } else {
+        // 其他错误
+        errorMessage = error.message || '未知错误'
+        handleTranslationError(errorMessage, error)
+      }
+      
+      handleTranslationError(errorMessage)
       return false
     }
   }
 
   // 处理翻译错误
   const handleTranslationError = (errorMessage) => {
+    // 停止进度监控
+    stopProgressMonitoring()
+    
     // 标记翻译失败
     isTranslationFailed.value = true
     translationStatus.value = 'exception'
     
-    // 添加到日志
-    logs.value += '错误: ' + errorMessage + '\n'
+    // 立即中断进度更新
+    translationProgress.value = 0
     
-    // 显示错误通知
+    // 清空进行中的字段状态
+    inProgressFields.value = []
+    
+    // 立即关闭WebSocket连接以阻止后续操作
+    closeWebSocket()
+    
+    // 显示错误通知并提供操作指导
     ElNotification({
       title: '翻译失败',
-      message: errorMessage,
+      message: errorMessage + '\n\n请检查翻译参数后重试，或返回上一步重新设置',
       type: 'error',
-      duration: 8000
+      duration: 10000,
+      dangerouslyUseHTMLString: false
     })
+  }
+
+  // 强制中断翻译任务
+  const forceStopTranslation = () => {
+    if (translationStatus.value === 'success' || isTranslationFailed.value) {
+      return // 已完成或已失败，无需中断
+    }
+    
+    // 标记为失败状态
+    isTranslationFailed.value = true
+    translationStatus.value = 'exception'
+    
+    // 重置进度和状态
+    translationProgress.value = 0
+    inProgressFields.value = []
+    
+    // 关闭连接
+    closeWebSocket()
+    
+    ElMessage.warning('翻译任务已中断')
   }
 
   // 连接WebSocket获取实时翻译进度
@@ -116,6 +173,10 @@ export const useTranslatorStore = defineStore('translator', () => {
       
       websocket.value.onopen = () => {
         console.log('WebSocket connected')
+        
+        // 启动备用进度监控
+        startProgressMonitoring()
+        
         // 设置定时ping以保持连接
         pingInterval.value = setInterval(() => {
           if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
@@ -135,17 +196,9 @@ export const useTranslatorStore = defineStore('translator', () => {
           const data = JSON.parse(event.data)
           
           // 处理不同类型的消息
-          if (data.type === 'log') {
-            logs.value += data.message + '\n'
-            
-            // 检查日志消息是否包含ERROR
-            if (data.message.toLowerCase().includes('error') || data.message.toLowerCase().includes('错误')) {
-              handleTranslationError(data.message)
-              return
-            }
-            
-            // 处理翻译进度
-            handleTranslationProgress(data.message)
+          if (data.type === 'progress') {
+            // 处理进度更新消息
+            handleProgressUpdate(data)
             
           } else if (data.type === 'completed') {
             handleTranslationComplete()
@@ -160,16 +213,42 @@ export const useTranslatorStore = defineStore('translator', () => {
       
       websocket.value.onerror = (error) => {
         console.error('WebSocket error:', error)
-        handleTranslationError('WebSocket连接错误')
+        // 只有在翻译进行中时才处理错误
+        if (translationStatus.value !== 'success' && !isTranslationFailed.value && translationProgress.value < 100) {
+          handleTranslationError('WebSocket连接错误')
+        } else {
+          console.log('WebSocket error occurred after translation completion, ignoring')
+        }
       }
       
-      websocket.value.onclose = () => {
-        console.log('WebSocket connection closed')
+      websocket.value.onclose = (event) => {
+        console.log('WebSocket connection closed, code:', event.code, 'reason:', event.reason, 'wasClosing:', isClosingWebSocket.value)
         clearInterval(pingInterval.value)
         
-        // 如果连接意外关闭且任务未完成，显示错误
-        if (translationStatus.value !== 'success' && !isTranslationFailed.value && translationProgress.value < 100) {
+        // 如果是主动关闭或者翻译已完成，不视为错误
+        if (isClosingWebSocket.value || 
+            translationStatus.value === 'success' || 
+            translationProgress.value === 100) {
+          console.log('WebSocket正常关闭')
+          isClosingWebSocket.value = false
+          return
+        }
+        
+        // 只有在以下情况才认为是异常关闭：
+        // 1. 翻译未成功完成
+        // 2. 没有标记为失败
+        // 3. 进度小于100%
+        // 4. 关闭码不是正常关闭(1000)或服务器主动关闭(1001)
+        const isAbnormalClose = translationStatus.value !== 'success' && 
+                               !isTranslationFailed.value && 
+                               translationProgress.value < 100 &&
+                               event.code !== 1000 && 
+                               event.code !== 1001
+        
+        if (isAbnormalClose) {
           handleTranslationError('WebSocket连接意外关闭')
+        } else {
+          console.log('WebSocket关闭，但翻译可能已完成或接近完成')
         }
       }
       
@@ -179,50 +258,93 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
   }
 
-  // 处理翻译进度消息
-  const handleTranslationProgress = (message) => {
-    // 1. 检测HTTP请求完成消息
-    if (message.includes('HTTP Request:') && message.includes('HTTP/1.1 200 OK')) {
-      if (inProgressFields.value.length > 0) {
-        const fieldToComplete = inProgressFields.value[inProgressFields.value.length - 1]
-        markFieldAsCompleted(fieldToComplete)
+  // 处理后端发送的进度更新
+  const handleProgressUpdate = (progressData) => {
+    const { current_field, field_status, completed_count, total_count, progress_percentage } = progressData
+    
+    console.log('收到进度更新:', progressData)
+    
+    if (field_status === 'starting') {
+      // 字段开始翻译
+      if (!inProgressFields.value.includes(current_field)) {
+        inProgressFields.value.push(current_field)
+        // 不在此处添加日志，因为后端已经发送了日志消息
       }
-    } 
-    // 2. 检测开始翻译消息
-    else if (message.match(/开始翻译(.*?)\.\.\.$/)) {
-      const match = message.match(/开始翻译(.*?)\.\.\.$/)
-      if (match && match[1]) {
-        const fieldName = match[1].trim()
-        if (!inProgressFields.value.includes(fieldName)) {
-          inProgressFields.value.push(fieldName)
-          updateTranslationProgress()
-        }
+    } else if (field_status === 'completed') {
+      // 字段翻译完成
+      const inProgressIndex = inProgressFields.value.indexOf(current_field)
+      if (inProgressIndex !== -1) {
+        inProgressFields.value.splice(inProgressIndex, 1)
       }
-    } 
-    // 3. 检测字段为空或跳过消息
-    else if (message.includes('跳过翻译')) {
-      const match = message.match(/字段 (.*?) 不存在或为空，跳过翻译/)
-      if (match && match[1]) {
-        const fieldName = match[1].trim()
-        markFieldAsCompleted(getDisplayNameForField(fieldName))
-      } else if (message.includes('可选问候语') && message.includes('跳过翻译')) {
-        markFieldAsCompleted('可选问候语')
+      if (!completedFields.value.includes(current_field)) {
+        completedFields.value.push(current_field)
+        // 不在此处添加日志，因为后端已经发送了日志消息
+      }
+    } else if (field_status === 'skipped') {
+      // 字段被跳过
+      const inProgressIndex = inProgressFields.value.indexOf(current_field)
+      if (inProgressIndex !== -1) {
+        inProgressFields.value.splice(inProgressIndex, 1)
+      }
+      if (!completedFields.value.includes(current_field)) {
+        completedFields.value.push(current_field)
+        // 不在此处添加日志，因为后端已经发送了日志消息
       }
     }
-    // 4. 检测翻译完成消息
-    else if (message.includes('翻译完成')) {
-      for (const field in fieldNameMap) {
-        const displayName = fieldNameMap[field]
-        if (message.includes(displayName) && message.includes('翻译完成')) {
-          markFieldAsCompleted(displayName)
+    
+    // 直接使用后端计算的进度
+    translationProgress.value = progress_percentage
+    
+    console.log(`进度更新: ${completed_count}/${total_count} (${progress_percentage}%)`)
+    console.log('已完成字段:', completedFields.value)
+    console.log('进行中字段:', inProgressFields.value)
+  }
+
+  // 启动备用进度监控
+  const startProgressMonitoring = () => {
+    if (progressMonitoringInterval.value) {
+      clearInterval(progressMonitoringInterval.value)
+    }
+    
+    let lastProgressTime = Date.now()
+    
+    progressMonitoringInterval.value = setInterval(() => {
+      const now = Date.now()
+      const timeSinceLastProgress = now - lastProgressTime
+      
+      // 如果超过30秒没有进度更新，尝试估算进度
+      if (timeSinceLastProgress > 30000 && translationStatus.value === 'processing') {
+        console.log('长时间无进度更新，启用备用进度估算')
+        
+        // 简单的基于时间的进度估算
+        const elapsedTime = (now - lastProgressTime) / 1000
+        const estimatedProgress = Math.min(95, translationProgress.value + (elapsedTime / 10))
+        
+        if (estimatedProgress > translationProgress.value) {
+          translationProgress.value = Math.round(estimatedProgress)
+          console.log(`备用进度估算: ${translationProgress.value}%`)
         }
       }
+      
+      // 更新最后进度时间
+      if (translationProgress.value > 0) {
+        lastProgressTime = now
+      }
+    }, 10000) // 每10秒检查一次
+  }
+
+  // 停止进度监控
+  const stopProgressMonitoring = () => {
+    if (progressMonitoringInterval.value) {
+      clearInterval(progressMonitoringInterval.value)
+      progressMonitoringInterval.value = null
     }
   }
 
   // 处理翻译完成
   const handleTranslationComplete = () => {
-    logs.value += '翻译任务完成！\n'
+    // 停止进度监控
+    stopProgressMonitoring()
     
     // 确保所有字段都被标记为完成
     for (const field of fields) {
@@ -253,59 +375,6 @@ export const useTranslatorStore = defineStore('translator', () => {
     closeWebSocket()
   }
 
-  // 将字段标记为已完成并更新进度
-  const markFieldAsCompleted = (fieldName) => {
-    if (fieldName && !completedFields.value.includes(fieldName)) {
-      console.log(`标记字段为已完成: ${fieldName}`)
-      completedFields.value.push(fieldName)
-      updateTranslationProgress()
-    }
-  }
-
-  // 获取字段显示名称
-  const getDisplayNameForField = (fieldName) => {
-    return fieldNameMap[fieldName] || fieldName
-  }
-
-  // 更新翻译进度
-  const updateTranslationProgress = () => {
-    const totalFields = fields.length
-    let completedCount = 0
-    let inProgressCount = 0
-    
-    // 计算已完成的字段数量
-    for (const field of fields) {
-      const displayName = fieldNameMap[field]
-      if (completedFields.value.includes(displayName)) {
-        completedCount++
-      } else if (inProgressFields.value.includes(displayName)) {
-        inProgressCount++
-      }
-    }
-    
-    // 用更平滑的方式计算进度
-    const completedWeight = completedCount * (85 / totalFields)
-    
-    let inProgressWeight = 0
-    if (inProgressCount > 0 && completedCount < totalFields) {
-      const baseProgress = completedWeight
-      const progressIncrement = Math.min(14, Math.log10(baseProgress + 10) * 20)
-      inProgressWeight = progressIncrement
-    }
-    
-    let progress = completedWeight + inProgressWeight
-    
-    if (completedCount === totalFields) {
-      progress = 100
-    } else {
-      progress = Math.min(99, progress)
-    }
-    
-    console.log(`进度更新: 总字段=${totalFields}, 已完成=${completedCount}(${completedWeight.toFixed(1)}%), 进行中=${inProgressCount}(+${inProgressWeight.toFixed(1)}%), 总进度=${progress.toFixed(1)}%`)
-    
-    translationProgress.value = Math.round(progress)
-  }
-
   // 下载文件
   const downloadJson = () => {
     if (downloadUrls.value.json) {
@@ -327,8 +396,9 @@ export const useTranslatorStore = defineStore('translator', () => {
   const closeWebSocket = () => {
     if (websocket.value && websocket.value.readyState !== WebSocket.CLOSED) {
       try {
+        isClosingWebSocket.value = true  // 标记为主动关闭
         websocket.value.close()
-        console.log('WebSocket连接已关闭')
+        console.log('主动关闭WebSocket连接')
       } catch (e) {
         console.error('关闭WebSocket时出错:', e)
       } finally {
@@ -340,22 +410,64 @@ export const useTranslatorStore = defineStore('translator', () => {
 
   // 重置翻译状态
   const resetTranslation = () => {
+    // 停止进度监控
+    stopProgressMonitoring()
+    
     // 关闭当前WebSocket连接
     closeWebSocket()
     
     // 重置所有状态
     taskId.value = null
-    logs.value = ''
     translationProgress.value = 0
     translationStatus.value = ''
     completedFields.value = []
     inProgressFields.value = []
     isTranslationFailed.value = false
+    isClosingWebSocket.value = false
     downloadUrls.value = {
       json: '',
       image: ''
     }
   }
+
+  // 检查是否可以继续操作（未失败且未成功的状态）
+  const canContinueOperation = computed(() => {
+    return !isTranslationFailed.value && translationStatus.value !== 'exception'
+  })
+
+  // 获取当前翻译状态的详细描述
+  const getTranslationStatusDescription = computed(() => {
+    if (isTranslationFailed.value || translationStatus.value === 'exception') {
+      return {
+        type: 'error',
+        text: '翻译失败',
+        canRetry: true,
+        canDownload: false
+      }
+    }
+    if (translationStatus.value === 'success') {
+      return {
+        type: 'success',
+        text: '翻译完成',
+        canRetry: false,
+        canDownload: true
+      }
+    }
+    if (translationProgress.value > 0) {
+      return {
+        type: 'processing',
+        text: '翻译进行中',
+        canRetry: false,
+        canDownload: false
+      }
+    }
+    return {
+      type: 'waiting',
+      text: '等待开始',
+      canRetry: false,
+      canDownload: false
+    }
+  })
 
   // 设置任务ID
   const setTaskId = (id) => {
@@ -366,7 +478,6 @@ export const useTranslatorStore = defineStore('translator', () => {
     // 状态
     taskId,
     translationParams,
-    logs,
     translationProgress,
     translationStatus,
     downloadUrls,
@@ -378,10 +489,13 @@ export const useTranslatorStore = defineStore('translator', () => {
     
     // 计算属性
     wsUrl,
+    canContinueOperation,
+    getTranslationStatusDescription,
     
     // 方法
     startTranslation,
     handleTranslationError,
+    forceStopTranslation,
     connectWebSocket,
     closeWebSocket,
     resetTranslation,

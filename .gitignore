@@ -22,9 +22,10 @@ node_modules/
 
 # 前端构建产物和临时目录
 static-vue3/
-static-backup/
+static.backup/
 dist/
 build/
+static/
 
 # IDE 文件
 .vscode/

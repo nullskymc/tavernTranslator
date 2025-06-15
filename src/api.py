@@ -4,8 +4,10 @@ import os
 from pathlib import Path
 import uuid
 import asyncio
+import time
+import threading
 from typing import Dict, Optional, List
-from fastapi import FastAPI, UploadFile, File, Form, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, UploadFile, File, Form, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +17,48 @@ from io import StringIO
 
 from extract_text import extract_embedded_text, embed_text_in_png
 from translate import create_llm, translate_greetings_sync, translate_single_text_sync
+
+# 全局请求限制器
+class RequestLimiter:
+    """全局请求限制器，防止同时处理过多翻译任务"""
+    
+    def __init__(self, max_concurrent_tasks=2):
+        self.max_concurrent_tasks = max_concurrent_tasks
+        self.current_tasks = 0
+        self.lock = threading.Lock()
+        self.last_request_time = 0
+        self.min_request_interval = 3.0  # 最小请求间隔（秒）
+        
+    def can_accept_request(self):
+        """检查是否可以接受新的请求"""
+        with self.lock:
+            current_time = time.time()
+            
+            # 检查请求间隔
+            if current_time - self.last_request_time < self.min_request_interval:
+                return False, "请求过于频繁，请稍后再试"
+                
+            # 检查并发任务数
+            if self.current_tasks >= self.max_concurrent_tasks:
+                return False, "服务器繁忙，请稍后再试"
+                
+            return True, "可以处理"
+    
+    def start_task(self):
+        """开始一个任务"""
+        with self.lock:
+            self.current_tasks += 1
+            self.last_request_time = time.time()
+            logging.info(f"开始新任务，当前并发任务数: {self.current_tasks}")
+    
+    def finish_task(self):
+        """结束一个任务"""
+        with self.lock:
+            self.current_tasks = max(0, self.current_tasks - 1)
+            logging.info(f"任务完成，当前并发任务数: {self.current_tasks}")
+
+# 全局请求限制器实例
+request_limiter = RequestLimiter(max_concurrent_tasks=2)
 
 # 自定义日志处理器，用于捕获并转发错误日志
 class WebSocketLogHandler(logging.Handler):
@@ -26,25 +70,60 @@ class WebSocketLogHandler(logging.Handler):
     def emit(self, record):
         try:
             log_message = self.format(record)
-            asyncio.create_task(self.send_log(log_message, record))
-        except Exception:
+            # 创建异步任务发送日志
+            loop = None
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                # 没有运行的事件循环
+                pass
+            
+            if loop and not loop.is_closed():
+                # 确保任务被立即调度
+                task = asyncio.create_task(self.send_log(log_message, record))
+                # 不等待完成，避免阻塞日志记录
+            else:
+                # 如果没有事件循环，尝试在新线程中处理
+                import threading
+                threading.Thread(target=self._sync_send_log, args=(log_message, record), daemon=True).start()
+        except Exception as e:
+            # 输出错误以便调试
+            print(f"日志发送失败: {e}")
             self.handleError(record)
+    
+    def _sync_send_log(self, log_message, record):
+        """同步方式发送日志的回退方案"""
+        try:
+            # 尝试获取新的事件循环
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            new_loop.run_until_complete(self.send_log(log_message, record))
+            new_loop.close()
+        except Exception:
+            pass  # 静默失败，避免日志系统崩溃
     
     async def send_log(self, log_message, record):
         if self.task_id in active_connections:
-            ws = active_connections[self.task_id]
-            # 对于ERROR级别的日志，发送特殊的错误消息
-            if record.levelno >= logging.ERROR:
-                await ws.send_json({
-                    'type': 'error',
-                    'message': log_message
-                })
-            else:
-                # 普通日志作为log类型发送
-                await ws.send_json({
-                    'type': 'log',
-                    'message': log_message
-                })
+            try:
+                ws = active_connections[self.task_id]
+                # 检查WebSocket连接状态
+                if ws.client_state.name == 'CONNECTED':
+                    # 对于ERROR级别的日志，发送特殊的错误消息
+                    if record.levelno >= logging.ERROR:
+                        await ws.send_json({
+                            'type': 'error',
+                            'message': log_message
+                        })
+                    else:
+                        # 普通日志作为log类型发送
+                        await ws.send_json({
+                            'type': 'log',
+                            'message': log_message
+                        })
+            except Exception as e:
+                # WebSocket发送失败，记录错误但不阻塞日志系统
+                print(f"WebSocket发送日志失败: {e}")
+                pass
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -61,6 +140,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+async def send_progress_update(task_id: str, current_field: str, field_status: str, completed_count: int, total_count: int):
+    """发送进度更新到WebSocket"""
+    if task_id in active_connections:
+        try:
+            ws = active_connections[task_id]
+            if ws.client_state.name == 'CONNECTED':
+                progress_percentage = round((completed_count / total_count) * 100) if total_count > 0 else 0
+                
+                await ws.send_json({
+                    'type': 'progress',
+                    'current_field': current_field,
+                    'field_status': field_status,  # 'starting', 'completed', 'skipped'
+                    'completed_count': completed_count,
+                    'total_count': total_count,
+                    'progress_percentage': progress_percentage
+                })
+        except Exception as e:
+            print(f"发送进度更新失败: {e}")
+
 # 存储正在处理的任务
 tasks: Dict[str, Dict] = {}
 active_connections: Dict[str, WebSocket] = {}
@@ -76,14 +174,36 @@ class TranslationInput(BaseModel):
 async def process_translation(task_id: str, image_path: str, model_name: str, base_url: str, api_key: str):
     """处理图片提取和翻译，发送进度更新到WebSocket"""
     try:
+        # 为此任务创建专用的logger
+        task_logger = logging.getLogger(f"translation_{task_id}")
+        task_logger.setLevel(logging.INFO)
+        
+        # 清除之前的处理器（如果有）
+        task_logger.handlers.clear()
+        
         # 为此任务添加自定义日志处理器
         task_handler = WebSocketLogHandler(task_id)
         task_formatter = logging.Formatter('%(message)s')
         task_handler.setFormatter(task_formatter)
-        logger.addHandler(task_handler)
+        task_logger.addHandler(task_handler)
         task_log_handlers[task_id] = task_handler
         
-        logger.info('开始处理翻译任务...')
+        # 同时添加到相关模块的logger
+        translate_logger = logging.getLogger('translate')
+        translate_logger.addHandler(task_handler)
+        translate_logger.setLevel(logging.INFO)
+        
+        # 添加到根翻译模块
+        root_translate_logger = logging.getLogger('src.translate')
+        root_translate_logger.addHandler(task_handler)
+        root_translate_logger.setLevel(logging.INFO)
+        
+        # 确保httpx日志也被捕获（用于显示API请求状态）
+        httpx_logger = logging.getLogger('httpx')
+        httpx_logger.addHandler(task_handler)
+        httpx_logger.setLevel(logging.INFO)
+        
+        task_logger.info('开始处理翻译任务...')
         
         # 创建输出路径和LLM实例
         input_path = Path(image_path)
@@ -106,20 +226,25 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
         })
         
         # 创建LLM实例
-        try:
-            llm_instance = create_llm(model_name, base_url, api_key)
-        except Exception as e:
-            logger.error(f"创建LLM实例失败: {str(e)}")
-            raise
+        if api_key == "test-key-for-testing":
+            # 测试模式：模拟翻译，不实际调用API
+            print("使用测试模式，模拟翻译过程")
+            llm_instance = None
+        else:
+            try:
+                llm_instance = create_llm(model_name, base_url, api_key, task_logger)
+            except Exception as e:
+                task_logger.error(f"创建LLM实例失败: {str(e)}")
+                raise
         
         # 提取文本数据
         try:
             text_data = extract_embedded_text(image_path)
             if not text_data or 'data' not in text_data:
-                logger.error("无法提取文本数据，请确保上传了有效的角色卡")
+                task_logger.error("无法提取文本数据，请确保上传了有效的角色卡")
                 raise ValueError("无法提取文本数据，请确保上传了有效的角色卡")
         except Exception as e:
-            logger.error(f"解析角色卡数据失败: {str(e)}")
+            task_logger.error(f"解析角色卡数据失败: {str(e)}")
             raise
             
         data = text_data['data']
@@ -135,19 +260,51 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             ('scenario', "场景描述")
         ]
         
+        # 计算总字段数和完成计数
+        total_fields = len(fields_to_translate)
+        completed_fields = 0
+        
         for field, content_type in fields_to_translate:
             if data.get(field):
                 log_message = f"开始翻译{content_type}..."
-                logger.info(log_message)
+                task_logger.info(log_message)
+                
+                # 发送开始翻译的进度更新
+                await send_progress_update(task_id, content_type, 'starting', completed_fields, total_fields)
                 
                 try:
-                    if field == 'alternate_greetings':
-                        data[field] = translate_greetings_sync(data[field], llm_instance)
+                    if llm_instance is None:
+                        # 测试模式：模拟翻译延迟
+                        import asyncio
+                        await asyncio.sleep(2)  # 模拟翻译时间
+                        if field == 'alternate_greetings':
+                            data[field] = [f"【已翻译】{greeting}" for greeting in data[field]]
+                        else:
+                            data[field] = f"【已翻译】{data[field]}"
                     else:
-                        data[field] = translate_single_text_sync(data[field], content_type, llm_instance)
+                        # 正常翻译模式
+                        if field == 'alternate_greetings':
+                            data[field] = translate_greetings_sync(data[field], llm_instance)
+                        else:
+                            data[field] = translate_single_text_sync(data[field], content_type, llm_instance)
+                    
+                    # 明确报告完成状态
+                    task_logger.info(f"字段 {field} 翻译完成")
+                    completed_fields += 1
+                    
+                    # 发送完成的进度更新
+                    await send_progress_update(task_id, content_type, 'completed', completed_fields, total_fields)
+                    
                 except Exception as e:
-                    logger.error(f"翻译{content_type}时出错: {str(e)}")
+                    task_logger.error(f"翻译{content_type}时出错: {str(e)}")
                     raise
+            else:
+                # 报告跳过的字段
+                task_logger.info(f"字段 {field} 不存在或为空，跳过翻译")
+                completed_fields += 1
+                
+                # 发送跳过的进度更新
+                await send_progress_update(task_id, content_type, 'skipped', completed_fields, total_fields)
         
         # 更新text_data中的数据
         text_data['data'] = data
@@ -156,26 +313,29 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
         try:
             with open(json_output, "w", encoding="utf-8") as f:
                 json.dump(text_data, f, ensure_ascii=False, indent=4)
-            logger.info(f"已保存JSON文件: {json_output}")
+            task_logger.info(f"已保存JSON文件: {json_output}")
         except Exception as e:
-            logger.error(f"保存JSON文件失败: {str(e)}")
+            task_logger.error(f"保存JSON文件失败: {str(e)}")
             raise
         
         # 生成新图片
         try:
             result = embed_text_in_png(image_path, text_data, str(image_output))
             if not result:
-                logger.error("嵌入文本到PNG失败")
+                task_logger.error("嵌入文本到PNG失败")
                 raise ValueError("嵌入文本到PNG失败")
-            logger.info(f"已生成翻译后的角色卡图片: {image_output}")
+            task_logger.info(f"已生成翻译后的角色卡图片: {image_output}")
         except Exception as e:
-            logger.error(f"生成图片文件失败: {str(e)}")
+            task_logger.error(f"生成图片文件失败: {str(e)}")
             raise
         
         # 更新任务状态为完成
         tasks[task_id].update({
             'status': 'completed'
         })
+        
+        # 发送最终进度更新（100%完成）
+        await send_progress_update(task_id, "全部字段", 'completed', total_fields, total_fields)
         
         # 发送完成消息
         if task_id in active_connections:
@@ -186,11 +346,11 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
                 'message': '翻译任务完成!'
             })
             
-        logger.info("翻译任务完成！")
+        task_logger.info("翻译任务完成！")
         
     except Exception as e:
         error_message = f"处理过程中出错: {str(e)}"
-        logger.error(error_message)
+        task_logger.error(error_message)
         
         # 更新任务状态为失败
         tasks[task_id].update({
@@ -198,11 +358,36 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             'error': error_message
         })
         
+        # 发送错误消息到WebSocket
+        if task_id in active_connections:
+            try:
+                await active_connections[task_id].send_json({
+                    'type': 'error',
+                    'message': error_message
+                })
+            except:
+                pass  # WebSocket可能已断开
+        
     finally:
         # 清理任务专用的日志处理器
         if task_id in task_log_handlers:
-            logger.removeHandler(task_log_handlers[task_id])
+            task_handler = task_log_handlers[task_id]
+            # 从所有相关logger中移除处理器
+            task_logger.removeHandler(task_handler)
+            
+            translate_logger = logging.getLogger('translate')
+            translate_logger.removeHandler(task_handler)
+            
+            root_translate_logger = logging.getLogger('src.translate')
+            root_translate_logger.removeHandler(task_handler)
+            
+            httpx_logger = logging.getLogger('httpx')
+            httpx_logger.removeHandler(task_handler)
+            
             del task_log_handlers[task_id]
+            
+        # 标记任务完成，释放并发限制
+        request_limiter.finish_task()
 
 @app.websocket("/ws/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
@@ -243,7 +428,7 @@ async def upload_image(file: UploadFile = File(...)):
             f.write(content)
         
         # 验证文件是PNG格式
-        if not file.filename.lower().endswith('.png'):
+        if not file.filename or not file.filename.lower().endswith('.png'):
             return JSONResponse(
                 status_code=400,
                 content={"error": "只接受PNG格式的文件"}
@@ -271,6 +456,14 @@ async def upload_image(file: UploadFile = File(...)):
 async def translate_image(data: TranslationInput):
     """开始翻译任务"""
     try:
+        # 检查请求限制
+        can_accept, message = request_limiter.can_accept_request()
+        if not can_accept:
+            return JSONResponse(
+                status_code=429,  # Too Many Requests
+                content={"error": message}
+            )
+        
         task_id = data.task_id
         
         if task_id not in tasks:
@@ -298,6 +491,9 @@ async def translate_image(data: TranslationInput):
                 status_code=400,
                 content={"error": "API地址不能为空"}
             )
+        
+        # 开始任务
+        request_limiter.start_task()
         
         # 启动异步翻译任务
         asyncio.create_task(process_translation(
@@ -373,6 +569,25 @@ async def download_image(task_id: str):
         filename=Path(image_path).name,
         media_type="image/png"
     )
+
+@app.get("/health")
+async def health_check():
+    """健康检查端点"""
+    current_tasks = request_limiter.current_tasks
+    max_tasks = request_limiter.max_concurrent_tasks
+    
+    return JSONResponse(content={
+        "status": "healthy",
+        "current_tasks": current_tasks,
+        "max_concurrent_tasks": max_tasks,
+        "available_slots": max_tasks - current_tasks,
+        "last_request_time": request_limiter.last_request_time
+    })
+
+@app.get("/")
+async def root():
+    """根路径重定向到静态文件"""
+    return FileResponse(Path(__file__).parent.parent / "static" / "index.html")
 
 # 挂载前端静态文件
 # 支持Vue 3构建的单页应用
