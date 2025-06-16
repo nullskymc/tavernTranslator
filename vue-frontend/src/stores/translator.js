@@ -224,44 +224,55 @@ export const useTranslatorStore = defineStore('translator', () => {
           }
           
           const data = JSON.parse(event.data)
+          console.log('收到WebSocket消息:', data)
           
           // 处理不同类型的消息
-          if (data.type === 'progress') {
+          if (data.type === 'connected') {
+            console.log('WebSocket连接确认:', data.message)
+          } else if (data.type === 'progress') {
             // 处理进度更新消息
             handleProgressUpdate(data)
-               } else if (data.type === 'completed') {
-          handleTranslationComplete()
-        } else if (data.type === 'error') {
-          handleTranslationError(data.message)
+          } else if (data.type === 'completed') {
+            console.log('收到翻译完成消息')
+            handleTranslationComplete()
+          } else if (data.type === 'error') {
+            console.error('收到错误消息:', data.message)
+            handleTranslationError(data.message)
+          } else if (data.type === 'cancelled') {
+            console.log('收到任务取消消息')
+            handleTranslationCancelled()
+          } else if (data.type === 'heartbeat') {
+            console.log('收到服务器心跳')
+            // 响应服务器心跳
+            if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+              websocket.value.send('pong')
+            }
+          } else {
+            console.warn('未知的消息类型:', data.type)
+          }
+        } catch (e) {
+          console.error('Error parsing WebSocket message:', e)
+          console.error('原始消息:', event.data)
+          handleTranslationError('解析WebSocket消息时发生错误: ' + e.message)
         }
-      } catch (e) {
-        console.error('Error parsing WebSocket message:', e)
-        handleTranslationError('解析WebSocket消息时发生错误: ' + e.message)
       }
-    }
     
     websocket.value.onerror = (error) => {
       console.error('WebSocket error:', error)
+      
       // 只有在翻译早期阶段且确实有问题时才处理错误
-      if (translationStatus.value === 'processing' && 
-          !isTranslationFailed.value && 
-          translationProgress.value < 30) { // 只在前30%进度时认为WebSocket错误是严重问题
-        console.log('WebSocket连接错误，但尝试继续')
-        // 不立即报错，而是给一些时间恢复
-        setTimeout(() => {
-          if (translationStatus.value === 'processing' && 
-              !isTranslationFailed.value && 
-              translationProgress.value < 30) {
-            ElNotification({
-              title: '连接提醒',
-              message: 'WebSocket连接不稳定，如果翻译长时间无进展，请考虑重新开始',
-              type: 'warning',
-              duration: 5000
-            })
-          }
-        }, 10000) // 10秒后再检查
+      if (translationStatus.value === 'starting' || 
+          (translationStatus.value === 'processing' && translationProgress.value < 10)) {
+        console.log('WebSocket连接错误，但继续等待后端响应')
+        // 在早期阶段给出友好提示
+        ElNotification({
+          title: '连接提醒',
+          message: '正在建立连接，请稍等...',
+          type: 'info',
+          duration: 3000
+        })
       } else {
-        console.log('WebSocket error occurred but translation may be progressing, ignoring')
+        console.log('WebSocket连接错误，但翻译可能正在进行，继续等待')
       }
     }
     
@@ -269,40 +280,94 @@ export const useTranslatorStore = defineStore('translator', () => {
       console.log('WebSocket connection closed, code:', event.code, 'reason:', event.reason, 'wasClosing:', isClosingWebSocket.value)
       stopHeartbeat() // 连接关闭时停止心跳
         
-        // 如果是主动关闭或者翻译已完成，不视为错误
-        if (isClosingWebSocket.value || 
-            translationStatus.value === 'success' || 
-            translationProgress.value >= 90) { // 降低阈值到90%，给完成阶段更多容错
-          console.log('WebSocket正常关闭')
-          isClosingWebSocket.value = false
-          return
-        }
-        
-        // 更宽松的异常检查条件
-        const isAbnormalClose = translationStatus.value === 'processing' && 
-                               !isTranslationFailed.value && 
-                               translationProgress.value < 50 && // 只有在前50%进度时才认为是异常
-                               event.code !== 1000 && 
-                               event.code !== 1001 &&
-                               event.code !== 1006 // 1006是网络异常，但不一定是错误
-        
-        if (isAbnormalClose) {
-          console.log('WebSocket异常关闭，但尝试恢复连接')
-          // 不直接报错，而是尝试重新连接
-          setTimeout(() => {
-            if (translationStatus.value === 'processing' && !isTranslationFailed.value) {
-              console.log('尝试重新连接WebSocket')
-              connectWebSocket()
-            }
-          }, 5000) // 5秒后重试连接
-        } else {
-          console.log('WebSocket关闭，但不认为是错误')
+      // 如果是主动关闭或者翻译已完成，不视为错误
+      if (isClosingWebSocket.value || 
+          translationStatus.value === 'success' || 
+          translationStatus.value === 'cancelled' ||
+          translationProgress.value >= 100) {
+        console.log('WebSocket正常关闭')
+        isClosingWebSocket.value = false
+        return
+      }
+      
+      // 检查是否是异常关闭
+      const isAbnormalClose = translationStatus.value === 'processing' && 
+                             !isTranslationFailed.value && 
+                             translationProgress.value < 80 && // 只有在前80%进度时才重连
+                             event.code === 1006 // 1006是异常关闭
+      
+      if (isAbnormalClose) {
+        console.log('WebSocket异常关闭，尝试重新连接')
+        // 尝试重新连接
+        setTimeout(() => {
+          if (translationStatus.value === 'processing' && 
+              !isTranslationFailed.value && 
+              translationProgress.value < 80) {
+            console.log('重新连接WebSocket')
+            connectWebSocket()
+          }
+        }, 2000) // 2秒后重试连接
+      } else {
+        console.log('WebSocket关闭，但不认为是错误')
+        // 如果是在处理过程中断开但进度已经很高，启动结果检查
+        if (translationStatus.value === 'processing' && translationProgress.value >= 80) {
+          console.log('翻译接近完成，启动结果检查')
+          setTimeout(checkTranslationResult, 3000)
         }
       }
+    }
       
     } catch (error) {
       console.error('Failed to connect WebSocket:', error)
       handleTranslationError('无法连接到WebSocket: ' + error.message)
+    }
+  }
+
+  // 检查翻译结果（用于WebSocket断开时的备用检查）
+  const checkTranslationResult = async () => {
+    if (!taskId.value) return
+    
+    try {
+      console.log('检查翻译结果状态')
+      const response = await axios.get(`/status/${taskId.value}`)
+      const taskStatus = response.data
+      
+      console.log('任务状态:', taskStatus)
+      
+      if (taskStatus.status === 'completed') {
+        console.log('发现任务已完成，触发完成处理')
+        // 更新下载链接
+        downloadUrls.value = {
+          json: `/download/json/${taskId.value}`,
+          image: `/download/image/${taskId.value}`
+        }
+        handleTranslationComplete()
+      } else if (taskStatus.status === 'failed') {
+        console.log('发现任务失败')
+        handleTranslationError(taskStatus.error || '翻译任务失败')
+      } else if (taskStatus.status === 'cancelled') {
+        console.log('发现任务已取消')
+        handleTranslationCancelled()
+      } else {
+        console.log('任务仍在进行中，状态:', taskStatus.status)
+        // 如果任务仍在进行，更新进度信息
+        if (taskStatus.progress_percentage > translationProgress.value) {
+          translationProgress.value = taskStatus.progress_percentage
+        }
+        // 继续检查
+        if (taskStatus.status === 'processing') {
+          setTimeout(checkTranslationResult, 5000)
+        }
+      }
+    } catch (error) {
+      console.error('检查翻译结果失败:', error)
+      // 检查失败时给出提示
+      ElNotification({
+        title: '状态检查',
+        message: '无法获取翻译状态，请手动刷新页面或重新开始',
+        type: 'warning',
+        duration: 5000
+      })
     }
   }
 
@@ -428,22 +493,20 @@ export const useTranslatorStore = defineStore('translator', () => {
         return
       }
       
-      // 只在翻译真正进行中时发送心跳
-      if (translationStatus.value === 'processing' || 
-          (translationStatus.value === 'starting' && translationProgress.value > 0)) {
-        console.log('发送WebSocket心跳包')
-        websocket.value.send('ping')
-      } else {
-        console.log(`翻译状态: ${translationStatus.value}, 跳过心跳`)
-        // 如果翻译不在进行中，停止心跳
-        if (translationStatus.value === 'success' || 
-            translationStatus.value === 'exception' || 
-            translationStatus.value === '') {
-          console.log('翻译已完成或失败，停止心跳')
+      // 只在翻译进行中时发送心跳
+      if (translationStatus.value === 'processing' || translationStatus.value === 'starting') {
+        try {
+          console.log('发送WebSocket心跳包')
+          websocket.value.send('ping')
+        } catch (error) {
+          console.error('发送心跳包失败:', error)
           stopHeartbeat()
         }
+      } else {
+        console.log(`翻译状态: ${translationStatus.value}, 停止心跳`)
+        stopHeartbeat()
       }
-    }, 45000) // 增加到45秒，减少心跳频率
+    }, 30000) // 30秒间隔，与后端超时时间匹配
   }
 
   // 停止心跳机制
@@ -597,6 +660,31 @@ export const useTranslatorStore = defineStore('translator', () => {
     taskId.value = id
   }
 
+  // 处理翻译取消
+  const handleTranslationCancelled = () => {
+    // 停止心跳和进度监控
+    stopHeartbeat()
+    stopProgressMonitoring()
+    
+    translationStatus.value = 'cancelled'
+    translationProgress.value = 0
+    
+    // 清空已完成字段
+    completedFields.value = []
+    inProgressFields.value = []
+    
+    // 显示取消通知
+    ElNotification({
+      title: '任务已取消',
+      message: '翻译任务已被取消',
+      type: 'warning',
+      duration: 3000
+    })
+    
+    // 关闭WebSocket连接
+    closeWebSocket()
+  }
+
   return {
     // 状态
     taskId,
@@ -624,6 +712,7 @@ export const useTranslatorStore = defineStore('translator', () => {
     resetTranslation,
     downloadJson,
     downloadImage,
-    setTaskId
+    setTaskId,
+    checkTranslationResult
   }
 })

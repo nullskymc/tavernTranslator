@@ -155,19 +155,31 @@ async def send_progress_update(task_id: str, current_field: str, field_status: s
     if task_id in active_connections:
         try:
             ws = active_connections[task_id]
+            # 检查连接状态
             if ws.client_state.name == 'CONNECTED':
                 progress_percentage = round((completed_count / total_count) * 100) if total_count > 0 else 0
                 
-                await ws.send_json({
+                message = {
                     'type': 'progress',
                     'current_field': current_field,
                     'field_status': field_status,  # 'starting', 'completed', 'skipped'
                     'completed_count': completed_count,
                     'total_count': total_count,
-                    'progress_percentage': progress_percentage
-                })
+                    'progress_percentage': progress_percentage,
+                    'timestamp': time.time()
+                }
+                
+                await ws.send_json(message)
+                logging.debug(f"进度更新已发送: {task_id} - {current_field} ({progress_percentage}%)")
+            else:
+                logging.warning(f"WebSocket连接状态异常: {task_id} - {ws.client_state.name}")
+                # 如果连接异常，从活动连接中移除
+                del active_connections[task_id]
         except Exception as e:
-            print(f"发送进度更新失败: {e}")
+            logging.error(f"发送进度更新失败: {task_id} - {e}")
+            # 发送失败时从活动连接中移除
+            if task_id in active_connections:
+                del active_connections[task_id]
 
 # 存储正在处理的任务
 tasks: Dict[str, Dict] = {}
@@ -421,12 +433,20 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
         
         # 发送完成消息
         if task_id in active_connections:
-            await active_connections[task_id].send_json({
-                'type': 'completed',
-                'json_output': str(json_output),
-                'image_output': str(image_output),
-                'message': '翻译任务完成!'
-            })
+            try:
+                await active_connections[task_id].send_json({
+                    'type': 'completed',
+                    'json_output': str(json_output),
+                    'image_output': str(image_output),
+                    'message': '翻译任务完成!',
+                    'timestamp': time.time()
+                })
+                logging.info(f"任务完成消息已发送: {task_id}")
+            except Exception as e:
+                logging.error(f"发送完成消息失败: {task_id} - {e}")
+                # 即使发送失败，任务状态仍然是完成的
+        else:
+            logging.warning(f"任务完成但WebSocket连接不存在: {task_id}")
             
         task_logger.info("翻译任务完成！")
         
@@ -442,10 +462,12 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             try:
                 await active_connections[task_id].send_json({
                     'type': 'cancelled',
-                    'message': '翻译任务已取消'
+                    'message': '翻译任务已取消',
+                    'timestamp': time.time()
                 })
-            except:
-                pass
+                logging.info(f"任务取消消息已发送: {task_id}")
+            except Exception as e:
+                logging.error(f"发送取消消息失败: {task_id} - {e}")
                 
     except TranslationError as e:
         # 翻译错误处理
@@ -498,10 +520,12 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
                 await active_connections[task_id].send_json({
                     'type': 'error',
                     'message': error.message,
-                    'error_details': format_error_for_frontend(error)
+                    'error_details': format_error_for_frontend(error),
+                    'timestamp': time.time()
                 })
-            except:
-                pass
+                logging.info(f"错误消息已发送: {task_id}")
+            except Exception as e:
+                logging.error(f"发送错误消息失败: {task_id} - {e}")
         
     finally:
         # 清理任务专用的日志处理器
@@ -526,25 +550,69 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
 
 @app.websocket("/ws/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
-    await websocket.accept()
-    active_connections[task_id] = websocket
-    
-    # 如果该任务已经有错误，立即发送错误消息
-    if task_id in tasks and tasks[task_id].get('status') == 'failed':
-        await websocket.send_json({
-            'type': 'error',
-            'message': tasks[task_id].get('error', '未知错误')
-        })
-    
     try:
+        await websocket.accept()
+        active_connections[task_id] = websocket
+        
+        logging.info(f"WebSocket连接已建立: {task_id}")
+        
+        # 发送连接确认消息
+        await websocket.send_json({
+            'type': 'connected',
+            'task_id': task_id,
+            'message': '连接已建立'
+        })
+        
+        # 如果该任务已经有错误，立即发送错误消息
+        if task_id in tasks and tasks[task_id].get('status') == 'failed':
+            await websocket.send_json({
+                'type': 'error',
+                'message': tasks[task_id].get('error', '未知错误')
+            })
+        
+        # 如果任务已经完成，发送完成消息
+        elif task_id in tasks and tasks[task_id].get('status') == 'completed':
+            await websocket.send_json({
+                'type': 'completed',
+                'json_output': tasks[task_id].get('json_output', ''),
+                'image_output': tasks[task_id].get('image_output', ''),
+                'message': '翻译任务已完成!'
+            })
+        
+        # 保持连接活跃并处理心跳
         while True:
-            # 保持连接活跃
-            data = await websocket.receive_text()
-            if data == "ping":
-                await websocket.send_text("pong")
+            try:
+                # 设置接收超时为30秒
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=30.0)
+                if data == "ping":
+                    await websocket.send_text("pong")
+                    logging.debug(f"WebSocket心跳响应: {task_id}")
+                elif data == "close":
+                    logging.info(f"收到客户端关闭请求: {task_id}")
+                    break
+            except asyncio.TimeoutError:
+                # 发送心跳检查连接
+                try:
+                    await websocket.send_json({
+                        'type': 'heartbeat',
+                        'timestamp': time.time()
+                    })
+                except:
+                    logging.warning(f"WebSocket心跳发送失败，连接可能已断开: {task_id}")
+                    break
+            except Exception as e:
+                logging.error(f"WebSocket接收数据时出错: {task_id}, {e}")
+                break
+                
     except WebSocketDisconnect:
+        logging.info(f"WebSocket连接断开: {task_id}")
+    except Exception as e:
+        logging.error(f"WebSocket处理异常: {task_id}, {e}")
+    finally:
+        # 清理连接
         if task_id in active_connections:
             del active_connections[task_id]
+            logging.info(f"WebSocket连接已清理: {task_id}")
 
 @app.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
