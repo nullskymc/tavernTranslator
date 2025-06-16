@@ -21,11 +21,11 @@ logging.basicConfig(level=logging.INFO)
 class ConcurrencyController:
     """并发控制器，动态调整并发数和请求间隔"""
     
-    def __init__(self, initial_max_workers=2, min_workers=1, max_workers=3, custom_logger=None):
+    def __init__(self, initial_max_workers=1, min_workers=1, max_workers=2, custom_logger=None):
         self.max_workers = initial_max_workers
         self.min_workers = min_workers
         self.max_workers_limit = max_workers
-        self.request_interval = 3  # 初始请求间隔（秒）
+        self.request_interval = 5  # 初始请求间隔（秒）- 更保守
         self.error_count = 0
         self.success_count = 0
         self.consecutive_rate_limit_errors = 0  # 连续429错误计数

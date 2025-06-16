@@ -294,13 +294,53 @@ export const useTranslatorStore = defineStore('translator', () => {
             if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
               websocket.value.send('pong')
             }
+          } else if (data.type === 'log') {
+            // 处理日志消息（仅在开发模式下显示）
+            if (import.meta.env.DEV) {
+              console.log('后端日志:', data.message)
+            }
+            // 生产环境下忽略日志消息，不做处理
           } else {
-            console.warn('未知的消息类型:', data.type)
+            console.warn('未知的消息类型:', data.type, data)
           }
         } catch (e) {
           console.error('Error parsing WebSocket message:', e)
           console.error('原始消息:', event.data)
-          handleTranslationError('解析WebSocket消息时发生错误: ' + e.message)
+          
+          // 尝试分割可能连在一起的JSON消息
+          try {
+            const messages = event.data.split('}{')
+            if (messages.length > 1) {
+              console.log('检测到多个连接的JSON消息，尝试分别解析')
+              for (let i = 0; i < messages.length; i++) {
+                let msgStr = messages[i]
+                if (i > 0) msgStr = '{' + msgStr
+                if (i < messages.length - 1) msgStr = msgStr + '}'
+                
+                try {
+                  const data = JSON.parse(msgStr)
+                  // 只处理重要的消息类型
+                  if (data.type === 'progress' || data.type === 'completed' || data.type === 'error') {
+                    console.log('解析到重要消息:', data)
+                    if (data.type === 'progress') {
+                      handleProgressUpdate(data)
+                    } else if (data.type === 'completed') {
+                      handleTranslationComplete()
+                    } else if (data.type === 'error') {
+                      handleTranslationError(data.message)
+                    }
+                  }
+                } catch (innerE) {
+                  console.warn('无法解析消息片段:', msgStr)
+                }
+              }
+            } else {
+              // 单个消息解析失败，但不影响整体功能
+              console.warn('WebSocket消息解析失败，但继续运行')
+            }
+          } catch (splitError) {
+            console.warn('尝试分割消息也失败，忽略此消息')
+          }
         }
       }
     

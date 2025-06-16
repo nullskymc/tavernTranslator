@@ -67,70 +67,43 @@ class RequestLimiter:
 # 全局请求限制器实例
 request_limiter = RequestLimiter(max_concurrent_tasks=2)
 
-# 自定义日志处理器，用于捕获并转发错误日志
+# 自定义日志处理器，用于捕获错误日志（不再通过WebSocket发送普通日志）
 class WebSocketLogHandler(logging.Handler):
     def __init__(self, task_id):
         super().__init__()
         self.task_id = task_id
-        self.setLevel(logging.INFO)  # 设置为INFO级别，可以捕获所有INFO及以上级别的日志
+        self.setLevel(logging.ERROR)  # 只处理ERROR级别及以上的日志
     
     def emit(self, record):
-        try:
-            log_message = self.format(record)
-            # 创建异步任务发送日志
-            loop = None
+        # 只处理严重错误，不再发送普通日志消息
+        if record.levelno >= logging.ERROR:
             try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                # 没有运行的事件循环
-                pass
-            
-            if loop and not loop.is_closed():
-                # 确保任务被立即调度
-                task = asyncio.create_task(self.send_log(log_message, record))
-                # 不等待完成，避免阻塞日志记录
-            else:
-                # 如果没有事件循环，尝试在新线程中处理
-                import threading
-                threading.Thread(target=self._sync_send_log, args=(log_message, record), daemon=True).start()
-        except Exception as e:
-            # 输出错误以便调试
-            print(f"日志发送失败: {e}")
-            self.handleError(record)
+                log_message = self.format(record)
+                # 创建异步任务发送错误消息
+                loop = None
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    pass
+                
+                if loop and not loop.is_closed():
+                    asyncio.create_task(self.send_error(log_message))
+            except Exception as e:
+                print(f"发送错误消息失败: {e}")
     
-    def _sync_send_log(self, log_message, record):
-        """同步方式发送日志的回退方案"""
-        try:
-            # 尝试获取新的事件循环
-            new_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(new_loop)
-            new_loop.run_until_complete(self.send_log(log_message, record))
-            new_loop.close()
-        except Exception:
-            pass  # 静默失败，避免日志系统崩溃
-    
-    async def send_log(self, log_message, record):
+    async def send_error(self, log_message):
+        """只发送错误消息，不发送普通日志"""
         if self.task_id in active_connections:
             try:
                 ws = active_connections[self.task_id]
-                # 检查WebSocket连接状态
                 if ws.client_state.name == 'CONNECTED':
-                    # 对于ERROR级别的日志，发送特殊的错误消息
-                    if record.levelno >= logging.ERROR:
-                        await ws.send_json({
-                            'type': 'error',
-                            'message': log_message
-                        })
-                    else:
-                        # 普通日志作为log类型发送
-                        await ws.send_json({
-                            'type': 'log',
-                            'message': log_message
-                        })
-            except Exception as e:
-                # WebSocket发送失败，记录错误但不阻塞日志系统
-                print(f"WebSocket发送日志失败: {e}")
-                pass
+                    await ws.send_json({
+                        'type': 'error',
+                        'message': log_message,
+                        'timestamp': time.time()
+                    })
+            except Exception:
+                pass  # 静默失败
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
