@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   tavern-translator:
-    image: ghcr.io/nullskymc/tavernTranslator:latest
+    image: ghcr.io/nullskymc/taverntranslator:latest
     ports:
       - "8080:8080"
     volumes:
