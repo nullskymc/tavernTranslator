@@ -8,6 +8,14 @@ import time
 import threading
 from typing import List, Dict, Any, Optional
 
+# 导入新的错误处理和任务管理模块
+from errors import (
+    TranslationError, ErrorCode, ErrorSeverity, RetryConfig,
+    parse_openai_error, format_error_for_log, TaskCancelledException
+)
+from task_manager import get_task_manager, TaskManager
+from retry_controller import RetryController, create_retry_controller
+
 logging.basicConfig(level=logging.INFO)
 
 class ConcurrencyController:
@@ -68,8 +76,9 @@ class ConcurrencyController:
             return self.max_workers, self.request_interval
 
 class CharacterCardTranslator:
-    """角色卡翻译器"""
-    def __init__(self, model_name: str, base_url: str, api_key: str, custom_logger=None):
+    """角色卡翻译器 - 集成了完整的错误处理和重试机制"""
+    def __init__(self, model_name: str, base_url: str, api_key: str, 
+                 task_id: Optional[str] = None, custom_logger=None):
         self.llm = ChatOpenAI(
             model=model_name,
             base_url=base_url,
@@ -77,8 +86,27 @@ class CharacterCardTranslator:
             max_completion_tokens=8192,
         )
         
+        # 任务管理
+        self.task_id = task_id
+        self.task_manager = get_task_manager()
+        
         # 使用自定义logger或默认logger
         self.logger = custom_logger if custom_logger else logging.getLogger(__name__)
+        
+        # 创建重试控制器
+        retry_config = RetryConfig(
+            max_retries=3,           # 降低重试次数
+            max_total_time=180,      # 降低最大重试时间（3分钟）
+            base_delay=2.0,          # 基础延迟
+            max_delay=30,            # 最大延迟30秒
+            exponential_backoff=True,
+            jitter=True
+        )
+        self.retry_controller = RetryController(
+            config=retry_config,
+            task_manager=self.task_manager,
+            logger=self.logger
+        )
         
         # 初始化并发控制器
         self.concurrency_controller = ConcurrencyController(custom_logger=self.logger)
@@ -127,29 +155,34 @@ class CharacterCardTranslator:
             HumanMessagePromptTemplate.from_template("{text}")
         ])
     
-    def translate_field(self, field_name: str, text: str, max_retries=10) -> str:
-        """根据字段类型选择合适的模板翻译，带重试机制"""
+    def translate_field(self, field_name: str, text: str) -> str:
+        """根据字段类型选择合适的模板翻译，集成重试机制和错误处理"""
         if not text or text.strip() == "":
             self.logger.info(f"字段 {field_name} 为空，跳过翻译")
             return text
-            
+        
+        # 如果有任务ID，检查任务状态
+        if self.task_id:
+            self.task_manager.check_task_cancellation(self.task_id)
+        
+        # 选择合适的模板
         template = self.base_template
         if field_name == "description":
             template = self.description_template
         elif field_name in ["first_mes", "mes_example"]:
             template = self.dialogue_template
-            
-        # 获取当前配置
-        _, request_interval = self.concurrency_controller.get_current_config()
         
-        for attempt in range(max_retries):
+        # 定义实际的翻译操作
+        def do_translate():
+            # 再次检查取消状态
+            if self.task_id:
+                self.task_manager.check_task_cancellation(self.task_id)
+            
+            # 获取当前配置并添加请求间隔
+            _, request_interval = self.concurrency_controller.get_current_config()
+            time.sleep(request_interval)
+            
             try:
-                # 添加请求间隔
-                if attempt > 0:  # 重试时增加额外延迟
-                    time.sleep(request_interval * (attempt + 1))
-                else:
-                    time.sleep(request_interval)
-                    
                 messages = template.format_messages(text=text)
                 response = self.llm.invoke(messages)
                 
@@ -171,42 +204,51 @@ class CharacterCardTranslator:
                     return ''.join(content_parts) if content_parts else str(response.content)
                 else:
                     return str(response.content)
-                    
+            
             except Exception as e:
-                # 检查是否是429错误（API饱和）
-                error_str = str(e).lower()
-                is_rate_limit = '429' in error_str or 'rate' in error_str or '饱和' in error_str or 'too many requests' in error_str
+                # 转换为标准错误格式
+                error = parse_openai_error(e)
                 
-                # 错误时通知控制器
+                # 通知并发控制器
+                is_rate_limit = error.error_code == ErrorCode.RATE_LIMIT_ERROR
                 self.concurrency_controller.on_error(is_rate_limit=is_rate_limit)
-                self.logger.warning(f"翻译字段 {field_name} 时出错 (尝试 {attempt + 1}/{max_retries}): {str(e)}")
                 
-                if is_rate_limit:
-                    # 对于429错误，使用更长的等待时间
-                    wait_time = min(60, 10 * (2 ** attempt))  # 指数退避，最大60秒
-                    self.logger.warning(f"检测到API饱和，等待 {wait_time} 秒后重试...")
-                    time.sleep(wait_time)
-                elif attempt < max_retries - 1:
-                    # 对于其他错误，使用较短的等待时间
-                    wait_time = min(10, 2 ** attempt)
-                    time.sleep(wait_time)
-                
-                if attempt == max_retries - 1:
-                    # 最后一次重试失败
-                    if is_rate_limit:
-                        self.logger.error(f"翻译字段 {field_name} 因API持续饱和而最终失败，已重试 {max_retries} 次")
-                    else:
-                        self.logger.error(f"翻译字段 {field_name} 最终失败")
-                    raise
-                
-        # 理论上不会到达这里，但为了类型安全
-        return text
+                # 重新抛出标准化错误
+                raise error
+        
+        # 使用重试控制器执行翻译
+        try:
+            if self.task_id:
+                return self.retry_controller.execute_with_retry(
+                    task_id=self.task_id,
+                    operation=do_translate,
+                    operation_name=f"翻译字段 {field_name}"
+                )
+            else:
+                # 如果没有任务ID，使用简单重试
+                return do_translate()
+        except TranslationError as e:
+            self.logger.error(f"翻译字段 {field_name} 最终失败: {e.message}")
+            raise
+        except Exception as e:
+            # 兜底处理
+            error = TranslationError(
+                error_code=ErrorCode.TRANSLATION_ERROR,
+                message=f"翻译字段 {field_name} 时发生未知错误: {str(e)}",
+                severity=ErrorSeverity.HIGH
+            )
+            self.logger.error(format_error_for_log(error))
+            raise error
     
     def translate_greeting_list(self, greetings: List[str]) -> List[str]:
-        """动态并发翻译问候语列表"""
+        """动态并发翻译问候语列表，集成错误处理和任务管理"""
         if not greetings or len(greetings) == 0:
             self.logger.info("问候语列表为空，跳过翻译")
             return greetings
+        
+        # 检查任务取消状态
+        if self.task_id:
+            self.task_manager.check_task_cancellation(self.task_id)
             
         # 获取当前并发配置
         max_workers, _ = self.concurrency_controller.get_current_config()
@@ -214,11 +256,28 @@ class CharacterCardTranslator:
         
         self.logger.info(f"使用 {actual_workers} 个并发线程翻译 {len(greetings)} 个问候语")
         
+        # 定义单个问候语翻译函数
+        def translate_single_greeting(index: int, greeting: str) -> tuple[int, str]:
+            try:
+                if not greeting.strip():
+                    return index, greeting
+                
+                result = self.translate_field("alternate_greetings", greeting)
+                return index, result
+            except Exception as e:
+                # 记录错误但不中断整个流程
+                if isinstance(e, TaskCancelledException):
+                    raise  # 任务取消异常需要向上传播
+                
+                error = parse_openai_error(e) if not isinstance(e, TranslationError) else e
+                self.logger.warning(f"问候语 {index} 翻译失败: {error.message}，使用原文")
+                return index, greeting  # 使用原文作为fallback
+        
         try:
             with concurrent.futures.ThreadPoolExecutor(max_workers=actual_workers) as executor:
                 # 提交所有任务
                 future_to_index = {
-                    executor.submit(self.translate_field, "alternate_greetings", greeting): i
+                    executor.submit(translate_single_greeting, i, greeting): i
                     for i, greeting in enumerate(greetings) if greeting.strip()
                 }
                 
@@ -227,54 +286,60 @@ class CharacterCardTranslator:
                 completed_count = 0
                 
                 for future in concurrent.futures.as_completed(future_to_index):
-                    index = future_to_index[future]
+                    # 检查任务是否被取消
+                    if self.task_id:
+                        self.task_manager.check_task_cancellation(self.task_id)
+                    
                     try:
-                        result = future.result()
+                        index, result = future.result()
                         results[index] = result
                         completed_count += 1
                         self.logger.info(f"问候语翻译进度: {completed_count}/{len(greetings)}")
+                    except TaskCancelledException:
+                        # 任务被取消，立即中断
+                        self.logger.info("问候语翻译任务被取消")
+                        raise
                     except Exception as e:
-                        error_str = str(e).lower()
-                        is_rate_limit = '429' in error_str or 'rate' in error_str or '饱和' in error_str or 'too many requests' in error_str
-                        
-                        if is_rate_limit:
-                            self.logger.warning(f"问候语 {index} 翻译遇到API饱和: {str(e)}")
-                        else:
-                            self.logger.error(f"翻译问候语 {index} 失败: {str(e)}")
-                        # 使用原文作为fallback
-                        results[index] = greetings[index]
+                        # 其他错误，记录但继续
+                        original_index = future_to_index[future]
+                        self.logger.warning(f"问候语 {original_index} 处理失败: {str(e)}，使用原文")
+                        results[original_index] = greetings[original_index]
+                        completed_count += 1
                         
                 # 过滤掉空值
                 final_results = [result for result in results if result.strip()]
                 self.logger.info("问候语列表翻译完成")
                 return final_results
                 
+        except TaskCancelledException:
+            raise
         except Exception as e:
-            error_str = str(e).lower()
-            is_rate_limit = '429' in error_str or 'rate' in error_str or '饱和' in error_str or 'too many requests' in error_str
+            error = parse_openai_error(e) if not isinstance(e, TranslationError) else e
+            self.logger.warning(f"问候语并发翻译遇到问题: {error.message}")
             
-            if is_rate_limit:
-                self.logger.warning(f"问候语并发翻译遇到API饱和: {str(e)}")
-            else:
-                self.logger.error(f"问候语并发翻译失败: {str(e)}")
+            # 如果是严重错误，抛出异常
+            if error.severity == ErrorSeverity.CRITICAL or error.should_stop_immediately():
+                raise error
                 
             # 降级到序列翻译
             self.logger.info("降级到序列翻译模式")
             results = []
-            for greeting in greetings:
-                if greeting.strip():
-                    try:
+            for i, greeting in enumerate(greetings):
+                try:
+                    if self.task_id:
+                        self.task_manager.check_task_cancellation(self.task_id)
+                    
+                    if greeting.strip():
                         result = self.translate_field("alternate_greetings", greeting)
                         results.append(result)
-                    except Exception as seq_e:
-                        seq_error_str = str(seq_e).lower()
-                        is_seq_rate_limit = '429' in seq_error_str or 'rate' in seq_error_str or '饱和' in seq_error_str
-                        
-                        if is_seq_rate_limit:
-                            self.logger.warning(f"序列翻译也遇到API饱和，使用原文: {str(seq_e)}")
-                        else:
-                            self.logger.error(f"序列翻译也失败，使用原文: {str(seq_e)}")
-                        results.append(greeting)  # 使用原文
+                    else:
+                        results.append(greeting)
+                except TaskCancelledException:
+                    raise
+                except Exception as seq_e:
+                    seq_error = parse_openai_error(seq_e) if not isinstance(seq_e, TranslationError) else seq_e
+                    self.logger.warning(f"序列翻译问候语 {i} 失败: {seq_error.message}，使用原文")
+                    results.append(greeting)  # 使用原文
             return results
     
     def translate_character_card(self, card_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -330,9 +395,10 @@ def get_field_display_name(field_name: str) -> str:
     return field_map.get(field_name, field_name)
 
 # 修改兼容层函数
-def create_llm(model_name: str, base_url: str, api_key: str, custom_logger=None):
+def create_llm(model_name: str, base_url: str, api_key: str, 
+               task_id: Optional[str] = None, custom_logger=None):
     """创建LLM实例，返回CharacterCardTranslator实例"""
-    return CharacterCardTranslator(model_name, base_url, api_key, custom_logger)
+    return CharacterCardTranslator(model_name, base_url, api_key, task_id, custom_logger)
 
 def translate_single_text_sync(text: str, content_type: str, translator) -> str:
     """同步翻译单个文本"""
@@ -353,11 +419,18 @@ def translate_single_text_sync(text: str, content_type: str, translator) -> str:
         }
         field_type = field_map.get(content_type, "base")
         return translator.translate_field(field_type, text)
-    except Exception as e:
-        # 记录错误信息并抛出异常，而不是返回原文
-        # 这样会中断处理流程并触发错误处理
-        logging.error(f"翻译文本时出错: {str(e)}")
+    except TranslationError:
+        # 重新抛出翻译错误
         raise
+    except Exception as e:
+        # 转换其他异常为翻译错误
+        error = TranslationError(
+            error_code=ErrorCode.TRANSLATION_ERROR,
+            message=f"翻译{content_type}时出错: {str(e)}",
+            severity=ErrorSeverity.HIGH
+        )
+        logging.error(format_error_for_log(error))
+        raise error
 
 def translate_greetings_sync(greetings_list, translator):
     """并发翻译问候语列表"""
@@ -367,10 +440,18 @@ def translate_greetings_sync(greetings_list, translator):
         
     try:
         return translator.translate_greeting_list(greetings_list)
-    except Exception as e:
-        # 记录错误信息并抛出异常，而不是返回原文
-        logging.error(f"翻译问候语列表时出错: {str(e)}")
+    except TranslationError:
+        # 重新抛出翻译错误
         raise
+    except Exception as e:
+        # 转换其他异常为翻译错误
+        error = TranslationError(
+            error_code=ErrorCode.TRANSLATION_ERROR,
+            message=f"翻译问候语列表时出错: {str(e)}",
+            severity=ErrorSeverity.HIGH
+        )
+        logging.error(format_error_for_log(error))
+        raise error
 
 def translate_description_sync(desc: str, translator):
     """翻译角色描述"""
@@ -380,7 +461,15 @@ def translate_description_sync(desc: str, translator):
         
     try:
         return translator.translate_field("description", desc)
-    except Exception as e:
-        # 记录错误信息并抛出异常，而不是返回原文
-        logging.error(f"翻译描述时出错: {str(e)}")
+    except TranslationError:
+        # 重新抛出翻译错误
         raise
+    except Exception as e:
+        # 转换其他异常为翻译错误
+        error = TranslationError(
+            error_code=ErrorCode.TRANSLATION_ERROR,
+            message=f"翻译描述时出错: {str(e)}",
+            severity=ErrorSeverity.HIGH
+        )
+        logging.error(format_error_for_log(error))
+        raise error

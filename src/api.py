@@ -18,6 +18,13 @@ from io import StringIO
 from extract_text import extract_embedded_text, embed_text_in_png
 from translate import create_llm, translate_greetings_sync, translate_single_text_sync
 
+# 导入新的错误处理和任务管理模块
+from errors import (
+    TranslationError, ErrorCode, ErrorSeverity, 
+    format_error_for_log, format_error_for_frontend, TaskCancelledException
+)
+from task_manager import get_task_manager, TaskStatus
+
 # 全局请求限制器
 class RequestLimiter:
     """全局请求限制器，防止同时处理过多翻译任务"""
@@ -129,6 +136,9 @@ class WebSocketLogHandler(logging.Handler):
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 获取全局任务管理器
+task_manager = get_task_manager()
+
 app = FastAPI(title="Tavern Translator API")
 
 # 启用CORS
@@ -174,6 +184,10 @@ class TranslationInput(BaseModel):
 async def process_translation(task_id: str, image_path: str, model_name: str, base_url: str, api_key: str):
     """处理图片提取和翻译，发送进度更新到WebSocket"""
     try:
+        # 创建任务记录
+        task_info = task_manager.create_task(task_id, total_steps=7)  # 7个主要字段
+        task_manager.start_task(task_id)
+        
         # 为此任务创建专用的logger
         task_logger = logging.getLogger(f"translation_{task_id}")
         task_logger.setLevel(logging.INFO)
@@ -232,20 +246,39 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             llm_instance = None
         else:
             try:
-                llm_instance = create_llm(model_name, base_url, api_key, task_logger)
+                llm_instance = create_llm(model_name, base_url, api_key, task_id, task_logger)
             except Exception as e:
-                task_logger.error(f"创建LLM实例失败: {str(e)}")
-                raise
+                error = TranslationError(
+                    error_code=ErrorCode.API_ERROR,
+                    message=f"创建LLM实例失败: {str(e)}",
+                    severity=ErrorSeverity.CRITICAL
+                )
+                task_logger.error(format_error_for_log(error))
+                raise error
         
         # 提取文本数据
+        task_logger.info("开始提取角色卡数据...")
         try:
             text_data = extract_embedded_text(image_path)
             if not text_data or 'data' not in text_data:
-                task_logger.error("无法提取文本数据，请确保上传了有效的角色卡")
-                raise ValueError("无法提取文本数据，请确保上传了有效的角色卡")
-        except Exception as e:
-            task_logger.error(f"解析角色卡数据失败: {str(e)}")
+                error = TranslationError(
+                    error_code=ErrorCode.FILE_PROCESSING_ERROR,
+                    message="无法提取文本数据，请确保上传了有效的角色卡",
+                    severity=ErrorSeverity.HIGH
+                )
+                task_logger.error(format_error_for_log(error))
+                raise error
+            task_logger.info("角色卡数据提取完成")
+        except TranslationError:
             raise
+        except Exception as e:
+            error = TranslationError(
+                error_code=ErrorCode.FILE_PROCESSING_ERROR,
+                message=f"解析角色卡数据失败: {str(e)}",
+                severity=ErrorSeverity.HIGH
+            )
+            task_logger.error(format_error_for_log(error))
+            raise error
             
         data = text_data['data']
         
@@ -265,9 +298,15 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
         completed_fields = 0
         
         for field, content_type in fields_to_translate:
+            # 检查任务是否被取消
+            task_manager.check_task_cancellation(task_id)
+            
             if data.get(field):
                 log_message = f"开始翻译{content_type}..."
                 task_logger.info(log_message)
+                
+                # 更新任务进度
+                task_manager.update_task_progress(task_id, content_type, completed_fields, total_fields)
                 
                 # 发送开始翻译的进度更新
                 await send_progress_update(task_id, content_type, 'starting', completed_fields, total_fields)
@@ -275,7 +314,6 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
                 try:
                     if llm_instance is None:
                         # 测试模式：模拟翻译延迟
-                        import asyncio
                         await asyncio.sleep(2)  # 模拟翻译时间
                         if field == 'alternate_greetings':
                             data[field] = [f"【已翻译】{greeting}" for greeting in data[field]]
@@ -292,16 +330,38 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
                     task_logger.info(f"字段 {field} 翻译完成")
                     completed_fields += 1
                     
+                    # 更新任务进度
+                    task_manager.update_task_progress(task_id, content_type, completed_fields, total_fields)
+                    
                     # 发送完成的进度更新
                     await send_progress_update(task_id, content_type, 'completed', completed_fields, total_fields)
                     
+                except TaskCancelledException as e:
+                    task_logger.info("翻译任务被用户取消")
+                    raise e
+                except TranslationError as e:
+                    task_logger.error(f"翻译{content_type}时出错: {format_error_for_log(e)}")
+                    if e.should_stop_immediately():
+                        raise e
+                    # 对于非致命错误，记录但继续（可以根据需要调整策略）
+                    task_logger.warning(f"跳过翻译{content_type}，继续处理其他字段")
+                    completed_fields += 1
+                    await send_progress_update(task_id, content_type, 'skipped', completed_fields, total_fields)
                 except Exception as e:
-                    task_logger.error(f"翻译{content_type}时出错: {str(e)}")
-                    raise
+                    error = TranslationError(
+                        error_code=ErrorCode.TRANSLATION_ERROR,
+                        message=f"翻译{content_type}时发生未知错误: {str(e)}",
+                        severity=ErrorSeverity.HIGH
+                    )
+                    task_logger.error(format_error_for_log(error))
+                    raise error
             else:
                 # 报告跳过的字段
                 task_logger.info(f"字段 {field} 不存在或为空，跳过翻译")
                 completed_fields += 1
+                
+                # 更新任务进度
+                task_manager.update_task_progress(task_id, content_type, completed_fields, total_fields)
                 
                 # 发送跳过的进度更新
                 await send_progress_update(task_id, content_type, 'skipped', completed_fields, total_fields)
@@ -310,24 +370,46 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
         text_data['data'] = data
         
         # 保存JSON文件
+        task_logger.info("保存翻译结果...")
         try:
             with open(json_output, "w", encoding="utf-8") as f:
                 json.dump(text_data, f, ensure_ascii=False, indent=4)
             task_logger.info(f"已保存JSON文件: {json_output}")
         except Exception as e:
-            task_logger.error(f"保存JSON文件失败: {str(e)}")
-            raise
+            error = TranslationError(
+                error_code=ErrorCode.FILE_PROCESSING_ERROR,
+                message=f"保存JSON文件失败: {str(e)}",
+                severity=ErrorSeverity.HIGH
+            )
+            task_logger.error(format_error_for_log(error))
+            raise error
         
         # 生成新图片
+        task_logger.info("生成翻译后的角色卡图片...")
         try:
             result = embed_text_in_png(image_path, text_data, str(image_output))
             if not result:
-                task_logger.error("嵌入文本到PNG失败")
-                raise ValueError("嵌入文本到PNG失败")
+                error = TranslationError(
+                    error_code=ErrorCode.FILE_PROCESSING_ERROR,
+                    message="嵌入文本到PNG失败",
+                    severity=ErrorSeverity.HIGH
+                )
+                task_logger.error(format_error_for_log(error))
+                raise error
             task_logger.info(f"已生成翻译后的角色卡图片: {image_output}")
-        except Exception as e:
-            task_logger.error(f"生成图片文件失败: {str(e)}")
+        except TranslationError:
             raise
+        except Exception as e:
+            error = TranslationError(
+                error_code=ErrorCode.FILE_PROCESSING_ERROR,
+                message=f"生成图片文件失败: {str(e)}",
+                severity=ErrorSeverity.HIGH
+            )
+            task_logger.error(format_error_for_log(error))
+            raise error
+        
+        # 标记任务完成
+        task_manager.complete_task(task_id)
         
         # 更新任务状态为完成
         tasks[task_id].update({
@@ -348,14 +430,35 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             
         task_logger.info("翻译任务完成！")
         
-    except Exception as e:
-        error_message = f"处理过程中出错: {str(e)}"
+    except TaskCancelledException as e:
+        # 任务取消处理
+        task_manager.cancel_task(task_id)
+        tasks[task_id].update({
+            'status': 'cancelled',
+            'error': '任务被用户取消'
+        })
+        
+        if task_id in active_connections:
+            try:
+                await active_connections[task_id].send_json({
+                    'type': 'cancelled',
+                    'message': '翻译任务已取消'
+                })
+            except:
+                pass
+                
+    except TranslationError as e:
+        # 翻译错误处理
+        error_message = format_error_for_log(e)
         task_logger.error(error_message)
+        
+        # 标记任务失败
+        task_manager.fail_task(task_id, e)
         
         # 更新任务状态为失败
         tasks[task_id].update({
             'status': 'failed',
-            'error': error_message
+            'error': e.message
         })
         
         # 发送错误消息到WebSocket
@@ -363,10 +466,42 @@ async def process_translation(task_id: str, image_path: str, model_name: str, ba
             try:
                 await active_connections[task_id].send_json({
                     'type': 'error',
-                    'message': error_message
+                    'message': e.message,
+                    'error_details': format_error_for_frontend(e)
                 })
             except:
-                pass  # WebSocket可能已断开
+                pass
+        
+    except Exception as e:
+        # 未知错误处理
+        error = TranslationError(
+            error_code=ErrorCode.INTERNAL_ERROR,
+            message=f"处理过程中出现未知错误: {str(e)}",
+            severity=ErrorSeverity.CRITICAL
+        )
+        
+        error_message = format_error_for_log(error)
+        task_logger.error(error_message)
+        
+        # 标记任务失败
+        task_manager.fail_task(task_id, error)
+        
+        # 更新任务状态为失败
+        tasks[task_id].update({
+            'status': 'failed',
+            'error': error.message
+        })
+        
+        # 发送错误消息到WebSocket
+        if task_id in active_connections:
+            try:
+                await active_connections[task_id].send_json({
+                    'type': 'error',
+                    'message': error.message,
+                    'error_details': format_error_for_frontend(error)
+                })
+            except:
+                pass
         
     finally:
         # 清理任务专用的日志处理器
@@ -524,7 +659,50 @@ async def get_task_status(task_id: str):
             content={"error": "找不到该任务"}
         )
     
-    return JSONResponse(content=tasks[task_id])
+    # 同时获取任务管理器中的状态
+    task_info = task_manager.get_task(task_id)
+    task_status = tasks[task_id].copy()
+    
+    if task_info:
+        task_status.update({
+            "progress_percentage": task_info.progress_percentage,
+            "current_step": task_info.current_step,
+            "error_count": task_info.error_count,
+            "retry_count": task_info.retry_count,
+            "duration": task_info.get_duration()
+        })
+    
+    return JSONResponse(content=task_status)
+
+@app.post("/cancel/{task_id}")
+async def cancel_task(task_id: str):
+    """取消翻译任务"""
+    if task_id not in tasks:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "找不到该任务"}
+        )
+    
+    task = tasks[task_id]
+    if task.get('status') not in ['processing', 'uploaded']:
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"任务状态为 {task.get('status')}，无法取消"}
+        )
+    
+    # 通过任务管理器取消任务
+    success = task_manager.cancel_task(task_id)
+    
+    if success:
+        return JSONResponse(content={
+            "message": "任务取消请求已发送",
+            "task_id": task_id
+        })
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={"error": "取消任务失败"}
+        )
 
 @app.get("/download/json/{task_id}")
 async def download_json(task_id: str):
@@ -576,12 +754,21 @@ async def health_check():
     current_tasks = request_limiter.current_tasks
     max_tasks = request_limiter.max_concurrent_tasks
     
+    # 获取任务管理器状态
+    active_tasks = task_manager.get_active_tasks()
+    finished_tasks = task_manager.get_finished_tasks()
+    
     return JSONResponse(content={
         "status": "healthy",
         "current_tasks": current_tasks,
         "max_concurrent_tasks": max_tasks,
         "available_slots": max_tasks - current_tasks,
-        "last_request_time": request_limiter.last_request_time
+        "last_request_time": request_limiter.last_request_time,
+        "task_manager": {
+            "active_tasks_count": len(active_tasks),
+            "finished_tasks_count": len(finished_tasks),
+            "total_tasks_count": len(task_manager.get_all_tasks())
+        }
     })
 
 @app.get("/")
