@@ -164,6 +164,15 @@ export const useTranslatorStore = defineStore('translator', () => {
       return // 已完成或已失败，无需中断
     }
     
+    // 先尝试通过API取消任务
+    if (taskId.value) {
+      axios.post(`/cancel/${taskId.value}`).then(response => {
+        console.log('任务取消请求已发送:', response.data)
+      }).catch(error => {
+        console.error('取消任务请求失败:', error)
+      })
+    }
+    
     // 停止心跳和进度监控
     stopHeartbeat()
     stopProgressMonitoring()
@@ -179,7 +188,7 @@ export const useTranslatorStore = defineStore('translator', () => {
     // 关闭连接
     closeWebSocket()
     
-    ElMessage.warning('翻译任务已中断')
+    ElMessage.warning('翻译任务已手动停止')
   }
 
   // 连接WebSocket获取实时翻译进度
@@ -233,11 +242,26 @@ export const useTranslatorStore = defineStore('translator', () => {
     
     websocket.value.onerror = (error) => {
       console.error('WebSocket error:', error)
-      // 只有在翻译进行中时才处理错误
-      if (translationStatus.value !== 'success' && !isTranslationFailed.value && translationProgress.value < 100) {
-        handleTranslationError('WebSocket连接错误')
+      // 只有在翻译早期阶段且确实有问题时才处理错误
+      if (translationStatus.value === 'processing' && 
+          !isTranslationFailed.value && 
+          translationProgress.value < 30) { // 只在前30%进度时认为WebSocket错误是严重问题
+        console.log('WebSocket连接错误，但尝试继续')
+        // 不立即报错，而是给一些时间恢复
+        setTimeout(() => {
+          if (translationStatus.value === 'processing' && 
+              !isTranslationFailed.value && 
+              translationProgress.value < 30) {
+            ElNotification({
+              title: '连接提醒',
+              message: 'WebSocket连接不稳定，如果翻译长时间无进展，请考虑重新开始',
+              type: 'warning',
+              duration: 5000
+            })
+          }
+        }, 10000) // 10秒后再检查
       } else {
-        console.log('WebSocket error occurred after translation completion, ignoring')
+        console.log('WebSocket error occurred but translation may be progressing, ignoring')
       }
     }
     
@@ -248,27 +272,31 @@ export const useTranslatorStore = defineStore('translator', () => {
         // 如果是主动关闭或者翻译已完成，不视为错误
         if (isClosingWebSocket.value || 
             translationStatus.value === 'success' || 
-            translationProgress.value === 100) {
+            translationProgress.value >= 90) { // 降低阈值到90%，给完成阶段更多容错
           console.log('WebSocket正常关闭')
           isClosingWebSocket.value = false
           return
         }
         
-        // 只有在以下情况才认为是异常关闭：
-        // 1. 翻译未成功完成
-        // 2. 没有标记为失败
-        // 3. 进度小于100%
-        // 4. 关闭码不是正常关闭(1000)或服务器主动关闭(1001)
-        const isAbnormalClose = translationStatus.value !== 'success' && 
+        // 更宽松的异常检查条件
+        const isAbnormalClose = translationStatus.value === 'processing' && 
                                !isTranslationFailed.value && 
-                               translationProgress.value < 100 &&
+                               translationProgress.value < 50 && // 只有在前50%进度时才认为是异常
                                event.code !== 1000 && 
-                               event.code !== 1001
+                               event.code !== 1001 &&
+                               event.code !== 1006 // 1006是网络异常，但不一定是错误
         
         if (isAbnormalClose) {
-          handleTranslationError('WebSocket连接意外关闭')
+          console.log('WebSocket异常关闭，但尝试恢复连接')
+          // 不直接报错，而是尝试重新连接
+          setTimeout(() => {
+            if (translationStatus.value === 'processing' && !isTranslationFailed.value) {
+              console.log('尝试重新连接WebSocket')
+              connectWebSocket()
+            }
+          }, 5000) // 5秒后重试连接
         } else {
-          console.log('WebSocket关闭，但翻译可能已完成或接近完成')
+          console.log('WebSocket关闭，但不认为是错误')
         }
       }
       
@@ -346,21 +374,29 @@ export const useTranslatorStore = defineStore('translator', () => {
       const now = Date.now()
       const timeSinceLastProgress = now - lastProgressTime
       
-      // 如果超过60秒没有进度更新，才进行估算（延长时间减少频率）
-      if (timeSinceLastProgress > 60000) {
+      // 延长无进度检查时间到10分钟，给翻译更多时间
+      if (timeSinceLastProgress > 600000) { // 10分钟
         noProgressCount++
-        console.log(`长时间无进度更新 (${noProgressCount}次)，启用备用进度估算`)
+        console.log(`长时间无进度更新 (${noProgressCount}次)，但继续等待...`)
         
-        // 如果连续多次无进度，可能是连接有问题
-        if (noProgressCount > 3) {
-          console.log('连续多次无进度更新，可能连接异常')
-          handleTranslationError('翻译进度长时间无更新，可能连接异常')
+        // 延长到连续6次无进度（60分钟）才认为异常
+        if (noProgressCount > 6) {
+          console.log('超长时间无进度更新，可能连接异常')
+          // 改为警告而不是错误，让用户选择是否继续等待
+          ElNotification({
+            title: '进度提醒',
+            message: '翻译进度长时间无更新，可能是复杂内容需要更多时间处理。如果确认有问题，请手动停止任务。',
+            type: 'warning',
+            duration: 8000
+          })
+          // 重置计数器，继续监控而不是直接报错
+          noProgressCount = 0
           return
         }
         
-        // 简单的基于时间的进度估算
+        // 简单的基于时间的进度估算，但更保守
         const elapsedTime = (now - lastProgressTime) / 1000
-        const estimatedProgress = Math.min(95, translationProgress.value + (elapsedTime / 20))
+        const estimatedProgress = Math.min(90, translationProgress.value + (elapsedTime / 60)) // 更保守的估算
         
         if (estimatedProgress > translationProgress.value) {
           translationProgress.value = Math.round(estimatedProgress)
@@ -373,7 +409,7 @@ export const useTranslatorStore = defineStore('translator', () => {
         lastProgressTime = now
         noProgressCount = 0 // 重置计数器
       }
-    }, 30000) // 改为每30秒检查一次，减少频率
+    }, 60000) // 改为每60秒检查一次
   }
 
   // 启动心跳机制 - 只在翻译进行时发送
