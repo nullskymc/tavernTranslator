@@ -14,9 +14,10 @@ services:
       - NODE_ENV=production
     restart: unless-stopped
     container_name: tavern-translator
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    # 禁用健康检查以避免定时请求
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    #   interval: 60s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 40s
