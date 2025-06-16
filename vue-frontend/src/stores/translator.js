@@ -86,13 +86,20 @@ export const useTranslatorStore = defineStore('translator', () => {
       // 启动翻译成功后立即连接WebSocket
       translationStatus.value = 'processing'  // 标记翻译正在进行
       translationProgress.value = 5  // 设置初始进度
+      
+      // 先连接WebSocket
       connectWebSocket()
       
-      // 如果WebSocket已连接，立即启动心跳和进度监控
-      if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
-        startHeartbeat()
-        startProgressMonitoring()
-      }
+      // 给WebSocket连接一点时间，然后启动监控机制
+      setTimeout(() => {
+        if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+          console.log('WebSocket连接成功，启动心跳机制')
+          startHeartbeat()
+        } else {
+          console.log('WebSocket连接失败，启动备用进度监控')
+          startProgressMonitoring()
+        }
+      }, 1000) // 等待1秒让WebSocket连接稳定
       
       return true
     } catch (error) {
@@ -185,10 +192,17 @@ export const useTranslatorStore = defineStore('translator', () => {
       websocket.value.onopen = () => {
         console.log('WebSocket connected')
         
-        // 只有在翻译进行中时才启动心跳和进度监控
-        if (translationStatus.value === 'processing' || translationStatus.value === 'starting') {
-          startProgressMonitoring()
+        // 只有在翻译真正开始时才启动监控机制
+        if (translationStatus.value === 'processing' && translationProgress.value > 0) {
+          console.log('翻译进行中，启动心跳和进度监控')
           startHeartbeat()
+          // WebSocket正常时不需要备用进度监控
+          // startProgressMonitoring()
+        } else if (translationStatus.value === 'starting') {
+          console.log('翻译启动中，只启动心跳')
+          startHeartbeat()
+        } else {
+          console.log('WebSocket已连接，但翻译未开始，暂不启动定时器')
         }
       }
       
@@ -306,25 +320,47 @@ export const useTranslatorStore = defineStore('translator', () => {
     console.log('进行中字段:', inProgressFields.value)
   }
 
-  // 启动备用进度监控
+  // 启动备用进度监控 - 只在真正需要时启用
   const startProgressMonitoring = () => {
+    // 如果已经有WebSocket连接且工作正常，不需要备用监控
+    if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
+      console.log('WebSocket连接正常，跳过备用进度监控')
+      return
+    }
+    
     if (progressMonitoringInterval.value) {
       clearInterval(progressMonitoringInterval.value)
     }
     
     let lastProgressTime = Date.now()
+    let noProgressCount = 0 // 记录无进度更新的次数
     
     progressMonitoringInterval.value = setInterval(() => {
+      // 检查翻译状态，只在翻译进行中时才继续监控
+      if (translationStatus.value !== 'processing') {
+        console.log('翻译状态已改变，停止备用进度监控')
+        stopProgressMonitoring()
+        return
+      }
+      
       const now = Date.now()
       const timeSinceLastProgress = now - lastProgressTime
       
-      // 如果超过30秒没有进度更新，尝试估算进度
-      if (timeSinceLastProgress > 30000 && translationStatus.value === 'processing') {
-        console.log('长时间无进度更新，启用备用进度估算')
+      // 如果超过60秒没有进度更新，才进行估算（延长时间减少频率）
+      if (timeSinceLastProgress > 60000) {
+        noProgressCount++
+        console.log(`长时间无进度更新 (${noProgressCount}次)，启用备用进度估算`)
+        
+        // 如果连续多次无进度，可能是连接有问题
+        if (noProgressCount > 3) {
+          console.log('连续多次无进度更新，可能连接异常')
+          handleTranslationError('翻译进度长时间无更新，可能连接异常')
+          return
+        }
         
         // 简单的基于时间的进度估算
         const elapsedTime = (now - lastProgressTime) / 1000
-        const estimatedProgress = Math.min(95, translationProgress.value + (elapsedTime / 10))
+        const estimatedProgress = Math.min(95, translationProgress.value + (elapsedTime / 20))
         
         if (estimatedProgress > translationProgress.value) {
           translationProgress.value = Math.round(estimatedProgress)
@@ -335,24 +371,43 @@ export const useTranslatorStore = defineStore('translator', () => {
       // 更新最后进度时间
       if (translationProgress.value > 0) {
         lastProgressTime = now
+        noProgressCount = 0 // 重置计数器
       }
-    }, 10000) // 每10秒检查一次
+    }, 30000) // 改为每30秒检查一次，减少频率
   }
 
-  // 启动心跳机制
+  // 启动心跳机制 - 只在翻译进行时发送
   const startHeartbeat = () => {
     if (pingInterval.value) {
       clearInterval(pingInterval.value)
     }
     
+    console.log('启动WebSocket心跳机制')
+    
     pingInterval.value = setInterval(() => {
-      if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
-        // 只在翻译进行中时发送心跳
-        if (translationStatus.value === 'processing' || translationStatus.value === 'starting') {
-          websocket.value.send('ping')
+      // 严格检查翻译状态和WebSocket状态
+      if (!websocket.value || websocket.value.readyState !== WebSocket.OPEN) {
+        console.log('WebSocket未连接，停止心跳')
+        stopHeartbeat()
+        return
+      }
+      
+      // 只在翻译真正进行中时发送心跳
+      if (translationStatus.value === 'processing' || 
+          (translationStatus.value === 'starting' && translationProgress.value > 0)) {
+        console.log('发送WebSocket心跳包')
+        websocket.value.send('ping')
+      } else {
+        console.log(`翻译状态: ${translationStatus.value}, 跳过心跳`)
+        // 如果翻译不在进行中，停止心跳
+        if (translationStatus.value === 'success' || 
+            translationStatus.value === 'exception' || 
+            translationStatus.value === '') {
+          console.log('翻译已完成或失败，停止心跳')
+          stopHeartbeat()
         }
       }
-    }, 30000) // 每30秒发送一次心跳
+    }, 45000) // 增加到45秒，减少心跳频率
   }
 
   // 停止心跳机制

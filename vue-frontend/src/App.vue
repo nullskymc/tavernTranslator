@@ -84,10 +84,12 @@ onMounted(() => {
   // 加载历史记录
   storageStore.loadHistoryFromStorage()
   
-  // 监听TaskID变化，建立WebSocket连接
-  watch(() => translatorStore.taskId, (newVal) => {
-    if (newVal) {
-      translatorStore.connectWebSocket()
+  // 监听TaskID变化，但不自动建立连接
+  // WebSocket连接应该由翻译开始时手动建立
+  watch(() => translatorStore.taskId, (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      console.log('TaskID已更新:', newVal)
+      // 只记录ID变化，不自动连接WebSocket
     }
   })
 })
