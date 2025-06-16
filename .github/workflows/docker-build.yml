@@ -35,4 +35,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/nullskymc/tavernTranslator:latest
+          tags: ghcr.io/nullskymc/taverntranslator:latest
