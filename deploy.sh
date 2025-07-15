@@ -113,11 +113,8 @@ build_frontend() {
     
     cd "$FRONTEND_PATH"
     
-    # 检查是否需要重新构建
-    if [ -f "dist/index.html" ] && [ "dist/index.html" -nt "src" ]; then
-        print_info "前端已是最新版本，跳过构建"
-        return 0
-    fi
+    # 总是执行构建，确保部署的是最新版本
+    # 移除不可靠的构建检查逻辑
     
     npm run build --silent
     print_success "前端构建完成"

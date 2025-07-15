@@ -2,7 +2,7 @@
   <div class="app-sidebar">
     <div class="sidebar-header">
       <img src="/img/index.png" alt="Logo" class="logo" />
-      <h2>角色卡编辑器</h2>
+      <h2>TavernTranslator</h2>
     </div>
 
     <div class="sidebar-content">
@@ -52,13 +52,13 @@
         
         <div class="action-buttons-group">
           <div class="action-buttons-row">
-            <!-- "上传新卡片" button -->
+            <!-- "上传卡片" button -->
             <div class="action-button-wrapper">
               <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display: none;" />
               <el-button @click="triggerFileUpload" circle>
                 <el-icon><Upload /></el-icon>
               </el-button>
-              <span class="button-text">上传新卡片</span>
+              <span class="button-text">上传卡片</span>
             </div>
 
             <!-- "上传JSON" button -->
@@ -185,7 +185,7 @@ const confirmReset = () => {
 
 <style scoped>
 .app-sidebar {
-  width: 280px;
+  width: 300px;
   height: 100vh;
   background-color: var(--el-bg-color-page);
   border-right: 1px solid var(--el-border-color-light);
@@ -280,6 +280,18 @@ const confirmReset = () => {
   box-sizing: border-box;
 }
 
+/* 黑暗模式下导出按钮的特定样式 */
+.dark-theme .export-buttons-wrapper .el-button {
+  background-color: var(--background-color) !important; /* 强制黑底 */
+  border-color: var(--background-color) !important; /* 边框也设为黑底 */
+  color: var(--text-primary) !important; /* 强制白字 */
+}
+
+.dark-theme .export-buttons-wrapper .el-button:hover {
+  background-color: var(--background-secondary) !important; /* 悬停时稍微亮一点 */
+  border-color: var(--background-secondary) !important;
+}
+
 
 .settings-section .el-button {
   width: 100%;
@@ -318,9 +330,17 @@ const confirmReset = () => {
   cursor: pointer;
 }
 
+.dark-theme .action-button-wrapper {
+  background-color: var(--background-secondary) !important;
+}
+
 .action-button-wrapper:hover {
   width: 120px; /* 悬停时展开的宽度 */
   background-color: var(--el-color-primary-light-9);
+}
+
+.dark-theme .action-button-wrapper:hover {
+  background-color: var(--background-hover) !important;
 }
 
 .action-button-wrapper .el-button {
@@ -334,8 +354,24 @@ const confirmReset = () => {
   flex-shrink: 0; /* 防止按钮在父容器展开时被压缩 */
 }
 
-.action-button-wrapper .el-button .el-icon {
-  font-size: 18px; /* 缩小图标尺寸 */
+.dark-theme .action-button-wrapper .el-button {
+  background-color: var(--background-color) !important; /* 强制黑底 */
+  border-color: var(--background-color) !important; /* 边框也设为黑底 */
+  color: var(--text-primary) !important; /* 强制白字 */
+}
+
+.dark-theme .action-button-wrapper .el-button:hover {
+  background-color: var(--background-secondary) !important; /* 悬停时稍微亮一点 */
+  border-color: var(--background-secondary) !important;
+}
+
+.dark-theme .action-button-wrapper .el-button .el-icon {
+  color: var(--text-primary) !important; /* 强制图标颜色为白字 */
+}
+
+.dark-theme .action-button-wrapper .el-button .el-icon svg,
+.dark-theme .action-button-wrapper .el-button .el-icon svg path {
+  fill: var(--text-primary) !important; /* 强制 SVG 填充颜色为白字 */
 }
 
 .action-button-wrapper .button-text {
@@ -345,6 +381,10 @@ const confirmReset = () => {
   color: var(--el-text-color-primary);
   font-size: 0.8em;
   margin-left: 8px; /* 文本与图标的间距 */
+}
+
+.dark-theme .action-button-wrapper .button-text {
+  color: var(--text-primary) !important;
 }
 
 .action-button-wrapper:hover .button-text {
