@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import path from 'path'
 
 export default defineConfig({
   plugins: [
@@ -14,23 +15,25 @@ export default defineConfig({
         'pinia',
         '@vueuse/core'
       ],
-      dts: true
+      dts: 'auto-imports.d.ts' // 指定文件名
     }),
     Components({
       resolvers: [ElementPlusResolver()],
-      dts: true
+      dts: 'components.d.ts' // 指定文件名
     })
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    }
+  },
   server: {
     port: 3000,
     proxy: {
-      '/upload': 'http://localhost:8080',
-      '/translate': 'http://localhost:8080',
-      '/download': 'http://localhost:8080',
-      '/status': 'http://localhost:8080',
-      '/ws': {
-        target: 'ws://localhost:8080',
-        ws: true
+      // 代理所有 /api/v1 的请求到后端
+      '/api/v1': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
       }
     }
   },
@@ -40,7 +43,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor': ['vue', 'pinia', 'axios']
+          'vendor': ['vue', 'pinia', 'axios', 'element-plus']
         }
       }
     }

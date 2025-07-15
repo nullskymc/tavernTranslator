@@ -160,8 +160,8 @@ start_backend() {
     echo -e "${YELLOW}按 Ctrl+C 停止服务${NC}"
     echo ""
     
-    cd "$BACKEND_PATH"
-    exec python app.py
+    cd "$PROJECT_ROOT"
+    exec python -m src.app
 }
 
 # 清理临时文件
