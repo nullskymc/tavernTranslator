@@ -30,4 +30,4 @@ RUN mkdir -p .uploads .output
 EXPOSE 8080
 
 # 启动命令
-CMD ["python", "src/app.py"]
+CMD ["python", "-m", "src.app"]
