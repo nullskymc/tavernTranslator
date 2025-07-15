@@ -40,11 +40,11 @@ async def catch_all(full_path: str):
 
 # --- Uvicorn Runner ---
 if __name__ == "__main__":
-    # 使用 uvicorn 运行应用
+    # 生产环境配置
     uvicorn.run(
         "src.app:app", 
         host="0.0.0.0", 
         port=8080,
-        reload=True, # 在开发模式下启用自动重载
-        workers=1
+        reload=False,  # 生产环境禁用自动重载
+        workers=4      # 生产环境使用多个 worker
     )
