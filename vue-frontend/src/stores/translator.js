@@ -133,6 +133,79 @@ export const useTranslatorStore = defineStore('translator', () => {
     ElMessage.info('已清除当前角色卡数据');
   };
 
+  const exportCardAsJson = () => {
+    if (!characterCard.value) {
+      ElMessage.error('没有角色卡数据可供导出');
+      return;
+    }
+    try {
+      const jsonString = JSON.stringify(characterCard.value, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${get(characterCard.value, 'data.name', 'character')}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      ElMessage.success('角色卡已成功导出为 JSON！');
+    } catch (error) {
+      ElNotification.error({ title: '导出失败', message: '导出 JSON 文件失败' });
+    }
+  };
+
+  const handleJsonUpload = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result);
+        characterCard.value = jsonData;
+        characterImageB64.value = null; // JSON上传不包含图片，清空图片
+        ElMessage.success('JSON 文件解析成功！');
+      } catch (error) {
+        ElMessage.error('解析 JSON 文件失败，请确保文件格式正确。');
+      }
+    };
+    reader.onerror = () => {
+      ElMessage.error('读取 JSON 文件失败。');
+    };
+    reader.readAsText(file);
+  };
+
+  const createNewCard = () => {
+    characterCard.value = {
+      "data": {
+        "name": "新角色",
+        "description": "",
+        "personality": "",
+        "scenario": "",
+        "first_mes": "",
+        "mes_example": "",
+        "creator_notes": "",
+        "system_prompt": "",
+        "post_history_instructions": "",
+        "tags": [],
+        "character_book": {
+          "name": "",
+          "description": "",
+          "scan_depth": 0,
+          "token_budget": 0,
+          "recursive_scanning": false,
+          "extensions": {},
+          "lore": []
+        },
+        "extensions": {},
+        "spec": "chara_card_v2",
+        "spec_version": "2.0"
+      },
+      "last_update": Date.now(),
+      "last_update_human": new Date().toLocaleString()
+    };
+    characterImageB64.value = null;
+    ElMessage.success('已创建新的空白角色卡！');
+  };
+
   // --- Watchers ---
   watch(characterCard, (val) => {
     if (val) localStorage.setItem(CARD_STORAGE_KEY, JSON.stringify(val));
@@ -161,5 +234,8 @@ export const useTranslatorStore = defineStore('translator', () => {
     translateField,
     exportCardAsImage,
     resetStore,
+    exportCardAsJson, // 导出新方法
+    handleJsonUpload, // 导出新方法
+    createNewCard,    // 导出新方法
   };
 });

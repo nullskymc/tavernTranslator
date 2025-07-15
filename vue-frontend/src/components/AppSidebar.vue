@@ -21,48 +21,89 @@
 
       <!-- 操作按钮 -->
       <div class="actions-section">
-        
-        <el-button type="primary" @click="triggerFileUpload" :icon="Upload">上传新卡片</el-button>
-        <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display: none;" />
-        
-        <el-button 
-          type="success" 
-          @click="store.exportCardAsImage()" 
-          :icon="Download" 
-          :disabled="!store.characterCard"
-          :loading="store.isLoading"
-        >
-          导出为图片
-        </el-button>
+        <div class="section-title">导出</div>
+        <div class="export-buttons-wrapper">
+          <div>
+            <el-button 
+              type="primary" 
+              @click="store.exportCardAsImage()" 
+              :icon="Download" 
+              :disabled="!store.characterCard"
+              :loading="store.isLoading"
+            >
+              导出为图片
+            </el-button>
+          </div>
+
+          <div>
+            <el-button 
+              @click="store.exportCardAsJson()" 
+              :icon="Document" 
+              :disabled="!store.characterCard"
+            >
+              导出为JSON
+            </el-button>
+          </div>
+        </div>
       </div>
 
       <!-- 快速操作 -->
       <div class="quick-actions-section">
         
         <div class="action-buttons-group">
-          <!-- "更换图片" button -->
-          <div class="action-button-wrapper">
-            <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display: none;" />
-            <el-button @click="triggerImageUpload" :disabled="!store.characterCard" circle>
-              <el-icon><Picture /></el-icon>
-            </el-button>
-            <span class="button-text">更换图片</span>
+          <div class="action-buttons-row">
+            <!-- "上传新卡片" button -->
+            <div class="action-button-wrapper">
+              <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display: none;" />
+              <el-button @click="triggerFileUpload" circle>
+                <el-icon><Upload /></el-icon>
+              </el-button>
+              <span class="button-text">上传新卡片</span>
+            </div>
+
+            <!-- "上传JSON" button -->
+            <div class="action-button-wrapper">
+              <input type="file" ref="jsonUploader" @change="handleJsonFileChange" accept="application/json" style="display: none;" />
+              <el-button @click="triggerJsonUpload" circle>
+                <el-icon><FolderOpened /></el-icon>
+              </el-button>
+              <span class="button-text">上传JSON</span>
+            </div>
+
+            <!-- "新建空白卡" button -->
+            <div class="action-button-wrapper">
+              <el-button @click="createNewCard" circle>
+                <el-icon><DocumentAdd /></el-icon>
+              </el-button>
+              <span class="button-text">新建空白卡</span>
+            </div>
           </div>
 
-          <!-- "翻译设置" button -->
-          <div class="action-button-wrapper">
-            <el-button @click="settingsDialogVisible = true" circle>
-              <el-icon><Setting /></el-icon>
-            </el-button>
-            <span class="button-text">翻译设置</span>
-          </div>
+          <div class="action-buttons-row">
+            <!-- "更换图片" button -->
+            <div class="action-button-wrapper">
+              <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display: none;" />
+              <el-button @click="triggerImageUpload" :disabled="!store.characterCard" circle>
+                <el-icon><Picture /></el-icon>
+              </el-button>
+              <span class="button-text">更换图片</span>
+            </div>
 
-          <!-- "清除卡片" button -->
-          <div class="action-button-wrapper">
-            <el-button @click="confirmReset" :disabled="!store.characterCard" circle type="danger">
-              <el-icon><Delete /></el-icon>
-            </el-button>
-            <span class="button-text">清除卡片</span>
+            <!-- "翻译设置" button -->
+            <div class="action-button-wrapper">
+              <el-button @click="settingsDialogVisible = true" circle>
+                <el-icon><Setting /></el-icon>
+              </el-button>
+              <span class="button-text">翻译设置</span>
+            </div>
+
+            <!-- "清除卡片" button -->
+            <div class="action-button-wrapper">
+              <el-button @click="confirmReset" :disabled="!store.characterCard" circle type="danger">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+              <span class="button-text">清除卡片</span>
+            </div>
           </div>
         </div>
       </div>
@@ -81,13 +122,14 @@
 import { ref } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { Upload, Download, Setting, Delete, Picture } from '@element-plus/icons-vue';
+import { Upload, Download, Setting, Delete, Picture, FolderOpened, DocumentAdd, Document } from '@element-plus/icons-vue';
 import TranslationSettingsDialog from './TranslationSettingsDialog.vue';
 
 const store = useTranslatorStore();
 
 const imageUploader = ref(null);
 const fileUploader = ref(null);
+const jsonUploader = ref(null); // 新增：JSON 文件上传的 ref
 const settingsDialogVisible = ref(false);
 
 // --- 图片处理 ---
@@ -112,6 +154,25 @@ const handleFileChange = (event) => {
     store.handleCardUpload(file);
   }
   event.target.value = ''; // 重置input
+};
+
+// --- JSON 文件上传处理 ---
+const triggerJsonUpload = () => jsonUploader.value?.click();
+const handleJsonFileChange = (event) => {
+  const file = event.target.files[0];
+  if (file && file.type === 'application/json') {
+    store.handleJsonUpload(file); // 调用 store 中的新方法
+  } else {
+    ElMessage.error('请选择一个有效的JSON文件');
+  }
+  event.target.value = '';
+};
+
+// --- 新建空白卡 ---
+const createNewCard = () => {
+  ElMessageBox.confirm('这将创建一个新的空白角色卡，当前数据将丢失。确定要继续吗？', '警告', {
+    confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning',
+  }).then(() => store.createNewCard()).catch(() => {}); // 调用 store 中的新方法
 };
 
 // --- 重置确认 ---
@@ -168,7 +229,7 @@ const confirmReset = () => {
   font-weight: 500;
 }
 
-.character-image-section, .actions-section, .settings-section {
+.character-image-section, .settings-section {
   margin-bottom: 25px;
 }
 
@@ -201,18 +262,24 @@ const confirmReset = () => {
   font-size: 48px;
 }
 
-.actions-section .el-button,
-.character-image-section .el-button {
-  width: 100%;
-  margin-bottom: 10px;
+.actions-section {
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Spacing between title and button group */
 }
-/* 移除第一个按钮的上边距 */
-.actions-section .el-button:first-of-type {
-  margin-left: 0;
+
+.export-buttons-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
-.actions-section .el-button:last-of-type {
-  margin-bottom: 0;
+
+.export-buttons-wrapper .el-button {
+  width: 100%; /* Make them full width */
+  box-sizing: border-box;
 }
+
 
 .settings-section .el-button {
   width: 100%;
@@ -226,8 +293,14 @@ const confirmReset = () => {
 
 .action-buttons-group {
   display: flex;
+  flex-direction: column;
+  gap: 10px; /* 行之间的间距 */
+}
+
+.action-buttons-row {
+  display: flex;
   justify-content: space-around;
-  gap: 10px;
+  gap: 10px; /* 按钮之间的间距 */
 }
 
 .action-button-wrapper {

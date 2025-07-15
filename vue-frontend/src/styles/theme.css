@@ -169,6 +169,17 @@
   border-color: var(--error-color);
 }
 
+.dark-theme .el-button--info {
+  background-color: var(--info-color);
+  border-color: var(--info-color);
+  color: var(--header-text);
+}
+
+.dark-theme .el-button--info:hover {
+  background-color: var(--info-color);
+  border-color: var(--info-color);
+}
+
 .dark-theme .el-button--text {
   color: var(--text-primary);
 }
