@@ -8,7 +8,7 @@
     <div class="sidebar-content">
       <!-- 角色图片预览 -->
       <div class="character-image-section">
-        <p class="section-title">基础图片</p>
+        
         <div class="image-preview-wrapper">
           <img v-if="store.characterImageB64" :src="store.characterImageB64" alt="Character Preview" class="image-preview" />
           <div v-else class="image-placeholder">
@@ -16,13 +16,12 @@
             <span>无图片</span>
           </div>
         </div>
-        <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display: none;" />
-        <el-button @click="triggerImageUpload" :disabled="!store.characterCard" plain>更换图片</el-button>
+        <!-- Removed original "更换图片" button here -->
       </div>
 
       <!-- 操作按钮 -->
       <div class="actions-section">
-        <p class="section-title">核心操作</p>
+        
         <el-button type="primary" @click="triggerFileUpload" :icon="Upload">上传新卡片</el-button>
         <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display: none;" />
         
@@ -37,11 +36,35 @@
         </el-button>
       </div>
 
-      <!-- 设置与重置 -->
-      <div class="settings-section">
-        <p class="section-title">设置</p>
-        <el-button @click="settingsDialogVisible = true" :icon="Setting" text>翻译设置</el-button>
-        <el-button @click="confirmReset" :icon="Delete" text type="danger" :disabled="!store.characterCard">清除卡片</el-button>
+      <!-- 快速操作 -->
+      <div class="quick-actions-section">
+        
+        <div class="action-buttons-group">
+          <!-- "更换图片" button -->
+          <div class="action-button-wrapper">
+            <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display: none;" />
+            <el-button @click="triggerImageUpload" :disabled="!store.characterCard" circle>
+              <el-icon><Picture /></el-icon>
+            </el-button>
+            <span class="button-text">更换图片</span>
+          </div>
+
+          <!-- "翻译设置" button -->
+          <div class="action-button-wrapper">
+            <el-button @click="settingsDialogVisible = true" circle>
+              <el-icon><Setting /></el-icon>
+            </el-button>
+            <span class="button-text">翻译设置</span>
+          </div>
+
+          <!-- "清除卡片" button -->
+          <div class="action-button-wrapper">
+            <el-button @click="confirmReset" :disabled="!store.characterCard" circle type="danger">
+              <el-icon><Delete /></el-icon>
+            </el-button>
+            <span class="button-text">清除卡片</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -195,6 +218,64 @@ const confirmReset = () => {
   width: 100%;
   justify-content: flex-start;
   padding: 8px 12px;
+}
+
+.quick-actions-section {
+  margin-bottom: 25px;
+}
+
+.action-buttons-group {
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.action-button-wrapper {
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: flex-start; /* 初始左对齐 */
+  position: relative;
+  width: 50px; /* 初始宽度，与按钮直径相同 */
+  height: 50px; /* 与按钮直径相同 */
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 25px; /* 圆角 */
+  overflow: hidden; /* 隐藏溢出的文本 */
+  background-color: var(--el-fill-color-light);
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.action-button-wrapper:hover {
+  width: 120px; /* 悬停时展开的宽度 */
+  background-color: var(--el-color-primary-light-9);
+}
+
+.action-button-wrapper .el-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0; /* 防止按钮在父容器展开时被压缩 */
+}
+
+.action-button-wrapper .el-button .el-icon {
+  font-size: 18px; /* 缩小图标尺寸 */
+}
+
+.action-button-wrapper .button-text {
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: var(--el-text-color-primary);
+  font-size: 0.8em;
+  margin-left: 8px; /* 文本与图标的间距 */
+}
+
+.action-button-wrapper:hover .button-text {
+  opacity: 1;
 }
 
 .sidebar-footer {

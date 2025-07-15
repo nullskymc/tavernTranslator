@@ -67,6 +67,13 @@
   /* 主题切换按钮 */
   --theme-toggle-bg: #374151;
   --theme-toggle-text: #f9fafb;
+
+  /* Element Plus 变量覆盖 */
+  --el-bg-color-page: var(--background-color);
+  --el-border-color-light: var(--border-color);
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-secondary: var(--text-secondary);
+  --el-fill-color-light: var(--background-secondary);
 }
 
 /* 主题切换过渡效果 */
@@ -127,6 +134,59 @@
 .dark-theme .el-button--default:hover {
   background-color: var(--background-hover);
   border-color: var(--primary-color);
+}
+
+.dark-theme .el-button--primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--header-text);
+}
+
+.dark-theme .el-button--primary:hover {
+  background-color: var(--primary-color-hover);
+  border-color: var(--primary-color-hover);
+}
+
+.dark-theme .el-button--success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+  color: var(--header-text);
+}
+
+.dark-theme .el-button--success:hover {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.dark-theme .el-button--danger {
+  background-color: var(--error-color);
+  border-color: var(--error-color);
+  color: var(--header-text);
+}
+
+.dark-theme .el-button--danger:hover {
+  background-color: var(--error-color);
+  border-color: var(--error-color);
+}
+
+.dark-theme .el-button--text {
+  color: var(--text-primary);
+}
+
+.dark-theme .el-button--text:hover {
+  color: var(--primary-color);
+}
+
+.dark-theme .el-button--plain {
+  background-color: transparent;
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.dark-theme .el-button--plain:hover {
+  background-color: var(--background-hover);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
 }
 
 .dark-theme .el-dialog {
