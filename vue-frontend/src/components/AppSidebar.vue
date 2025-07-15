@@ -1,5 +1,10 @@
 <template>
   <div class="app-sidebar">
+    <!-- 移动端关闭按钮 -->
+    <div class="mobile-close-btn" @click="$emit('close')">
+      <el-icon><Close /></el-icon>
+    </div>
+
     <div class="sidebar-header">
       <img src="/img/index.png" alt="Logo" class="logo" />
       <h2>TavernTranslator</h2>
@@ -121,8 +126,11 @@
 import { ref } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { Upload, Download, Setting, Delete, Picture, FolderOpened, DocumentAdd, Document } from '@element-plus/icons-vue';
+import { Upload, Download, Setting, Delete, Picture, FolderOpened, DocumentAdd, Document, Close } from '@element-plus/icons-vue';
 import TranslationSettingsDialog from './TranslationSettingsDialog.vue';
+
+// 定义emit事件
+const emit = defineEmits(['close']);
 
 const store = useTranslatorStore();
 
@@ -192,6 +200,36 @@ const confirmReset = () => {
   flex-direction: column;
   padding: 20px;
   box-sizing: border-box;
+  position: relative;
+}
+
+/* 移动端关闭按钮 */
+.mobile-close-btn {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--el-fill-color-light);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background-color 0.2s;
+}
+
+.mobile-close-btn:hover {
+  background-color: var(--el-fill-color);
+}
+
+.dark-theme .mobile-close-btn {
+  background-color: var(--background-secondary);
+}
+
+.dark-theme .mobile-close-btn:hover {
+  background-color: var(--background-hover);
 }
 
 .sidebar-header {
@@ -403,5 +441,89 @@ const confirmReset = () => {
 }
 .sidebar-footer a:hover {
   color: var(--el-color-primary);
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .mobile-close-btn {
+    display: flex;
+  }
+  
+  .app-sidebar {
+    padding: 16px;
+  }
+  
+  .sidebar-header {
+    padding-top: 40px; /* 为关闭按钮留出空间 */
+  }
+  
+  .character-image-section {
+    margin-bottom: 20px;
+  }
+  
+  .image-preview-wrapper {
+    max-width: 200px;
+    margin: 0 auto 10px;
+  }
+  
+  .action-buttons-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .action-button-wrapper {
+    width: 100%;
+    height: 50px;
+    border-radius: 25px;
+    justify-content: flex-start;
+    padding: 0 16px;
+  }
+  
+  .action-button-wrapper:hover {
+    width: 100%;
+  }
+  
+  .action-button-wrapper .button-text {
+    opacity: 1;
+    margin-left: 12px;
+  }
+  
+  .export-buttons-wrapper {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-sidebar {
+    width: 280px;
+    padding: 12px;
+  }
+  
+  .sidebar-header h2 {
+    font-size: 1.1em;
+  }
+  
+  .logo {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .image-preview-wrapper {
+    max-width: 150px;
+  }
+  
+  .action-button-wrapper {
+    height: 45px;
+    padding: 0 12px;
+  }
+  
+  .action-button-wrapper .el-button {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .action-button-wrapper .button-text {
+    font-size: 0.85em;
+  }
 }
 </style>

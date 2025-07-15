@@ -2,7 +2,7 @@
   <el-dialog
     v-model="dialogVisible"
     title="翻译设置"
-    width="500px"
+    :width="isMobile ? '95%' : '500px'"
     :close-on-click-modal="false"
     append-to-body
   >
@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { ElMessage } from 'element-plus';
 
@@ -40,6 +40,26 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const store = useTranslatorStore();
+
+// 移动端检测
+const isMobile = ref(false);
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
+
+const handleResize = () => {
+  checkMobile();
+};
+
+onMounted(() => {
+  checkMobile();
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
 
 // 将 store 的设置绑定到本地 ref，以便在表单中编辑
 const settings = ref({ ...store.translationSettings });

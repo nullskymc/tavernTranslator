@@ -122,6 +122,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 20px;
   margin-bottom: 40px;
+  flex-wrap: wrap;
 }
 
 .feature-item {
@@ -130,15 +131,107 @@ onUnmounted(() => {
   gap: 8px;
   font-size: 1em;
   color: var(--el-text-color-regular);
+  flex-direction: column;
+  text-align: center;
+  min-width: 80px;
 }
 
 .feature-item .el-icon {
   color: var(--el-color-primary);
+  font-size: 24px;
 }
 
 .instructions {
   font-size: 1em;
   color: var(--el-text-color-secondary);
   line-height: 1.6;
+}
+
+.instructions code {
+  background-color: var(--el-fill-color-light);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+.instructions a {
+  color: var(--el-color-primary);
+  text-decoration: none;
+}
+
+.instructions a:hover {
+  text-decoration: underline;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .welcome-box {
+    padding: 24px 16px;
+  }
+  
+  .title {
+    font-size: 2em;
+  }
+  
+  .subtitle {
+    font-size: 1.1em;
+    margin-bottom: 24px;
+  }
+  
+  .features {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .feature-item {
+    min-width: 70px;
+  }
+  
+  .feature-item .el-icon {
+    font-size: 20px;
+  }
+  
+  .instructions {
+    font-size: 0.9em;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-container {
+    border: 1px dashed var(--el-border-color);
+    padding: 16px;
+  }
+  
+  .welcome-box {
+    padding: 16px 8px;
+  }
+  
+  .title {
+    font-size: 1.8em;
+  }
+  
+  .subtitle {
+    font-size: 1em;
+  }
+  
+  .features {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .feature-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    min-width: auto;
+  }
+  
+  .feature-item .el-icon {
+    font-size: 18px;
+  }
+  
+  .instructions {
+    font-size: 0.85em;
+  }
 }
 </style>

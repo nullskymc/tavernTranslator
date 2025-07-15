@@ -1,5 +1,7 @@
 /* 导入主题设置 */
 @import './theme.css';
+/* 导入移动端样式 */
+@import './mobile.css';
 
 /* 全局样式 */
 * {
@@ -181,19 +183,52 @@ body {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .steps-container {
-    padding: 0 15px;
+    padding: 0 16px;
+  }
+  
+  .el-card {
+    margin-bottom: 20px;
+    border-radius: 8px;
   }
   
   .el-card__header {
-    padding: 15px;
+    padding: 16px;
   }
   
   .el-card__body {
-    padding: 20px;
+    padding: 16px;
   }
   
   .container {
-    padding: 0 10px;
+    padding: 0 16px;
+  }
+  
+  .el-button {
+    font-size: 14px;
+    padding: 8px 16px;
+    min-height: 36px;
+  }
+  
+  .el-input__inner {
+    font-size: 14px;
+    min-height: 36px;
+  }
+  
+  .el-form-item {
+    margin-bottom: 16px;
+  }
+  
+  .el-form-item__label {
+    font-size: 14px;
+    margin-bottom: 6px;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .el-textarea__inner {
+    font-size: 14px;
+    min-height: 36px;
   }
   
   .el-steps {
@@ -212,24 +247,75 @@ body {
     margin: 5vh auto 0;
     width: 95% !important;
   }
+  
+  /* 移动端表单优化 */
+  .el-form--label-top .el-form-item__label {
+    padding: 0 0 6px 0;
+  }
+  
+  .el-row {
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+  
+  .el-col {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
 
 @media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+  
+  .steps-container {
+    padding: 0 12px;
+  }
+  
+  .el-card {
+    margin-bottom: 16px;
+    border-radius: 6px;
+  }
+  
+  .el-card__header {
+    padding: 12px;
+  }
+  
   .el-card__body {
-    padding: 15px;
+    padding: 12px;
   }
   
   .el-form-item__label {
-    font-size: 14px;
+    font-size: 13px;
+    margin-bottom: 4px;
   }
   
   .el-input__inner {
-    font-size: 14px;
+    font-size: 13px;
   }
   
   .el-button {
-    font-size: 14px;
-    padding: 8px 15px;
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+  
+  .el-textarea__inner {
+    font-size: 13px;
+  }
+  
+  .el-form-item {
+    margin-bottom: 12px;
+  }
+  
+  .el-row {
+    margin-left: -4px;
+    margin-right: -4px;
+  }
+  
+  .el-col {
+    padding-left: 4px;
+    padding-right: 4px;
   }
 }
 

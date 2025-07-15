@@ -41,4 +41,31 @@ const { toggleTheme } = themeStore
   color: var(--theme-toggle-text);
   transition: color 0.3s ease;
 }
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .theme-toggle {
+    top: 70px; /* 为移动端头部留出空间 */
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+  
+  .theme-toggle i {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .theme-toggle {
+    top: 66px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .theme-toggle i {
+    font-size: 16px;
+  }
+}
 </style>
