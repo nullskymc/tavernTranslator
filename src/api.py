@@ -1,4 +1,3 @@
-
 import os
 import uuid
 import logging
@@ -59,9 +58,7 @@ async def upload_character_card(file: UploadFile = File(...)):
     except Exception as e:
         logging.error(f"Error processing uploaded card: {e}")
         raise HTTPException(status_code=500, detail="An internal error occurred.")
-    finally:
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+    # 文件永久保存，不再删除临时文件
 
 @router.post("/character/translate")
 async def translate_text_field(data: Dict[str, Any] = Body(...)):
@@ -117,9 +114,4 @@ async def export_character_card(
     except Exception as e:
         logging.error(f"Error exporting character card: {e}")
         raise HTTPException(status_code=500, detail="An internal error occurred during export.")
-    finally:
-        if os.path.exists(temp_image_path):
-            os.remove(temp_image_path)
-        # The exported file (output_path) should also be cleaned up. 
-        # FileResponse with background task is a good way to handle this.
-        # For simplicity here, we'll rely on a separate cleanup process if needed.
+    # 文件永久保存，不再删除临时文件和导出文件
