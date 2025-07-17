@@ -104,3 +104,7 @@ async def export_character_card(
     except Exception as e:
         logging.error(f"导出角色卡时出错：{e}")
         raise HTTPException(status_code=500, detail="导出过程中发生内部错误。")
+    finally:
+        # 确保临时文件在操作完成后被删除
+        if os.path.exists(temp_image_path):
+            os.remove(temp_image_path)
