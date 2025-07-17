@@ -32,7 +32,7 @@ def migrate_filenames():
         logging.error(f"上传目录 {UPLOAD_FOLDER} 不存在，操作中止。")
         return
 
-    files_to_process = [f for f in os.path.listdir(UPLOAD_FOLDER) if f.endswith('.png')]
+    files_to_process = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.png')]
     total_files = len(files_to_process)
     logging.info(f"发现 {total_files} 个 .png 文件需要处理。")
 
