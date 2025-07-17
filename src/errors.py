@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 
 class ErrorCode(Enum):
-    """错误代码枚举，参照 OpenAI API 和 HTTP 标准"""
+    """错误代码枚举，参照 OpenAI API 和 HTTP 标准。"""
     
     # HTTP 4xx 客户端错误
     BAD_REQUEST = "bad_request"              # 400 - 请求格式错误
@@ -42,7 +42,7 @@ class ErrorCode(Enum):
 
 
 class ErrorSeverity(Enum):
-    """错误严重程度"""
+    """错误严重程度。"""
     LOW = "low"           # 轻微错误，可以继续
     MEDIUM = "medium"     # 中等错误，需要重试
     HIGH = "high"         # 严重错误，需要立即停止
@@ -51,12 +51,12 @@ class ErrorSeverity(Enum):
 
 @dataclass
 class TranslationError(Exception):
-    """翻译错误基类"""
+    """翻译错误基类。"""
     error_code: ErrorCode
     message: str
     severity: ErrorSeverity = ErrorSeverity.MEDIUM
     http_status: Optional[int] = None
-    retry_after: Optional[int] = None  # 重试延迟建议（秒）
+    retry_after: Optional[int] = None  # 建议的重试延迟（秒）
     context: Optional[Dict[str, Any]] = None
     timestamp: Optional[float] = None
     
@@ -66,7 +66,7 @@ class TranslationError(Exception):
         super().__init__(self.message)
     
     def is_retryable(self) -> bool:
-        """判断错误是否可以重试"""
+        """判断错误是否可以重试。"""
         non_retryable_codes = {
             ErrorCode.BAD_REQUEST,
             ErrorCode.UNAUTHORIZED, 
@@ -81,7 +81,7 @@ class TranslationError(Exception):
         return self.error_code not in non_retryable_codes
     
     def get_retry_delay(self, attempt: int) -> int:
-        """获取重试延迟时间（秒）"""
+        """获取重试延迟时间（秒）。"""
         if self.retry_after:
             return self.retry_after
         
@@ -100,7 +100,7 @@ class TranslationError(Exception):
             return min(20, 1 * (2 ** attempt))
     
     def should_stop_immediately(self) -> bool:
-        """判断是否应该立即停止任务"""
+        """判断是否应该立即停止任务。"""
         critical_codes = {
             ErrorCode.AUTHENTICATION_ERROR,
             ErrorCode.FORBIDDEN,
@@ -112,7 +112,7 @@ class TranslationError(Exception):
 
 
 def parse_http_error(status_code: int, response_text: str = "") -> TranslationError:
-    """解析 HTTP 错误状态码，返回对应的翻译错误"""
+    """解析 HTTP 错误状态码，返回对应的翻译错误。"""
     error_map = {
         400: (ErrorCode.BAD_REQUEST, "请求格式错误", ErrorSeverity.HIGH),
         401: (ErrorCode.UNAUTHORIZED, "API密钥认证失败", ErrorSeverity.CRITICAL),
@@ -155,7 +155,7 @@ def parse_http_error(status_code: int, response_text: str = "") -> TranslationEr
 
 
 def parse_openai_error(exception: Exception) -> TranslationError:
-    """解析 OpenAI API 错误，返回对应的翻译错误"""
+    """解析 OpenAI API 错误，返回对应的翻译错误。"""
     error_str = str(exception).lower()
     
     # 检查常见的 OpenAI 错误模式
@@ -207,7 +207,7 @@ def parse_openai_error(exception: Exception) -> TranslationError:
 
 @dataclass 
 class RetryConfig:
-    """重试配置"""
+    """重试配置。"""
     max_retries: int = 3                    # 最大重试次数
     max_total_time: int = 300              # 最大总重试时间（秒）
     base_delay: float = 1.0                # 基础延迟时间
@@ -216,7 +216,7 @@ class RetryConfig:
     jitter: bool = True                    # 是否添加随机抖动
     
     def should_retry(self, attempt: int, elapsed_time: float, error: TranslationError) -> bool:
-        """判断是否应该继续重试"""
+        """判断是否应该继续重试。"""
         if attempt >= self.max_retries:
             return False
         if elapsed_time >= self.max_total_time:
@@ -229,7 +229,7 @@ class RetryConfig:
 
 
 class TaskCancelledException(TranslationError):
-    """任务取消异常"""
+    """任务取消异常。"""
     def __init__(self, message: str = "任务已被取消"):
         super().__init__(
             error_code=ErrorCode.TASK_CANCELLED,
@@ -239,7 +239,7 @@ class TaskCancelledException(TranslationError):
 
 
 def format_error_for_log(error: TranslationError) -> str:
-    """格式化错误信息用于日志记录"""
+    """格式化错误信息用于日志记录。"""
     parts = [
         f"[{error.error_code.value.upper()}]",
         f"严重程度: {error.severity.value}",
@@ -259,7 +259,7 @@ def format_error_for_log(error: TranslationError) -> str:
 
 
 def format_error_for_frontend(error: TranslationError) -> Dict[str, Any]:
-    """格式化错误信息用于前端显示"""
+    """格式化错误信息用于前端显示。"""
     return {
         "error_code": error.error_code.value,
         "message": error.message,

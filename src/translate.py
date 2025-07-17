@@ -17,7 +17,7 @@ from .errors import (
 logging.basicConfig(level=logging.INFO)
 
 class CharacterCardTranslator:
-    """角色卡翻译器 - 简化版，���于同步API调用"""
+    """角色卡翻译器 - 简化版，用于同步API调用。"""
     def __init__(self, model_name: str, base_url: str, api_key: str, custom_logger=None):
         self.llm = ChatOpenAI(
             model=model_name,
@@ -72,9 +72,9 @@ class CharacterCardTranslator:
         ])
     
     def translate_field(self, field_name: str, text: str) -> str:
-        """根据字段类型选择合适的模板进行翻译"""
+        """根据字段类型选择合适的模板进行翻译。"""
         if not text or not text.strip():
-            self.logger.info(f"字段 {field_name} 为空，跳过翻译")
+            self.logger.info(f"字段 {field_name} 为空，跳过翻译。")
             return text
         
         # 选择合适的模板
@@ -88,7 +88,7 @@ class CharacterCardTranslator:
             messages = template.format_messages(text=text)
             response = self.llm.invoke(messages)
             
-            self.logger.info(f"字段 {field_name} 翻译完成")
+            self.logger.info(f"字段 {field_name} 翻译完成。")
             
             # 确保返回的是字符串
             if isinstance(response.content, str):

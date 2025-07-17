@@ -5,60 +5,51 @@ import base64
 import json
 from fastapi import APIRouter, UploadFile, File, HTTPException, Body, Form
 from fastapi.responses import FileResponse
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from .extract_text import extract_embedded_text, embed_text_in_png
-from .translate import CharacterCardTranslator
 from .errors import TranslationError
+from .utils import get_translator, handle_uploaded_file
 
-# --- Configuration ---
+# --- 配置 ---
 UPLOAD_FOLDER = os.path.abspath(os.environ.get('UPLOAD_FOLDER', '.uploads'))
 OUTPUT_FOLDER = os.path.abspath(os.environ.get('OUTPUT_FOLDER', '.output'))
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
-# --- FastAPI Router ---
+# --- FastAPI 路由 ---
 router = APIRouter(prefix="/api/v1")
-
-def get_translator(settings: Optional[Dict[str, str]] = None):
-    settings = settings or {}
-    api_key = settings.get('api_key') or os.environ.get('OPENAI_API_KEY')
-    base_url = settings.get('base_url') or os.environ.get('OPENAI_API_BASE', "https://api.openai.com/v1")
-    model_name = settings.get('model_name') or os.environ.get('MODEL_NAME', "gpt-4-1106-preview")
-    if not all([api_key, base_url, model_name]):
-        raise ValueError("翻译器配置不完整，请在设置中提供 API Key, Base URL 和模型名称。")
-    return CharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key)
 
 @router.post("/character/upload")
 async def upload_character_card(file: UploadFile = File(...)):
     """
-    接收上传的角色卡图片, 提取JSON数据并返回JSON和图片的Base64编码。
+    接收上传的角色卡图片，提取JSON数据，并返回JSON和图片的Base64编码。
+    文件将根据角色名称保存，并通过哈希校验避免重复。
     """
     if not file.filename.endswith('.png'):
-        raise HTTPException(status_code=400, detail="Invalid file type, please upload a .png file.")
+        raise HTTPException(status_code=400, detail="文件类型无效，请上传 .png 文件。")
 
-    temp_path = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4().hex}_{file.filename}")
-    
+    content = await file.read()
+
     try:
-        content = await file.read()
-        
-        with open(temp_path, "wb") as buffer:
-            buffer.write(content)
-
-        character_data = extract_embedded_text(temp_path)
+        # 从图片内容中提取角色数据
+        character_data = extract_embedded_text(content)
         if not character_data:
-            character_data = {"data": {"name": "New Character", "description": ""}} # Provide a default structure
+            character_data = {"data": {"name": "新角色", "description": ""}}
 
+        # 使用辅助函数保存文件
+        handle_uploaded_file(content, UPLOAD_FOLDER, character_data)
+
+        # 准备响应
         image_b64 = base64.b64encode(content).decode('utf-8')
         image_b64_data_uri = f"data:image/png;base64,{image_b64}"
 
         return {"character_data": character_data, "image_b64": image_b64_data_uri}
 
     except Exception as e:
-        logging.error(f"Error processing uploaded card: {e}")
-        raise HTTPException(status_code=500, detail="An internal error occurred.")
-    # 文件永久保存，不再删除临时文件
+        logging.error(f"处理上传的卡片时出错：{e}")
+        raise HTTPException(status_code=500, detail="处理上传的卡片时发生内部错误。")
 
 @router.post("/character/translate")
 async def translate_text_field(data: Dict[str, Any] = Body(...)):
@@ -66,7 +57,7 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
     field_name = data.get('field_name')
     settings = data.get('settings')
     if not text_to_translate or not field_name:
-        raise HTTPException(status_code=400, detail="Missing 'text' or 'field_name' in request body")
+        raise HTTPException(status_code=400, detail="请求正文中缺少 'text' 或 'field_name'。")
     if not text_to_translate.strip():
         return {"translated_text": ""}
     try:
@@ -76,11 +67,11 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except TranslationError as e:
-        logging.error(f"Translation failed: {e.message}")
+        logging.error(f"翻译失败：{e.message}")
         raise HTTPException(status_code=500, detail=e.message)
     except Exception as e:
-        logging.error(f"An unexpected error occurred during translation: {e}")
-        raise HTTPException(status_code=500, detail="An internal error occurred during translation.")
+        logging.error(f"翻译过程中发生意外错误：{e}")
+        raise HTTPException(status_code=500, detail="翻译过程中发生内部错误。")
 
 @router.post("/character/export")
 async def export_character_card(
@@ -88,12 +79,12 @@ async def export_character_card(
     image_file: UploadFile = File(...)
 ):
     """
-    接收角色卡的JSON数据和一张基础图片, ��成并返回嵌入了该数据的新PNG图片。
+    接收角色卡的JSON数据和一张基础图片, 生成并返回嵌入了该数据的新PNG图片。
     """
     try:
         character_data = json.loads(json_data)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON data provided.")
+        raise HTTPException(status_code=400, detail="提供了无效的JSON数据。")
 
     temp_image_path = os.path.join(UPLOAD_FOLDER, f"export_base_{uuid.uuid4().hex}.png")
     output_path = os.path.join(OUTPUT_FOLDER, f"character_export_{uuid.uuid4().hex}.png")
@@ -107,11 +98,9 @@ async def export_character_card(
         if result_path:
             char_name = character_data.get("data", {}).get("name", "character")
             download_name = f"{char_name}.png"
-            # Use a background task to clean up the file after sending
             return FileResponse(path=result_path, media_type='image/png', filename=download_name)
         else:
-            raise HTTPException(status_code=500, detail="Failed to embed data into image.")
+            raise HTTPException(status_code=500, detail="无法将数据嵌入图片。")
     except Exception as e:
-        logging.error(f"Error exporting character card: {e}")
-        raise HTTPException(status_code=500, detail="An internal error occurred during export.")
-    # 文件永久保存，不再删除临时文件和导出文件
+        logging.error(f"导出角色卡时出错：{e}")
+        raise HTTPException(status_code=500, detail="导出过程中发生内部错误。")
