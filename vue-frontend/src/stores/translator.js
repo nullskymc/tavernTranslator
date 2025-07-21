@@ -173,6 +173,11 @@ export const useTranslatorStore = defineStore('translator', () => {
     reader.readAsText(file);
   };
 
+  const updateCardField = (path, value) => {
+    if (!characterCard.value) return;
+    set(characterCard.value, path, value);
+  };
+
   const createNewCard = () => {
     characterCard.value = {
       "data": {
@@ -237,5 +242,6 @@ export const useTranslatorStore = defineStore('translator', () => {
     exportCardAsJson, // 导出新方法
     handleJsonUpload, // 导出新方法
     createNewCard,    // 导出新方法
+    updateCardField,  // 导出新方法
   };
 });
