@@ -7,7 +7,7 @@
 
     <div class="sidebar-header">
       <img src="/img/index.png" alt="Logo" class="logo" />
-      <h2>TavernTranslator</h2>
+      <h2>{{ $t('sidebar.title') }}</h2>
     </div>
 
     <div class="sidebar-content">
@@ -15,10 +15,10 @@
       <div class="character-image-section">
         
         <div class="image-preview-wrapper">
-          <img v-if="store.characterImageB64" :src="store.characterImageB64" alt="Character Preview" class="image-preview" />
+          <img v-if="store.characterImageB64" :src="store.characterImageB64" :alt="$t('sidebar.image.preview')" class="image-preview" />
           <div v-else class="image-placeholder">
             <el-icon><Picture /></el-icon>
-            <span>无图片</span>
+            <span>{{ $t('sidebar.image.placeholder') }}</span>
           </div>
         </div>
         <!-- Removed original "更换图片" button here -->
@@ -35,7 +35,7 @@
               :disabled="!store.characterCard"
               :loading="store.isLoading"
             >
-              导出为图片
+              {{ $t('sidebar.export.image') }}
             </el-button>
           </div>
 
@@ -45,7 +45,7 @@
               :icon="Document" 
               :disabled="!store.characterCard"
             >
-              导出为JSON
+              {{ $t('sidebar.export.json') }}
             </el-button>
           </div>
         </div>
@@ -62,7 +62,7 @@
               <el-button @click="triggerFileUpload" circle>
                 <el-icon><Upload /></el-icon>
               </el-button>
-              <span class="button-text">上传卡片</span>
+              <span class="button-text">{{ $t('sidebar.actions.uploadCard') }}</span>
             </div>
 
             <!-- "上传JSON" button -->
@@ -71,7 +71,7 @@
               <el-button @click="triggerJsonUpload" circle>
                 <el-icon><FolderOpened /></el-icon>
               </el-button>
-              <span class="button-text">上传JSON</span>
+              <span class="button-text">{{ $t('sidebar.actions.uploadJson') }}</span>
             </div>
 
             <!-- "新建空白卡" button -->
@@ -79,7 +79,7 @@
               <el-button @click="createNewCard" circle>
                 <el-icon><DocumentAdd /></el-icon>
               </el-button>
-              <span class="button-text">新建空白卡</span>
+              <span class="button-text">{{ $t('sidebar.actions.newBlank') }}</span>
             </div>
           </div>
 
@@ -90,7 +90,7 @@
               <el-button @click="triggerImageUpload" :disabled="!store.characterCard" circle>
                 <el-icon><Picture /></el-icon>
               </el-button>
-              <span class="button-text">更换图片</span>
+              <span class="button-text">{{ $t('sidebar.actions.changeImage') }}</span>
             </div>
 
             <!-- "翻译设置" button -->
@@ -98,7 +98,7 @@
               <el-button @click="settingsDialogVisible = true" circle>
                 <el-icon><Setting /></el-icon>
               </el-button>
-              <span class="button-text">翻译设置</span>
+              <span class="button-text">{{ $t('sidebar.actions.translationSettings') }}</span>
             </div>
 
             <!-- "清除卡片" button -->
@@ -106,15 +106,23 @@
               <el-button @click="confirmReset" :disabled="!store.characterCard" circle type="danger">
                 <el-icon><Delete /></el-icon>
               </el-button>
-              <span class="button-text">清除卡片</span>
+              <span class="button-text">{{ $t('sidebar.actions.clearCard') }}</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- 底部控制按钮 -->
+    <div class="sidebar-controls">
+      <div class="action-buttons-row">
+        <ThemeToggle />
+        <LanguageSwitcher />
+      </div>
+    </div>
+
     <div class="sidebar-footer">
-      <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">GitHub</a>
+      <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">{{ $t('sidebar.footer.github') }}</a>
     </div>
 
     <!-- 翻译设置对话框 -->
@@ -125,14 +133,18 @@
 <script setup>
 import { ref } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
+import { useI18n } from 'vue-i18n';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { Upload, Download, Setting, Delete, Picture, FolderOpened, DocumentAdd, Document, Close } from '@element-plus/icons-vue';
 import TranslationSettingsDialog from './TranslationSettingsDialog.vue';
+import ThemeToggle from './ThemeToggle.vue';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 // 定义emit事件
 const emit = defineEmits(['close']);
 
 const store = useTranslatorStore();
+const { t: $t } = useI18n();
 
 const imageUploader = ref(null);
 const fileUploader = ref(null);
@@ -148,7 +160,7 @@ const handleImageChange = (event) => {
     reader.onload = (e) => store.updateBaseImage(e.target.result);
     reader.readAsDataURL(file);
   } else {
-    ElMessage.error('请选择一个有效的PNG文件');
+    ElMessage.error($t('messages.error.invalidPng'));
   }
   event.target.value = ''; // 重置input，以便可以再次选择相同的文件
 };
@@ -170,22 +182,22 @@ const handleJsonFileChange = (event) => {
   if (file && file.type === 'application/json') {
     store.handleJsonUpload(file); // 调用 store 中的新方法
   } else {
-    ElMessage.error('请选择一个有效的JSON文件');
+    ElMessage.error($t('messages.error.invalidJson'));
   }
   event.target.value = '';
 };
 
 // --- 新建空白卡 ---
 const createNewCard = () => {
-  ElMessageBox.confirm('这将创建一个新的空白角色卡，当前数据将丢失。确定要继续吗？', '警告', {
-    confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning',
+  ElMessageBox.confirm($t('sidebar.confirm.newBlank'), $t('messages.confirm.title'), {
+    confirmButtonText: $t('messages.confirm.confirm'), cancelButtonText: $t('messages.confirm.cancel'), type: 'warning',
   }).then(() => store.createNewCard()).catch(() => {}); // 调用 store 中的新方法
 };
 
 // --- 重置确认 ---
 const confirmReset = () => {
-  ElMessageBox.confirm('这将清除当前加载的角色卡数据，且无法恢复。确定要继续吗？', '警告', {
-    confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning',
+  ElMessageBox.confirm($t('sidebar.confirm.clearCard'), $t('messages.confirm.title'), {
+    confirmButtonText: $t('messages.confirm.confirm'), cancelButtonText: $t('messages.confirm.cancel'), type: 'warning',
   }).then(() => store.resetStore()).catch(() => {});
 };
 </script>
@@ -443,6 +455,13 @@ const confirmReset = () => {
   color: var(--el-color-primary);
 }
 
+.sidebar-controls {
+  padding: 16px 0;
+  border-top: 1px solid var(--el-border-color-light);
+  border-bottom: 1px solid var(--el-border-color-light);
+  margin: 0 20px;
+}
+
 /* 移动端样式 */
 @media (max-width: 768px) {
   .mobile-close-btn {
@@ -471,7 +490,7 @@ const confirmReset = () => {
     gap: 8px;
   }
   
-  .action-button-wrapper {
+  .action-button-wrapper, .theme-toggle, .language-switcher {
     width: 100%;
     height: 50px;
     border-radius: 25px;
@@ -479,16 +498,24 @@ const confirmReset = () => {
     padding: 0 16px;
   }
   
-  .action-button-wrapper:hover {
+  .action-button-wrapper:hover, .theme-toggle:hover, .language-switcher:hover {
     width: 100%;
   }
   
-  .action-button-wrapper .button-text {
+  .action-button-wrapper .button-text, .theme-toggle .button-text, .language-switcher .button-text {
     opacity: 1;
     margin-left: 12px;
   }
   
   .export-buttons-wrapper {
+    gap: 8px;
+  }
+  
+  .sidebar-controls {
+    margin: 0 16px;
+  }
+  
+  .sidebar-controls .action-buttons-row {
     gap: 8px;
   }
 }
@@ -512,18 +539,22 @@ const confirmReset = () => {
     max-width: 150px;
   }
   
-  .action-button-wrapper {
+  .action-button-wrapper, .theme-toggle, .language-switcher {
     height: 45px;
     padding: 0 12px;
   }
   
-  .action-button-wrapper .el-button {
+  .action-button-wrapper .el-button, .theme-toggle .theme-button, .language-switcher .language-button {
     width: 45px;
     height: 45px;
   }
   
-  .action-button-wrapper .button-text {
+  .action-button-wrapper .button-text, .theme-toggle .button-text, .language-switcher .button-text {
     font-size: 0.85em;
+  }
+  
+  .sidebar-controls {
+    margin: 0 12px;
   }
 }
 </style>

@@ -1,24 +1,50 @@
 <template>
-  <div class="theme-toggle action-button-wrapper" @click="toggleTheme">
-    <el-button class="theme-button" circle>
-      <el-icon><component :is="isDarkTheme ? 'Sunny' : 'Moon'" /></el-icon>
-      <span class="button-text">{{ isDarkTheme ? '亮色模式' : '暗色模式' }}</span>
+  <div class="language-switcher action-button-wrapper" @click="toggleLanguage">
+    <el-button class="language-button" circle>
+      <el-icon><Flag /></el-icon>
+      <span class="button-text">{{ currentLanguage === 'zh' ? '中文' : 'EN' }}</span>
     </el-button>
   </div>
 </template>
 
 <script setup>
-import { storeToRefs } from 'pinia'
-import { useThemeStore } from '../stores/theme'
-import { Sunny, Moon } from '@element-plus/icons-vue'
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Flag } from '@element-plus/icons-vue';
 
-const themeStore = useThemeStore()
-const { isDarkTheme } = storeToRefs(themeStore)
-const { toggleTheme } = themeStore
+const { locale } = useI18n();
+const currentLanguage = ref(locale.value);
+
+// 移动端检测
+const isMobile = ref(false);
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
+
+const handleResize = () => {
+  checkMobile();
+};
+
+onMounted(() => {
+  checkMobile();
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
+
+const toggleLanguage = () => {
+  const newLang = currentLanguage.value === 'zh' ? 'en' : 'zh';
+  locale.value = newLang;
+  localStorage.setItem('locale', newLang);
+  currentLanguage.value = newLang;
+};
 </script>
 
 <style scoped>
-.theme-toggle {
+.language-switcher {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -27,7 +53,7 @@ const { toggleTheme } = themeStore
   position: relative;
 }
 
-.theme-button {
+.language-button {
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -41,20 +67,20 @@ const { toggleTheme } = themeStore
   color: var(--el-text-color-primary);
 }
 
-.dark-theme .theme-button {
+.dark-theme .language-button {
   background-color: var(--background-color) !important;
   color: var(--text-primary) !important;
 }
 
-.dark-theme .theme-button:hover {
+.dark-theme .language-button:hover {
   background-color: var(--background-secondary) !important;
 }
 
-.theme-button:hover {
+.language-button:hover {
   background-color: var(--el-color-primary-light-9);
 }
 
-.theme-button .el-icon {
+.language-button .el-icon {
   font-size: 18px;
   transition: color 0.3s ease;
 }
@@ -72,13 +98,13 @@ const { toggleTheme } = themeStore
   color: var(--text-primary) !important;
 }
 
-.theme-toggle:hover .button-text {
+.language-switcher:hover .button-text {
   opacity: 1;
 }
 
 /* 移动端样式 */
 @media (max-width: 768px) {
-  .theme-toggle {
+  .language-switcher {
     width: 100%;
     height: 50px;
     border-radius: 25px;
@@ -86,11 +112,11 @@ const { toggleTheme } = themeStore
     padding: 0 16px;
   }
   
-  .theme-toggle:hover {
+  .language-switcher:hover {
     width: 100%;
   }
   
-  .theme-button {
+  .language-button {
     width: 50px;
     height: 50px;
   }
@@ -102,17 +128,17 @@ const { toggleTheme } = themeStore
 }
 
 @media (max-width: 480px) {
-  .theme-toggle {
+  .language-switcher {
     height: 45px;
     padding: 0 12px;
   }
   
-  .theme-button {
+  .language-button {
     width: 45px;
     height: 45px;
   }
   
-  .theme-button .el-icon {
+  .language-button .el-icon {
     font-size: 16px;
   }
   

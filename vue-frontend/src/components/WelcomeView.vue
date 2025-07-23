@@ -1,35 +1,29 @@
 <template>
   <div class="welcome-container">
     <div class="welcome-box">
-      <h1 class="title">欢迎使用Tavern Translator</h1>
-      <p class="subtitle">角色卡创建与翻译工具</p>
+      <h1 class="title">{{ $t('welcome.title') }}</h1>
+      <p class="subtitle">{{ $t('welcome.subtitle') }}</p>
       
       <div class="features">
         <div class="feature-item">
           <el-icon><EditPen /></el-icon>
-          <span>在线编辑</span>
+          <span>{{ $t('welcome.features.onlineEdit') }}</span>
         </div>
         <div class="feature-item">
           <el-icon><DataLine /></el-icon>
-          <span>本地存储</span>
+          <span>{{ $t('welcome.features.localStorage') }}</span>
         </div>
         <div class="feature-item">
           <el-icon><Switch /></el-icon>
-          <span>一键翻译</span>
+          <span>{{ $t('welcome.features.oneClickTranslate') }}</span>
         </div>
         <div class="feature-item">
           <el-icon><Download /></el-icon>
-          <span>图片导出</span>
+          <span>{{ $t('welcome.features.imageExport') }}</span>
         </div>
       </div>
 
-      <p class="instructions">
-        这是一个专为 SillyTavern 角色卡设计的翻译编辑工具，可以帮助你将英文角色卡翻译成中文。<br>
-        要开始使用，请点击左侧边栏的 <strong>“上传卡片”</strong> 按钮，
-        或将您的 <code>.png</code> 格式角色卡文件拖拽到此窗口。<br>
-        欢迎加入秋秋群 1043662159 交流项目出现的问题。<br>
-        如果你觉得这个项目对你有帮助，请考虑为开发者<a href="https://github.com/nullskymc/tavernTranslator">点个star</a>。<br>
-      </p>
+      <p class="instructions" v-html="$t('welcome.instructions')"></p>
     </div>
   </div>
 </template>

@@ -1,0 +1,86 @@
+{
+  "app": {
+    "title": "TavernTranslator",
+    "loading": "Please wait...",
+    "mobile": {
+      "menu": "Menu"
+    }
+  },
+  "sidebar": {
+    "title": "TavernTranslator",
+    "image": {
+      "preview": "Character Preview",
+      "placeholder": "No image",
+      "noImage": "No image"
+    },
+    "export": {
+      "image": "Export as Image",
+      "json": "Export as JSON"
+    },
+    "actions": {
+      "uploadCard": "Upload Card",
+      "uploadJson": "Upload JSON",
+      "newBlank": "New Blank Card",
+      "changeImage": "Change Image",
+      "translationSettings": "Translation Settings",
+      "clearCard": "Clear Card"
+    },
+    "confirm": {
+      "newBlank": "This will create a new blank character card, current data will be lost. Are you sure you want to continue?",
+      "clearCard": "This will clear the currently loaded character card data and cannot be recovered. Are you sure you want to continue?"
+    },
+    "footer": {
+      "github": "GitHub"
+    }
+  },
+  "editor": {
+    "name": "Name",
+    "description": "Description",
+    "personality": "Personality",
+    "scenario": "Scenario",
+    "firstMessage": "First Message",
+    "exampleMessages": "Example Messages",
+    "alternateGreetings": "Alternate Greetings",
+    "translate": "Translate",
+    "tags": "Tags",
+    "tagsPlaceholder": "Separate tags with commas",
+    "messageExamplePlaceholder": "Enter message examples here...",
+    "removeGreeting": "Remove",
+    "addGreeting": "Add Greeting"
+  },
+  "settings": {
+    "title": "Translation Settings",
+    "provider": "Provider",
+    "api": "API Key",
+    "apiPlaceholder": "Please enter your API Key",
+    "baseUrl": "Base URL",
+    "baseUrlPlaceholder": "e.g.: https://api.openai.com/v1",
+    "model": "Model Name",
+    "modelPlaceholder": "e.g.: gpt-4-1106-preview",
+    "save": "Save Settings",
+    "saveSuccess": "Settings saved successfully",
+    "cancel": "Cancel"
+  },
+  "welcome": {
+    "title": "Welcome to Tavern Translator",
+    "subtitle": "Character Card Creation and Translation Tool",
+    "features": {
+      "onlineEdit": "Online Edit",
+      "localStorage": "Local Storage",
+      "oneClickTranslate": "One-Click Translate",
+      "imageExport": "Image Export"
+    },
+    "instructions": "This is a translation editor tool designed specifically for SillyTavern character cards, which can help you translate English character cards into Chinese.<br>To get started, click the <strong>\"Upload Card\"</strong> button in the left sidebar, or drag and drop your <code>.png</code> format character card file to this window.<br>If you feel this project is helpful to you, please consider <a href=\"https://github.com/nullskymc/tavernTranslator\">starring the developer</a>.<br>"
+  },
+  "messages": {
+    "error": {
+      "invalidPng": "Please select a valid PNG file",
+      "invalidJson": "Please select a valid JSON file"
+    },
+    "confirm": {
+      "title": "Warning",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    }
+  }
+}

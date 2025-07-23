@@ -1,5 +1,5 @@
 <template>
-  <div id="app-layout" v-loading.fullscreen.lock="store.isLoading" element-loading-text="请稍候...">
+  <div id="app-layout" v-loading.fullscreen.lock="store.isLoading" :element-loading-text="$t('app.loading')">
     <!-- 移动端遮罩层 -->
     <div 
       v-if="isMobile && sidebarVisible" 
@@ -17,7 +17,7 @@
       />
       <div class="mobile-title">
         <img src="/img/index.png" alt="Logo" class="mobile-logo" />
-        <span>TavernTranslator</span>
+        <span>{{ $t('app.title') }}</span>
       </div>
     </header>
 
@@ -41,9 +41,6 @@
         </div>
       </div>
     </main>
-    
-    <!-- 全局组件 -->
-    <ThemeToggle />
   </div>
 </template>
 
@@ -58,6 +55,7 @@ import AppSidebar from './components/AppSidebar.vue';
 import CharacterEditor from './components/CharacterEditor.vue';
 import ThemeToggle from './components/ThemeToggle.vue';
 import WelcomeView from './components/WelcomeView.vue'; // 一个新的欢迎组件
+import LanguageSwitcher from './components/LanguageSwitcher.vue';
 
 const store = useTranslatorStore();
 const themeStore = useThemeStore();
@@ -146,6 +144,7 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  position: relative;
 }
 
 .main-content {
@@ -202,6 +201,7 @@ body {
   gap: 12px;
   font-size: 18px;
   font-weight: 600;
+  flex-grow: 1;
 }
 
 .mobile-logo {
@@ -234,6 +234,14 @@ body {
   padding: 16px;
 }
 
+/* 桌面端语言切换器 */
+.language-switcher-desktop {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
 /* 移动端响应式 */
 @media (max-width: 768px) {
   #app-layout {
@@ -246,6 +254,11 @@ body {
   
   .main-content-inner {
     max-width: 100%;
+  }
+  
+  /* 隐藏桌面端语言切换器 */
+  .language-switcher-desktop {
+    display: none;
   }
 }
 

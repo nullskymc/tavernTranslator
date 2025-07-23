@@ -1,0 +1,86 @@
+{
+  "app": {
+    "title": "TavernTranslator",
+    "loading": "请稍候...",
+    "mobile": {
+      "menu": "菜单"
+    }
+  },
+  "sidebar": {
+    "title": "TavernTranslator",
+    "image": {
+      "preview": "角色预览",
+      "placeholder": "无图片",
+      "noImage": "无图片"
+    },
+    "export": {
+      "image": "导出为图片",
+      "json": "导出为JSON"
+    },
+    "actions": {
+      "uploadCard": "上传卡片",
+      "uploadJson": "上传JSON",
+      "newBlank": "新建空白卡",
+      "changeImage": "更换图片",
+      "translationSettings": "翻译设置",
+      "clearCard": "清除卡片"
+    },
+    "confirm": {
+      "newBlank": "这将创建一个新的空白角色卡，当前数据将丢失。确定要继续吗？",
+      "clearCard": "这将清除当前加载的角色卡数据，且无法恢复。确定要继续吗？"
+    },
+    "footer": {
+      "github": "GitHub"
+    }
+  },
+  "editor": {
+    "name": "名称",
+    "description": "描述",
+    "personality": "性格",
+    "scenario": "场景",
+    "firstMessage": "第一条消息",
+    "exampleMessages": "示例消息",
+    "alternateGreetings": "备用问候语",
+    "translate": "翻译",
+    "tags": "标签",
+    "tagsPlaceholder": "使用逗号分隔标签",
+    "messageExamplePlaceholder": "在此处输入对话示例...",
+    "removeGreeting": "删除",
+    "addGreeting": "添加问候语"
+  },
+  "settings": {
+    "title": "翻译设置",
+    "provider": "提供商",
+    "api": "API密钥",
+    "apiPlaceholder": "请输入您的API密钥",
+    "baseUrl": "基础URL",
+    "baseUrlPlaceholder": "例如: https://api.openai.com/v1",
+    "model": "模型名称",
+    "modelPlaceholder": "例如: gpt-4-1106-preview",
+    "save": "保存设置",
+    "saveSuccess": "设置保存成功",
+    "cancel": "取消"
+  },
+  "welcome": {
+    "title": "欢迎使用Tavern Translator",
+    "subtitle": "角色卡创建与翻译工具",
+    "features": {
+      "onlineEdit": "在线编辑",
+      "localStorage": "本地存储",
+      "oneClickTranslate": "一键翻译",
+      "imageExport": "图片导出"
+    },
+    "instructions": "这是一个专为 SillyTavern 角色卡设计的翻译编辑工具，可以帮助你将英文角色卡翻译成中文。<br>要开始使用，请点击左侧边栏的 <strong>\"上传卡片\"</strong> 按钮，或将您的 <code>.png</code> 格式角色卡文件拖拽到此窗口。<br>欢迎加入秋秋群 1043662159 交流项目出现的问题。<br>如果你觉得这个项目对你有帮助，请考虑为开发者<a href=\"https://github.com/nullskymc/tavernTranslator\">点个star</a>。<br>"
+  },
+  "messages": {
+    "error": {
+      "invalidPng": "请选择一个有效的PNG文件",
+      "invalidJson": "请选择一个有效的JSON文件"
+    },
+    "confirm": {
+      "title": "警告",
+      "confirm": "确定",
+      "cancel": "取消"
+    }
+  }
+}

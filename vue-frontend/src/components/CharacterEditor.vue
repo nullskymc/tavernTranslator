@@ -4,7 +4,7 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <span>内容编辑器</span>
+          <span>{{ $t('editor.name') }}</span>
         </div>
       </template>
 
@@ -12,20 +12,20 @@
       <el-form label-position="top" class="editor-form">
         <el-row :gutter="20">
           <el-col :span="isMobile ? 24 : 12">
-            <el-form-item label="角色名称 (Name)">
+            <el-form-item :label="`${$t('editor.name')} (Name)`">
               <el-input v-model="name" />
             </el-form-item>
           </el-col>
           <el-col :span="isMobile ? 24 : 12">
-            <el-form-item label="角色标签 (Tags)">
-              <el-input v-model="tags" placeholder="使用逗号分隔标签" />
+            <el-form-item :label="`${$t('editor.tags')} (Tags)`">
+              <el-input v-model="tags" :placeholder="$t('editor.tagsPlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item>
               <template #label>
                 <div class="label-with-btn">
-                  <span>角色描述 (Description)</span>
+                  <span>{{ $t('editor.description') }} (Description)</span>
                   <el-button 
                     class="translate-btn" 
                     type="primary" 
@@ -33,7 +33,7 @@
                     @click="store.translateField('data.description')" 
                     :loading="store.isLoading"
                   >
-                    翻译
+                    {{ $t('editor.translate') }}
                   </el-button>
                 </div>
               </template>
@@ -44,7 +44,7 @@
             <el-form-item>
               <template #label>
                 <div class="label-with-btn">
-                  <span>性格 (Personality)</span>
+                  <span>{{ $t('editor.personality') }} (Personality)</span>
                   <el-button 
                     class="translate-btn" 
                     type="primary" 
@@ -52,7 +52,7 @@
                     @click="store.translateField('data.personality')" 
                     :loading="store.isLoading"
                   >
-                    翻译
+                    {{ $t('editor.translate') }}
                   </el-button>
                 </div>
               </template>
@@ -63,7 +63,7 @@
             <el-form-item>
               <template #label>
                 <div class="label-with-btn">
-                  <span>场景 (Scenario)</span>
+                  <span>{{ $t('editor.scenario') }} (Scenario)</span>
                   <el-button 
                     class="translate-btn" 
                     type="primary" 
@@ -71,7 +71,7 @@
                     @click="store.translateField('data.scenario')" 
                     :loading="store.isLoading"
                   >
-                    翻译
+                    {{ $t('editor.translate') }}
                   </el-button>
                 </div>
               </template>
@@ -82,7 +82,7 @@
             <el-form-item>
               <template #label>
                 <div class="label-with-btn">
-                  <span>开场白 (First Message)</span>
+                  <span>{{ $t('editor.firstMessage') }} (First Message)</span>
                   <el-button 
                     class="translate-btn" 
                     type="primary" 
@@ -90,7 +90,7 @@
                     @click="store.translateField('data.first_mes')" 
                     :loading="store.isLoading"
                   >
-                    翻译
+                    {{ $t('editor.translate') }}
                   </el-button>
                 </div>
               </template>
@@ -101,7 +101,7 @@
             <el-form-item>
               <template #label>
                 <div class="label-with-btn">
-                  <span>对话示例 (Message Example)</span>
+                  <span>{{ $t('editor.exampleMessages') }} (Message Example)</span>
                   <el-button 
                     class="translate-btn" 
                     type="primary" 
@@ -109,17 +109,17 @@
                     @click="store.translateField('data.mes_example')" 
                     :loading="store.isLoading"
                   >
-                    翻译
+                    {{ $t('editor.translate') }}
                   </el-button>
                 </div>
               </template>
-              <el-input v-model="mes_example" type="textarea" :rows="12" placeholder="在此处输入对话示例..." />
+              <el-input v-model="mes_example" type="textarea" :rows="12" :placeholder="$t('editor.messageExamplePlaceholder')" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item>
               <template #label>
-                <span>备选问候语 (Alternate Greetings)</span>
+                <span>{{ $t('editor.alternateGreetings') }} (Alternate Greetings)</span>
               </template>
               <div v-for="(greeting, index) in alternate_greetings" :key="index" class="greeting-item">
                 <el-input v-model="alternate_greetings[index]" type="textarea" :rows="2" />
@@ -131,12 +131,12 @@
                     @click="store.translateField(`data.alternate_greetings[${index}]`)" 
                     :loading="store.isLoading"
                   >
-                    翻译
+                    {{ $t('editor.translate') }}
                   </el-button>
-                  <el-button type="danger" text @click="removeGreeting(index)">删除</el-button>
+                  <el-button type="danger" text @click="removeGreeting(index)">{{ $t('editor.removeGreeting') }}</el-button>
                 </div>
               </div>
-              <el-button @click="addGreeting" type="primary" plain>添加问候语</el-button>
+              <el-button @click="addGreeting" type="primary" plain>{{ $t('editor.addGreeting') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
