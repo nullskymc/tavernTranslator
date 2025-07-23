@@ -2,7 +2,7 @@
   <el-dialog
     v-model="dialogVisible"
     :title="$t('settings.title')"
-    :width="isMobile ? '95%' : '500px'"
+    :width="isMobile ? '95%' : '700px'"
     :close-on-click-modal="false"
     append-to-body
   >
@@ -16,6 +16,41 @@
       <el-form-item :label="$t('settings.model')">
         <el-input v-model="settings.model_name" :placeholder="$t('settings.modelPlaceholder')" />
       </el-form-item>
+      
+      <el-form-item :label="$t('settings.promptLanguage')">
+        <el-radio-group v-model="settings.prompt_language">
+          <el-radio label="zh">{{ $t('settings.promptLanguageZh') }}</el-radio>
+          <el-radio label="en">{{ $t('settings.promptLanguageEn') }}</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
+      <el-collapse v-model="activePrompt">
+        <el-collapse-item :title="$t('settings.prompts.base_template')" name="1">
+          <el-input
+            v-model="settings.prompts.base_template"
+            type="textarea"
+            :rows="8"
+            :placeholder="$t('settings.prompts.placeholder')"
+          />
+        </el-collapse-item>
+        <el-collapse-item :title="$t('settings.prompts.description_template')" name="2">
+          <el-input
+            v-model="settings.prompts.description_template"
+            type="textarea"
+            :rows="8"
+            :placeholder="$t('settings.prompts.placeholder')"
+          />
+        </el-collapse-item>
+        <el-collapse-item :title="$t('settings.prompts.dialogue_template')" name="3">
+          <el-input
+            v-model="settings.prompts.dialogue_template"
+            type="textarea"
+            :rows="8"
+            :placeholder="$t('settings.prompts.placeholder')"
+          />
+        </el-collapse-item>
+      </el-collapse>
+
     </el-form>
     <template #footer>
       <span class="dialog-footer">
@@ -30,63 +65,67 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted } from 'vue';
-import { useTranslatorStore } from '@/stores/translator';
+import { useTranslatorStore, defaultPromptsZh, defaultPromptsEn } from '@/stores/translator';
 import { ElMessage } from 'element-plus';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps({
-  modelValue: Boolean, // 用于 v-model
+  modelValue: Boolean,
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const store = useTranslatorStore();
 
-// 移动端检测
 const isMobile = ref(false);
+const activePrompt = ref('1');
 
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768;
 };
 
-const handleResize = () => {
-  checkMobile();
-};
-
 onMounted(() => {
   checkMobile();
-  window.addEventListener('resize', handleResize);
+  window.addEventListener('resize', checkMobile);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
+  window.removeEventListener('resize', checkMobile);
 });
 
-// 将 store 的设置绑定到本地 ref，以便在表单中编辑
 const settings = ref({ ...store.translationSettings });
 
 const dialogVisible = ref(props.modelValue);
 
-// 监听 v-model 的变化来更新对话框可见性
 watch(() => props.modelValue, (val) => {
   dialogVisible.value = val;
-  // 每次打开对话框时，都从 store 同步最新的设置
   if (val) {
-    settings.value = { ...store.translationSettings };
+    settings.value = JSON.parse(JSON.stringify(store.translationSettings));
   }
 });
 
-// 监听对话框可见性的变化来更新 v-model
 watch(dialogVisible, (val) => {
   emit('update:modelValue', val);
 });
 
+watch(() => settings.value.prompt_language, (newLang) => {
+  if (newLang === 'en') {
+    settings.value.prompts = { ...defaultPromptsEn };
+  } else {
+    settings.value.prompts = { ...defaultPromptsZh };
+  }
+});
+
 const saveSettings = () => {
-  // 将本地的设置保存回 store
   store.translationSettings.api_key = settings.value.api_key;
   store.translationSettings.base_url = settings.value.base_url;
   store.translationSettings.model_name = settings.value.model_name;
+  store.translationSettings.prompt_language = settings.value.prompt_language;
+  store.translationSettings.prompts = settings.value.prompts;
   
-  ElMessage.success($t('settings.saveSuccess'));
+  ElMessage.success(t('settings.saveSuccess'));
   dialogVisible.value = false;
 };
 </script>

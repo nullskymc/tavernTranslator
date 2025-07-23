@@ -20,15 +20,16 @@ def pretty_print_json(data: Dict[str, Any]) -> None:
     """以美化格式打印JSON数据。"""
     print(json.dumps(data, indent=4, ensure_ascii=False))
 
-def get_translator(settings: Optional[Dict[str, str]] = None) -> CharacterCardTranslator:
-    """根据提供的设置或环境变量初始化并返回CharacterCardTranslator实例。"""
-    settings = settings or {}
-    api_key = settings.get('api_key') or os.environ.get('OPENAI_API_KEY')
-    base_url = settings.get('base_url') or os.environ.get('OPENAI_API_BASE', "https://api.openai.com/v1")
-    model_name = settings.get('model_name') or os.environ.get('MODEL_NAME', "gpt-4-1106-preview")
-    if not all([api_key, base_url, model_name]):
-        raise ValueError("翻译器配置不完整，请在设置中提供 API Key, Base URL 和模型名称。")
-    return CharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key)
+def get_translator(settings: Dict[str, str], prompts: Dict[str, str]) -> CharacterCardTranslator:
+    """根据提供的设置和提示词初始化并返回CharacterCardTranslator实例。"""
+    api_key = settings.get('api_key')
+    base_url = settings.get('base_url', "https://api.openai.com/v1")
+    model_name = settings.get('model_name', "gpt-4-1106-preview")
+
+    if not all([api_key, base_url, model_name, prompts]):
+        raise ValueError("翻译器配置不完整，请提供 API Key, Base URL, 模型名称和提示词。")
+
+    return CharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts)
 
 def handle_uploaded_file(content: bytes, upload_folder: str, character_data: Dict) -> str:
     """

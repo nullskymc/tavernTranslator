@@ -56,12 +56,16 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
     text_to_translate = data.get('text')
     field_name = data.get('field_name')
     settings = data.get('settings')
-    if not text_to_translate or not field_name:
-        raise HTTPException(status_code=400, detail="请求正文中缺少 'text' 或 'field_name'。")
+    prompts = data.get('prompts')  # 新增 prompts 参数
+
+    if not all([text_to_translate, field_name, settings, prompts]):
+        raise HTTPException(status_code=400, detail="请求正文中缺少必要的参数。")
+
     if not text_to_translate.strip():
         return {"translated_text": ""}
+
     try:
-        translator = get_translator(settings)
+        translator = get_translator(settings, prompts)  # 将 prompts 传递给 get_translator
         translated_text = translator.translate_field(field_name, text_to_translate)
         return {"translated_text": translated_text}
     except ValueError as e:

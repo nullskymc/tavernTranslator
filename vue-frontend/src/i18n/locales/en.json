@@ -61,7 +61,16 @@
     "modelPlaceholder": "e.g.: gpt-4-1106-preview",
     "save": "Save Settings",
     "saveSuccess": "Settings saved successfully",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "promptLanguage": "Target Language Prompt Template",
+    "promptLanguageZh": "Chinese",
+    "promptLanguageEn": "English",
+    "prompts": {
+      "base_template": "Base Prompt",
+      "description_template": "Description Prompt",
+      "dialogue_template": "Dialogue Prompt",
+      "placeholder": "Enter your prompt here"
+    }
   },
   "welcome": {
     "title": "Welcome to Tavern Translator",
@@ -72,7 +81,7 @@
       "oneClickTranslate": "One-Click Translate",
       "imageExport": "Image Export"
     },
-    "instructions": "This is a translation editor tool designed specifically for SillyTavern character cards, which can help you translate English character cards into Chinese.<br>To get started, click the <strong>\"Upload Card\"</strong> button in the left sidebar, or drag and drop your <code>.png</code> format character card file to this window.<br>If you feel this project is helpful to you, please consider <a href=\"https://github.com/nullskymc/tavernTranslator\">starring the developer</a>.<br>"
+    "instructions": "This is a translation editor tool designed specifically for SillyTavern character cards, which can help you translate character cards between English and Chinese.<br>To get started, click the <strong>\"Upload Card\"</strong> button in the left sidebar, or drag and drop your <code>.png</code> format character card file to this window.<br>If you feel this project is helpful to you, please consider <a href=\"https://github.com/nullskymc/tavernTranslator\">starring the developer</a>.<br>"
   },
   "messages": {
     "error": {
