@@ -23,7 +23,9 @@
       "newBlank": "新建空白卡",
       "changeImage": "更换图片",
       "translationSettings": "翻译设置",
-      "clearCard": "清除卡片"
+      "clearCard": "清除卡片",
+      "theme": "主题",
+      "language": "中文"
     },
     "confirm": {
       "newBlank": "这将创建一个新的空白角色卡，当前数据将丢失。确定要继续吗？",

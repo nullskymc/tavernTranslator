@@ -23,7 +23,9 @@
       "newBlank": "New Blank Card",
       "changeImage": "Change Image",
       "translationSettings": "Translation Settings",
-      "clearCard": "Clear Card"
+      "clearCard": "Clear Card",
+      "theme": "Theme",
+      "language": "English"
     },
     "confirm": {
       "newBlank": "This will create a new blank character card, current data will be lost. Are you sure you want to continue?",

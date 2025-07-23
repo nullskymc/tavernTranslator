@@ -1,16 +1,13 @@
 <template>
-  <div class="language-switcher action-button-wrapper" @click="toggleLanguage">
-    <el-button class="language-button" circle>
-      <el-icon><Flag /></el-icon>
-      <span class="button-text">{{ currentLanguage === 'zh' ? '中文' : 'EN' }}</span>
-    </el-button>
-  </div>
+  <el-button class="language-button" circle @click="toggleLanguage">
+    <el-icon><Switch /></el-icon>
+  </el-button>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Flag } from '@element-plus/icons-vue';
+import { Switch } from '@element-plus/icons-vue';
 
 const { locale } = useI18n();
 const currentLanguage = ref(locale.value);
@@ -44,14 +41,7 @@ const toggleLanguage = () => {
 </script>
 
 <style scoped>
-.language-switcher {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  position: relative;
-}
+
 
 .language-button {
   width: 50px;

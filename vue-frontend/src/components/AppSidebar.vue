@@ -116,8 +116,14 @@
     <!-- 底部控制按钮 -->
     <div class="sidebar-controls">
       <div class="action-buttons-row">
-        <ThemeToggle />
-        <LanguageSwitcher />
+        <div class="action-button-wrapper">
+          <ThemeToggle />
+          <span class="button-text">{{ $t('sidebar.actions.theme') }}</span>
+        </div>
+        <div class="action-button-wrapper">
+          <LanguageSwitcher />
+          <span class="button-text">{{ $t('sidebar.actions.language') }}</span>
+        </div>
       </div>
     </div>
 

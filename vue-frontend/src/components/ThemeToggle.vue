@@ -1,10 +1,7 @@
 <template>
-  <div class="theme-toggle action-button-wrapper" @click="toggleTheme">
-    <el-button class="theme-button" circle>
-      <el-icon><component :is="isDarkTheme ? 'Sunny' : 'Moon'" /></el-icon>
-      <span class="button-text">{{ isDarkTheme ? '亮色模式' : '暗色模式' }}</span>
-    </el-button>
-  </div>
+  <el-button class="theme-button" circle @click="toggleTheme">
+    <el-icon><component :is="isDarkTheme ? Sunny : Moon" /></el-icon>
+  </el-button>
 </template>
 
 <script setup>
@@ -18,14 +15,7 @@ const { toggleTheme } = themeStore
 </script>
 
 <style scoped>
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  position: relative;
-}
+
 
 .theme-button {
   width: 50px;
