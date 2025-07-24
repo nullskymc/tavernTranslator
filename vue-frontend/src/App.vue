@@ -127,16 +127,26 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style>
 /* 全局样式重置和基础设置 */
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
+  overflow: hidden; /* 防止整体页面滚动 */
 }
+</style>
+
+<style scoped>
 
 /* 新的根布局 */
 #app-layout {
@@ -145,6 +155,8 @@ body {
   width: 100vw;
   overflow: hidden;
   position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 .main-content {
@@ -153,6 +165,8 @@ body {
   overflow-y: auto;
   padding: 20px;
   box-sizing: border-box;
+  min-width: 0; /* 防止flex item溢出 */
+  margin: 0; /* 确保没有外边距 */
 }
 
 .main-content-inner {

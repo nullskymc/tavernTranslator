@@ -57,6 +57,7 @@ export const useThemeStore = defineStore('theme', () => {
     document.documentElement.classList.toggle('theme-transition')
     if (isDarkTheme.value) {
       document.documentElement.classList.add('dark-theme')
+      document.documentElement.classList.add('dark') // Element Plus 暗黑主题类
       
       // 直接操作头部横幅样式，强制应用更深的暗黑模式渐变
       const headerBanner = document.querySelector('.header-banner') as HTMLElement
@@ -65,11 +66,12 @@ export const useThemeStore = defineStore('theme', () => {
       }
     } else {
       document.documentElement.classList.remove('dark-theme')
+      document.documentElement.classList.remove('dark') // 移除Element Plus 暗黑主题类
       
       // 恢复头部横幅样式为亮色模式渐变
       const headerBanner = document.querySelector('.header-banner') as HTMLElement
       if (headerBanner) {
-        headerBanner.style.background = 'linear-gradient(135deg, #2563eb, #0ea5e9, #0d9488)'
+        headerBanner.style.background = 'linear-gradient(135deg, #409eff, #0ea5e9, #0d9488)'
       }
     }
     

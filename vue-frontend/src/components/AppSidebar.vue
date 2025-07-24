@@ -219,6 +219,42 @@ const confirmReset = () => {
   padding: 20px;
   box-sizing: border-box;
   position: relative;
+  flex-shrink: 0; /* 防止被压缩 */
+  margin: 0; /* 确保没有外边距 */
+  z-index: 1; /* 确保在正确层级 */
+}
+
+/* 暗色主题下的侧边栏样式 */
+.dark-theme .app-sidebar {
+  background-color: var(--el-bg-color);
+  border-right: 1px solid var(--el-border-color);
+}
+
+/* 暗色主题下的边框修复 */
+.dark-theme .sidebar-header {
+  border-bottom: 1px solid var(--el-border-color);
+}
+
+.dark-theme .sidebar-footer {
+  border-top: 1px solid var(--el-border-color);
+}
+
+.dark-theme .sidebar-controls {
+  border-top: 1px solid var(--el-border-color);
+  border-bottom: 1px solid var(--el-border-color);
+}
+
+/* 文字颜色修复 */
+.dark-theme .sidebar-header h2 {
+  color: var(--el-text-color-primary);
+}
+
+.dark-theme .sidebar-footer a {
+  color: var(--el-text-color-secondary);
+}
+
+.dark-theme .sidebar-footer a:hover {
+  color: var(--el-color-primary);
 }
 
 /* 移动端关闭按钮 */
@@ -243,11 +279,11 @@ const confirmReset = () => {
 }
 
 .dark-theme .mobile-close-btn {
-  background-color: var(--background-secondary);
+  background-color: var(--el-fill-color-light);
 }
 
 .dark-theme .mobile-close-btn:hover {
-  background-color: var(--background-hover);
+  background-color: var(--el-fill-color);
 }
 
 .sidebar-header {
@@ -275,6 +311,12 @@ const confirmReset = () => {
   flex-grow: 1;
   overflow-y: auto;
   margin-top: 20px;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.sidebar-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
 }
 
 .section-title {
@@ -335,6 +377,30 @@ const confirmReset = () => {
   box-sizing: border-box;
 }
 
+/* 确保导出按钮在暗色主题下正确显示 */
+.dark-theme .export-buttons-wrapper .el-button--primary {
+  background-color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
+  color: var(--el-bg-color);
+}
+
+.dark-theme .export-buttons-wrapper .el-button--primary:hover {
+  background-color: var(--el-color-primary-dark-2);
+  border-color: var(--el-color-primary-dark-2);
+}
+
+.dark-theme .export-buttons-wrapper .el-button:not(.el-button--primary) {
+  background-color: var(--el-fill-color);
+  border-color: var(--el-border-color);
+  color: var(--el-text-color-primary);
+}
+
+.dark-theme .export-buttons-wrapper .el-button:not(.el-button--primary):hover {
+  background-color: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary);
+  color: var(--el-color-primary);
+}
+
 
 
 
@@ -376,7 +442,7 @@ const confirmReset = () => {
 }
 
 .dark-theme .action-button-wrapper {
-  background-color: var(--background-secondary) !important;
+  background-color: var(--el-fill-color-light) !important;
 }
 
 .action-button-wrapper:hover {
@@ -385,7 +451,7 @@ const confirmReset = () => {
 }
 
 .dark-theme .action-button-wrapper:hover {
-  background-color: var(--background-hover) !important;
+  background-color: var(--el-fill-color) !important;
 }
 
 .action-button-wrapper .el-button {
@@ -399,26 +465,6 @@ const confirmReset = () => {
   flex-shrink: 0; /* 防止按钮在父容器展开时被压缩 */
 }
 
-.dark-theme .action-button-wrapper .el-button {
-  background-color: var(--background-color) !important; /* 强制黑底 */
-  border-color: var(--background-color) !important; /* 边框也设为黑底 */
-  color: var(--text-primary) !important; /* 强制白字 */
-}
-
-.dark-theme .action-button-wrapper .el-button:hover {
-  background-color: var(--background-secondary) !important; /* 悬停时稍微亮一点 */
-  border-color: var(--background-secondary) !important;
-}
-
-.dark-theme .action-button-wrapper .el-button .el-icon {
-  color: var(--text-primary) !important; /* 强制图标颜色为白字 */
-}
-
-.dark-theme .action-button-wrapper .el-button .el-icon svg,
-.dark-theme .action-button-wrapper .el-button .el-icon svg path {
-  fill: var(--text-primary) !important; /* 强制 SVG 填充颜色为白字 */
-}
-
 .action-button-wrapper .button-text {
   white-space: nowrap;
   opacity: 0;
@@ -426,10 +472,6 @@ const confirmReset = () => {
   color: var(--el-text-color-primary);
   font-size: 0.8em;
   margin-left: 8px; /* 文本与图标的间距 */
-}
-
-.dark-theme .action-button-wrapper .button-text {
-  color: var(--text-primary) !important;
 }
 
 .action-button-wrapper:hover .button-text {

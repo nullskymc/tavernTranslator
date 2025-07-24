@@ -12,8 +12,8 @@ body {
   font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: var(--background-color);
-  color: var(--text-primary);
+  background-color: var(--el-bg-color-page);
+  color: var(--el-text-color-primary);
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -54,19 +54,19 @@ body {
 .el-card {
   margin-bottom: 30px;
   border-radius: 12px;
-  border: 1px solid var(--border-color);
-  background-color: var(--background-color);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  transition: var(--transition);
+  border: 1px solid var(--el-border-color-light);
+  background-color: var(--el-bg-color);
+  box-shadow: var(--el-box-shadow-lighter);
+  transition: var(--el-transition-duration);
 }
 
 .el-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--el-box-shadow-light);
 }
 
 .el-card__header {
-  background-color: var(--background-secondary);
-  border-bottom: 1px solid var(--border-color);
+  background-color: var(--el-fill-color-light);
+  border-bottom: 1px solid var(--el-border-color-light);
   border-radius: 12px 12px 0 0;
   padding: 20px;
 }
@@ -79,23 +79,23 @@ body {
 .el-button {
   border-radius: 8px;
   font-weight: 500;
-  transition: var(--transition);
+  transition: var(--el-transition-duration);
 }
 
 .el-button--primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+  background-color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
 }
 
 .el-button--primary:hover {
-  background-color: var(--primary-color-hover);
-  border-color: var(--primary-color-hover);
+  background-color: var(--el-color-primary-dark-2);
+  border-color: var(--el-color-primary-dark-2);
 }
 
 /* 输入框样式 */
 .el-input__wrapper {
   border-radius: 8px;
-  transition: var(--transition);
+  transition: var(--el-transition-duration);
 }
 
 .el-input__inner {
@@ -105,14 +105,14 @@ body {
 /* 上传组件样式 */
 .el-upload-dragger {
   border-radius: 12px;
-  border: 2px dashed var(--border-color);
-  background-color: var(--background-secondary);
-  transition: var(--transition);
+  border: 2px dashed var(--el-border-color-light);
+  background-color: var(--el-fill-color-light);
+  transition: var(--el-transition-duration);
 }
 
 .el-upload-dragger:hover {
-  border-color: var(--primary-color);
-  background-color: var(--background-hover);
+  border-color: var(--el-color-primary);
+  background-color: var(--el-fill-color);
 }
 
 /* 步骤条样式 */
@@ -122,7 +122,7 @@ body {
 
 .el-step__title {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .el-step__main {
@@ -134,7 +134,7 @@ body {
   border-radius: 20px;
   font-size: 12px;
   padding: 4px 12px;
-  transition: var(--transition);
+  transition: var(--el-transition-duration);
 }
 
 .el-tag:hover {
@@ -145,7 +145,7 @@ body {
 /* 进度条样式 */
 .el-progress-bar__outer {
   border-radius: 10px;
-  background-color: var(--background-secondary);
+  background-color: var(--el-fill-color-light);
 }
 
 .el-progress-bar__inner {
@@ -156,17 +156,17 @@ body {
 /* 对话框样式 */
 .el-dialog {
   border-radius: 12px;
-  background-color: var(--background-color);
+  background-color: var(--el-bg-color);
 }
 
 .el-dialog__header {
   padding: 20px 20px 10px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--el-border-color-light);
 }
 
 .el-dialog__body {
   padding: 20px;
-  color: var(--text-primary);
+  color: var(--el-text-color-primary);
 }
 
 .el-dialog__footer {
@@ -177,7 +177,7 @@ body {
 /* 警告框样式 */
 .el-alert {
   border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--el-border-color-light);
 }
 
 /* 响应式设计 */
@@ -326,51 +326,51 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background-secondary);
+  background: var(--el-fill-color-light);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--el-border-color-light);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
+  background: var(--el-text-color-secondary);
 }
 
 /* Firefox 滚动条 */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--border-color) var(--background-secondary);
+  scrollbar-color: var(--el-border-color-light) var(--el-fill-color-light);
 }
 
 /* 选择文本样式 */
 ::selection {
-  background-color: var(--primary-color);
+  background-color: var(--el-color-primary);
   color: white;
 }
 
 ::-moz-selection {
-  background-color: var(--primary-color);
+  background-color: var(--el-color-primary);
   color: white;
 }
 
 /* 焦点样式 */
 :focus-visible {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--el-color-primary);
   outline-offset: 2px;
 }
 
 /* 链接样式 */
 a {
-  color: var(--primary-color);
+  color: var(--el-color-primary);
   text-decoration: none;
-  transition: var(--transition);
+  transition: var(--el-transition-duration);
 }
 
 a:hover {
-  color: var(--primary-color-hover);
+  color: var(--el-color-primary-dark-2);
 }
 
 /* 加载动画 */

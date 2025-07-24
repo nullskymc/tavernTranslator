@@ -1,79 +1,175 @@
-/* 主题变量定义 */
+/* Element Plus 主题变量定义 */
 :root {
-  /* 基础颜色 */
-  --primary-color: #2563eb;
-  --primary-color-hover: #1d4ed8;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --error-color: #ef4444;
-  --info-color: #3b82f6;
+  /* 使用 Element Plus 官方颜色变量 */
+  --el-color-primary: #409eff;
+  --el-color-primary-light-3: #79bbff;
+  --el-color-primary-light-5: #a0cfff;
+  --el-color-primary-light-7: #c6e2ff;
+  --el-color-primary-light-8: #d9ecff;
+  --el-color-primary-light-9: #ecf5ff;
+  --el-color-primary-dark-2: #337ecc;
+  
+  --el-color-success: #67c23a;
+  --el-color-success-light-3: #95d475;
+  --el-color-success-light-5: #b3e19d;
+  --el-color-success-light-7: #d1edc4;
+  --el-color-success-light-8: #e1f3d8;
+  --el-color-success-light-9: #f0f9eb;
+  
+  --el-color-warning: #e6a23c;
+  --el-color-warning-light-3: #eebe77;
+  --el-color-warning-light-5: #f3d19e;
+  --el-color-warning-light-7: #f8e3c5;
+  --el-color-warning-light-8: #faecd8;
+  --el-color-warning-light-9: #fdf6ec;
+  
+  --el-color-danger: #f56c6c;
+  --el-color-danger-light-3: #f89898;
+  --el-color-danger-light-5: #fab6b6;
+  --el-color-danger-light-7: #fcd3d3;
+  --el-color-danger-light-8: #fde2e2;
+  --el-color-danger-light-9: #fef0f0;
+  
+  --el-color-info: #909399;
+  --el-color-info-light-3: #b1b3b8;
+  --el-color-info-light-5: #c8c9cc;
+  --el-color-info-light-7: #dedfe0;
+  --el-color-info-light-8: #e9e9eb;
+  --el-color-info-light-9: #f4f4f5;
 
   /* 背景色 */
-  --background-color: #ffffff;
-  --background-secondary: #f8fafc;
-  --background-hover: #f1f5f9;
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f2f3f5;
+  --el-bg-color-overlay: #ffffff;
   
   /* 文字颜色 */
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-tertiary: #9ca3af;
+  --el-text-color-primary: #303133;
+  --el-text-color-regular: #606266;
+  --el-text-color-secondary: #909399;
+  --el-text-color-placeholder: #a8abb2;
+  --el-text-color-disabled: #c0c4cc;
   
   /* 边框颜色 */
-  --border-color: #e5e7eb;
-  --border-light: #f3f4f6;
+  --el-border-color: #dcdfe6;
+  --el-border-color-light: #e4e7ed;
+  --el-border-color-lighter: #ebeef5;
+  --el-border-color-extra-light: #f2f6fc;
+  --el-border-color-dark: #d4d7de;
+  --el-border-color-darker: #cdd0d6;
   
-  /* 头部相关 */
+  /* 填充色 */
+  --el-fill-color: #f0f2f5;
+  --el-fill-color-light: #f5f7fa;
+  --el-fill-color-lighter: #fafafa;
+  --el-fill-color-extra-light: #fafcff;
+  --el-fill-color-dark: #ebedf0;
+  --el-fill-color-darker: #e6e8eb;
+  --el-fill-color-blank: #ffffff;
+  
+  /* 阴影 */
+  --el-box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04), 0px 8px 20px rgba(0, 0, 0, 0.08);
+  --el-box-shadow-light: 0px 0px 12px rgba(0, 0, 0, 0.12);
+  --el-box-shadow-lighter: 0px 0px 6px rgba(0, 0, 0, 0.12);
+  --el-box-shadow-dark: 0px 16px 48px 16px rgba(0, 0, 0, 0.08), 0px 12px 32px rgba(0, 0, 0, 0.12), 0px 8px 16px -8px rgba(0, 0, 0, 0.16);
+  
+  /* 禁用状态 */
+  --el-disabled-bg-color: var(--el-fill-color-light);
+  --el-disabled-text-color: var(--el-text-color-placeholder);
+  --el-disabled-border-color: var(--el-border-color-light);
+  
+  /* 自定义项目变量 */
   --header-text: #ffffff;
   --header-divider: rgba(255, 255, 255, 0.8);
-  --gradient-primary: linear-gradient(135deg, #2563eb, #0ea5e9, #0d9488);
-  
-  /* 主题切换按钮 */
-  --theme-toggle-bg: #ffffff;
-  --theme-toggle-text: #374151;
+  --gradient-primary: linear-gradient(135deg, #409eff, #0ea5e9, #0d9488);
   
   /* 过渡效果 */
-  --transition: all 0.3s ease;
+  --el-transition-duration: 0.3s;
+  --el-transition-duration-fast: 0.2s;
 }
 
 /* 暗色主题 */
 .dark-theme {
-  /* 基础颜色 */
-  --primary-color: #3b82f6;
-  --primary-color-hover: #2563eb;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --error-color: #ef4444;
-  --info-color: #3b82f6;
+  /* Element Plus 暗色主题变量 */
+  --el-color-primary: #409eff;
+  --el-color-primary-light-3: #3375b9;
+  --el-color-primary-light-5: #2a598a;
+  --el-color-primary-light-7: #213d5c;
+  --el-color-primary-light-8: #1d3043;
+  --el-color-primary-light-9: #18222c;
+  --el-color-primary-dark-2: #66b1ff;
+  
+  --el-color-success: #67c23a;
+  --el-color-success-light-3: #529b2e;
+  --el-color-success-light-5: #437424;
+  --el-color-success-light-7: #344e1a;
+  --el-color-success-light-8: #2b4016;
+  --el-color-success-light-9: #233312;
+  
+  --el-color-warning: #e6a23c;
+  --el-color-warning-light-3: #b88230;
+  --el-color-warning-light-5: #946827;
+  --el-color-warning-light-7: #714e1e;
+  --el-color-warning-light-8: #5d4119;
+  --el-color-warning-light-9: #4a3515;
+  
+  --el-color-danger: #f56c6c;
+  --el-color-danger-light-3: #c45656;
+  --el-color-danger-light-5: #a04747;
+  --el-color-danger-light-7: #7c3838;
+  --el-color-danger-light-8: #672f2f;
+  --el-color-danger-light-9: #532525;
+  
+  --el-color-info: #909399;
+  --el-color-info-light-3: #73767a;
+  --el-color-info-light-5: #5e6064;
+  --el-color-info-light-7: #494a4e;
+  --el-color-info-light-8: #3c3d40;
+  --el-color-info-light-9: #303133;
 
-  /* 背景色 */
-  --background-color: #111827;
-  --background-secondary: #1f2937;
-  --background-hover: #374151;
+  /* 背景色 - 暗色主题 */
+  --el-bg-color: #141414;
+  --el-bg-color-page: #0a0a0a;
+  --el-bg-color-overlay: #1d1e1f;
   
-  /* 文字颜色 */
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-tertiary: #9ca3af;
+  /* 文字颜色 - 暗色主题 */
+  --el-text-color-primary: #e5eaf3;
+  --el-text-color-regular: #cfd3dc;
+  --el-text-color-secondary: #a3a6ad;
+  --el-text-color-placeholder: #8d9095;
+  --el-text-color-disabled: #6c6e72;
   
-  /* 边框颜色 */
-  --border-color: #374151;
-  --border-light: #4b5563;
+  /* 边框颜色 - 暗色主题 */
+  --el-border-color: #4c4d4f;
+  --el-border-color-light: #414243;
+  --el-border-color-lighter: #363637;
+  --el-border-color-extra-light: #2b2b2c;
+  --el-border-color-dark: #58585b;
+  --el-border-color-darker: #636466;
   
-  /* 头部相关 */
+  /* 填充色 - 暗色主题 */
+  --el-fill-color: #2b2b2c;
+  --el-fill-color-light: #262727;
+  --el-fill-color-lighter: #1f2021;
+  --el-fill-color-extra-light: #191a1b;
+  --el-fill-color-dark: #303133;
+  --el-fill-color-darker: #36383a;
+  --el-fill-color-blank: #141414;
+  
+  /* 阴影 - 暗色主题 */
+  --el-box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.36), 0px 8px 20px rgba(0, 0, 0, 0.72);
+  --el-box-shadow-light: 0px 0px 12px rgba(0, 0, 0, 0.72);
+  --el-box-shadow-lighter: 0px 0px 6px rgba(0, 0, 0, 0.72);
+  --el-box-shadow-dark: 0px 16px 48px 16px rgba(0, 0, 0, 0.72), 0px 12px 32px rgba(0, 0, 0, 0.84), 0px 8px 16px -8px rgba(0, 0, 0, 0.9);
+  
+  /* 禁用状态 - 暗色主题 */
+  --el-disabled-bg-color: var(--el-fill-color-light);
+  --el-disabled-text-color: var(--el-text-color-placeholder);
+  --el-disabled-border-color: var(--el-border-color-light);
+  
+  /* 自定义项目变量 - 暗色主题 */
   --header-text: #ffffff;
   --header-divider: rgba(255, 255, 255, 0.8);
   --gradient-primary: linear-gradient(135deg, #1e3a8a, #0c4a6e, #134e4a);
-  
-  /* 主题切换按钮 */
-  --theme-toggle-bg: #374151;
-  --theme-toggle-text: #f9fafb;
-
-  /* Element Plus 变量覆盖 */
-  --el-bg-color-page: var(--background-color);
-  --el-border-color-light: var(--border-color);
-  --el-text-color-primary: var(--text-primary);
-  --el-text-color-secondary: var(--text-secondary);
-  --el-fill-color-light: var(--background-secondary);
 }
 
 /* 主题切换过渡效果 */
@@ -85,181 +181,67 @@
   transition-delay: 0 !important;
 }
 
-/* Element Plus 暗色主题适配 */
-.dark-theme .el-card {
-  background-color: var(--background-secondary);
-  border-color: var(--border-color);
-}
-
-.dark-theme .el-card__header {
-  background-color: var(--background-secondary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.dark-theme .el-card__body {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-input__wrapper {
-  background-color: var(--background-secondary);
-  border-color: var(--border-color);
-}
-
-.dark-theme .el-input__inner {
-  color: var(--text-primary);
+/* Element Plus 暗色主题下按钮样式补充 */
+.dark-theme .el-button--primary.is-text {
+  color: var(--el-color-primary-light-3);
   background-color: transparent;
+  border-color: transparent;
 }
 
-.dark-theme .el-input__wrapper:hover {
-  border-color: var(--primary-color);
+.dark-theme .el-button--primary.is-text:hover {
+  color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-9);
 }
 
-.dark-theme .el-input__wrapper.is-focus {
-  border-color: var(--primary-color);
+.dark-theme .el-button--primary.is-plain {
+  color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary-light-7);
 }
 
-.dark-theme .el-textarea__inner {
-  background-color: var(--background-secondary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
+.dark-theme .el-button--primary.is-plain:hover {
+  color: var(--el-bg-color);
+  background-color: var(--el-color-primary);
+  border-color: var(--el-color-primary);
+}
+
+.dark-theme .el-button--danger.is-text {
+  color: var(--el-color-danger-light-3);
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.dark-theme .el-button--danger.is-text:hover {
+  color: var(--el-color-danger);
+  background-color: var(--el-color-danger-light-9);
 }
 
 .dark-theme .el-button--default {
-  background-color: var(--background-secondary);
-  border-color: var(--border-color);
-  color: var(--text-primary);
+  color: var(--el-text-color-primary);
+  background-color: var(--el-fill-color);
+  border-color: var(--el-border-color);
 }
 
 .dark-theme .el-button--default:hover {
-  background-color: var(--background-hover);
-  border-color: var(--primary-color);
+  color: var(--el-color-primary);
+  background-color: var(--el-color-primary-light-9);
+  border-color: var(--el-color-primary);
 }
 
-.dark-theme .el-button--primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: var(--header-text);
+/* 圆形按钮样式 */
+.dark-theme .el-button.is-circle {
+  background-color: var(--el-fill-color);
+  border-color: var(--el-border-color);
+  color: var(--el-text-color-primary);
 }
 
-.dark-theme .el-button--primary:hover {
-  background-color: var(--primary-color-hover);
-  border-color: var(--primary-color-hover);
+.dark-theme .el-button--danger.is-circle {
+  background-color: var(--el-color-danger);
+  border-color: var(--el-color-danger);
+  color: var(--el-bg-color);
 }
 
-.dark-theme .el-button--success {
-  background-color: var(--success-color);
-  border-color: var(--success-color);
-  color: var(--header-text);
-}
-
-.dark-theme .el-button--success:hover {
-  background-color: var(--success-color);
-  border-color: var(--success-color);
-}
-
-.dark-theme .el-button--danger {
-  background-color: var(--error-color);
-  border-color: var(--error-color);
-  color: var(--header-text);
-}
-
-.dark-theme .el-button--danger:hover {
-  background-color: var(--error-color);
-  border-color: var(--error-color);
-}
-
-.dark-theme .el-button--info {
-  background-color: var(--info-color);
-  border-color: var(--info-color);
-  color: var(--header-text);
-}
-
-.dark-theme .el-button--info:hover {
-  background-color: var(--info-color);
-  border-color: var(--info-color);
-}
-
-.dark-theme .el-button--text {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-button--text:hover {
-  color: var(--primary-color);
-}
-
-.dark-theme .el-button--plain {
-  background-color: transparent;
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.dark-theme .el-button--plain:hover {
-  background-color: var(--background-hover);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.dark-theme .el-dialog {
-  background-color: var(--background-secondary);
-}
-
-.dark-theme .el-dialog__header {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-dialog__body {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-alert {
-  background-color: var(--background-secondary);
-  border-color: var(--border-color);
-}
-
-.dark-theme .el-alert__title {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-upload-dragger {
-  background-color: var(--background-secondary);
-  border-color: var(--border-color);
-}
-
-.dark-theme .el-upload-dragger:hover {
-  border-color: var(--primary-color);
-}
-
-.dark-theme .el-tag {
-  background-color: var(--background-hover);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-.dark-theme .el-tag--success {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: var(--success-color);
-  color: var(--success-color);
-}
-
-.dark-theme .el-tag--warning {
-  background-color: rgba(245, 158, 11, 0.1);
-  border-color: var(--warning-color);
-  color: var(--warning-color);
-}
-
-.dark-theme .el-form-item__label {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-steps {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-step__title {
-  color: var(--text-primary);
-}
-
-.dark-theme .el-step__description {
-  color: var(--text-secondary);
+.dark-theme .el-button--danger.is-circle:hover {
+  background-color: var(--el-color-danger-light-3);
+  border-color: var(--el-color-danger-light-3);
 }
