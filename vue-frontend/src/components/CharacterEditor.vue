@@ -145,7 +145,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { get, set } from 'lodash-es';

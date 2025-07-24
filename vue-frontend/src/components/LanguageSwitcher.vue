@@ -4,7 +4,7 @@
   </el-button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Switch } from '@element-plus/icons-vue';
@@ -55,15 +55,6 @@ const toggleLanguage = () => {
   background-color: var(--el-fill-color-light);
   border: none;
   color: var(--el-text-color-primary);
-}
-
-.dark-theme .language-button {
-  background-color: var(--background-color) !important;
-  color: var(--text-primary) !important;
-}
-
-.dark-theme .language-button:hover {
-  background-color: var(--background-secondary) !important;
 }
 
 .language-button:hover {

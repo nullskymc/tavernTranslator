@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { useThemeStore } from '@/stores/theme';
@@ -127,7 +127,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style>
+<style scoped>
 /* 全局样式重置和基础设置 */
 body {
   margin: 0;

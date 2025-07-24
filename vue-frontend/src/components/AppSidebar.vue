@@ -335,17 +335,7 @@ const confirmReset = () => {
   box-sizing: border-box;
 }
 
-/* 黑暗模式下导出按钮的特定样式 */
-.dark-theme .export-buttons-wrapper .el-button {
-  background-color: var(--background-color) !important; /* 强制黑底 */
-  border-color: var(--background-color) !important; /* 边框也设为黑底 */
-  color: var(--text-primary) !important; /* 强制白字 */
-}
 
-.dark-theme .export-buttons-wrapper .el-button:hover {
-  background-color: var(--background-secondary) !important; /* 悬停时稍微亮一点 */
-  border-color: var(--background-secondary) !important;
-}
 
 
 .settings-section .el-button {

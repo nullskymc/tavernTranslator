@@ -28,7 +28,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { EditPen, DataLine, Switch, Download } from '@element-plus/icons-vue';
 import { useTranslatorStore } from '@/stores/translator';
 

@@ -26,7 +26,7 @@ export const useThemeStore = defineStore('theme', () => {
   const setupThemeChangeListener = () => {
     const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     
-    const handleChange = (e) => {
+    const handleChange = (e: MediaQueryListEvent) => {
       // 只有当用户没有手动设置主题时才跟随系统
       if (!localStorage.getItem('tavern_translator_theme')) {
         isDarkTheme.value = e.matches
@@ -59,7 +59,7 @@ export const useThemeStore = defineStore('theme', () => {
       document.documentElement.classList.add('dark-theme')
       
       // 直接操作头部横幅样式，强制应用更深的暗黑模式渐变
-      const headerBanner = document.querySelector('.header-banner')
+      const headerBanner = document.querySelector('.header-banner') as HTMLElement
       if (headerBanner) {
         headerBanner.style.background = 'linear-gradient(135deg, #1e3a8a, #0c4a6e, #134e4a)'
       }
@@ -67,7 +67,7 @@ export const useThemeStore = defineStore('theme', () => {
       document.documentElement.classList.remove('dark-theme')
       
       // 恢复头部横幅样式为亮色模式渐变
-      const headerBanner = document.querySelector('.header-banner')
+      const headerBanner = document.querySelector('.header-banner') as HTMLElement
       if (headerBanner) {
         headerBanner.style.background = 'linear-gradient(135deg, #2563eb, #0ea5e9, #0d9488)'
       }

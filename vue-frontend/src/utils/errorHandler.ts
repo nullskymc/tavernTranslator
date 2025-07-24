@@ -4,6 +4,7 @@
  */
 
 import { ElMessage, ElNotification } from 'element-plus'
+import type { ErrorInfo, ErrorRecord } from '@/types'
 
 // 错误类型枚举
 export const ErrorTypes = {
@@ -27,6 +28,8 @@ export const ErrorLevels = {
  * 错误处理器类
  */
 export class ErrorHandler {
+  errorHistory: ErrorRecord[]
+
   constructor() {
     this.errorHistory = []
     this.setupGlobalErrorHandlers()
@@ -65,7 +68,7 @@ export class ErrorHandler {
    * 主要错误处理方法
    * @param {Object} errorInfo - 错误信息对象
    */
-  handleError(errorInfo) {
+  handleError(errorInfo: ErrorInfo): ErrorRecord {
     const {
       type = ErrorTypes.UNKNOWN_ERROR,
       message = '发生了未知错误',
@@ -108,7 +111,7 @@ export class ErrorHandler {
    * 显示错误通知
    * @param {Object} errorRecord - 错误记录
    */
-  showErrorNotification(errorRecord) {
+  showErrorNotification(errorRecord: ErrorRecord) {
     const { type, message, level } = errorRecord
 
     switch (level) {
@@ -152,7 +155,7 @@ export class ErrorHandler {
    * 尝试自动恢复
    * @param {Object} errorRecord - 错误记录
    */
-  attemptAutoRecover(errorRecord) {
+  attemptAutoRecover(errorRecord: ErrorRecord) {
     const { type } = errorRecord
 
     switch (type) {
@@ -180,7 +183,7 @@ export class ErrorHandler {
    * @param {string} message - 错误消息
    * @param {Error} originalError - 原始错误对象
    */
-  createNetworkError(message, originalError = null) {
+  createNetworkError(message: string, originalError: Error | null = null) {
     return this.handleError({
       type: ErrorTypes.NETWORK_ERROR,
       message,
@@ -197,8 +200,8 @@ export class ErrorHandler {
    * @param {number} statusCode - HTTP状态码
    * @param {Error} originalError - 原始错误对象
    */
-  createApiError(message, statusCode = null, originalError = null) {
-    const level = statusCode >= 500 ? ErrorLevels.CRITICAL : ErrorLevels.ERROR
+  createApiError(message: string, statusCode: number | null = null, originalError: Error | null = null) {
+    const level = (statusCode as number) >= 500 ? ErrorLevels.CRITICAL : ErrorLevels.ERROR
     return this.handleError({
       type: ErrorTypes.API_ERROR,
       message: statusCode ? `${message} (状态码: ${statusCode})` : message,
@@ -214,7 +217,7 @@ export class ErrorHandler {
    * @param {string} message - 错误消息
    * @param {Error} originalError - 原始错误对象
    */
-  createTranslationError(message, originalError = null) {
+  createTranslationError(message: string, originalError: Error | null = null) {
     return this.handleError({
       type: ErrorTypes.TRANSLATION_ERROR,
       message,
@@ -231,7 +234,7 @@ export class ErrorHandler {
    * @param {string} message - 错误消息
    * @param {Error} originalError - 原始错误对象
    */
-  createWebSocketError(message, originalError = null) {
+  createWebSocketError(message: string, originalError: Error | null = null) {
     return this.handleError({
       type: ErrorTypes.WEBSOCKET_ERROR,
       message,
@@ -247,7 +250,7 @@ export class ErrorHandler {
    * 创建验证错误
    * @param {string} message - 错误消息
    */
-  createValidationError(message) {
+  createValidationError(message: string) {
     return this.handleError({
       type: ErrorTypes.VALIDATION_ERROR,
       message,
@@ -261,7 +264,7 @@ export class ErrorHandler {
    * 获取错误历史
    * @param {number} limit - 限制返回数量
    */
-  getErrorHistory(limit = 10) {
+  getErrorHistory(limit = 10): ErrorRecord[] {
     return this.errorHistory.slice(-limit)
   }
 
@@ -277,7 +280,7 @@ export class ErrorHandler {
    * @param {string} errorType - 错误类型
    * @param {number} timeWindow - 时间窗口（分钟）
    */
-  hasRecentError(errorType, timeWindow = 5) {
+  hasRecentError(errorType: string, timeWindow = 5): boolean {
     const cutoffTime = new Date(Date.now() - timeWindow * 60 * 1000)
     return this.errorHistory.some(error => 
       error.type === errorType && 
@@ -290,19 +293,19 @@ export class ErrorHandler {
 export const globalErrorHandler = new ErrorHandler()
 
 // 导出便捷方法
-export const handleNetworkError = (message, error) => 
+export const handleNetworkError = (message: string, error: Error) => 
   globalErrorHandler.createNetworkError(message, error)
 
-export const handleApiError = (message, statusCode, error) => 
+export const handleApiError = (message: string, statusCode: number, error: Error) => 
   globalErrorHandler.createApiError(message, statusCode, error)
 
-export const handleTranslationError = (message, error) => 
+export const handleTranslationError = (message: string, error: Error) => 
   globalErrorHandler.createTranslationError(message, error)
 
-export const handleWebSocketError = (message, error) => 
+export const handleWebSocketError = (message: string, error: Error) => 
   globalErrorHandler.createWebSocketError(message, error)
 
-export const handleValidationError = (message) => 
+export const handleValidationError = (message: string) => 
   globalErrorHandler.createValidationError(message)
 
 export default globalErrorHandler

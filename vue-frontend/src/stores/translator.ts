@@ -3,9 +3,10 @@ import { ref, watch } from 'vue';
 import axios from 'axios';
 import { ElMessage, ElNotification } from 'element-plus';
 import { get, set } from 'lodash-es';
+import type { CharacterCard, TranslationSettings } from '@/types';
 
 // --- Helper ---
-function base64ToBlob(base64, mimeType) {
+function base64ToBlob(base64: string, mimeType: string): Blob {
   const byteCharacters = atob(base64.split(',')[1]);
   const byteNumbers = new Array(byteCharacters.length);
   for (let i = 0; i < byteCharacters.length; i++) {
@@ -86,10 +87,10 @@ export const defaultPromptsEn = {
 
 export const useTranslatorStore = defineStore('translator', () => {
   // --- State ---
-  const characterCard = ref(null);
-  const characterImageB64 = ref(null);
+  const characterCard = ref<CharacterCard | null>(null);
+  const characterImageB64 = ref<string | null>(null);
   const isLoading = ref(false);
-  const translationSettings = ref({
+  const translationSettings = ref<TranslationSettings>({
     api_key: '',
     base_url: 'https://api.openai.com/v1',
     model_name: 'gpt-4-1106-preview',
@@ -117,7 +118,7 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
   };
 
-  const handleCardUpload = async (file) => {
+  const handleCardUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
     isLoading.value = true;
@@ -126,7 +127,7 @@ export const useTranslatorStore = defineStore('translator', () => {
       characterCard.value = response.data.character_data;
       characterImageB64.value = response.data.image_b64;
       ElMessage.success('角色卡解析成功！');
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error.response?.data?.detail || '解析角色卡失败';
       ElNotification.error({ title: '上传失败', message: errorMessage });
     } finally {
@@ -134,12 +135,12 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
   };
 
-  const updateBaseImage = (base64String) => {
+  const updateBaseImage = (base64String: string) => {
     characterImageB64.value = base64String;
     ElMessage.success('基础图片已更新');
   };
 
-  const translateField = async (path) => {
+  const translateField = async (path: string) => {
     if (!characterCard.value) return;
     const textToTranslate = get(characterCard.value, path);
     if (!textToTranslate || typeof textToTranslate !== 'string' || !textToTranslate.trim()) return;
@@ -162,7 +163,7 @@ export const useTranslatorStore = defineStore('translator', () => {
       });
       set(characterCard.value, path, response.data.translated_text);
       ElMessage.success(`字段 ${fieldName} 翻译成功`);
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error.response?.data?.detail || '翻译服务出错';
       ElNotification.error({ title: '翻译失败', message: errorMessage });
     } finally {
@@ -196,7 +197,7 @@ export const useTranslatorStore = defineStore('translator', () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       ElMessage.success('角色卡已成功导出为图片！');
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error.response?.data?.detail || '无法生成角色卡图片';
       ElNotification.error({ title: '导出失败', message: errorMessage });
     } finally {
@@ -229,20 +230,20 @@ export const useTranslatorStore = defineStore('translator', () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       ElMessage.success('角色卡已成功导出为 JSON！');
-    } catch (error) {
+    } catch (error: any) {
       ElNotification.error({ title: '导出失败', message: '导出 JSON 文件失败' });
     }
   };
 
-  const handleJsonUpload = (file) => {
+  const handleJsonUpload = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
-        const jsonData = JSON.parse(e.target.result);
+        const jsonData = JSON.parse(e.target!.result as string);
         characterCard.value = jsonData;
         characterImageB64.value = null;
         ElMessage.success('JSON 文件解析成功！');
-      } catch (error) {
+      } catch (error: any) {
         ElMessage.error('解析 JSON 文件失败，请确保文件格式正确。');
       }
     };
@@ -252,7 +253,7 @@ export const useTranslatorStore = defineStore('translator', () => {
     reader.readAsText(file);
   };
 
-  const updateCardField = (path, value) => {
+  const updateCardField = (path: string, value: any) => {
     if (!characterCard.value) return;
     set(characterCard.value, path, value);
   };

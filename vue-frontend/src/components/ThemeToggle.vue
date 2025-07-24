@@ -4,7 +4,7 @@
   </el-button>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useThemeStore } from '../stores/theme'
 import { Sunny, Moon } from '@element-plus/icons-vue'
@@ -29,15 +29,6 @@ const { toggleTheme } = themeStore
   background-color: var(--el-fill-color-light);
   border: none;
   color: var(--el-text-color-primary);
-}
-
-.dark-theme .theme-button {
-  background-color: var(--background-color) !important;
-  color: var(--text-primary) !important;
-}
-
-.dark-theme .theme-button:hover {
-  background-color: var(--background-secondary) !important;
 }
 
 .theme-button:hover {

@@ -9,7 +9,7 @@ const messages = {
 
 // Get the browser's default language
 const getDefaultLocale = () => {
-  const browserLang = navigator.language || navigator.userLanguage
+  const browserLang = navigator.language
   if (browserLang.startsWith('zh')) {
     return 'zh'
   }

@@ -63,7 +63,7 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore, defaultPromptsZh, defaultPromptsEn } from '@/stores/translator';
 import { ElMessage } from 'element-plus';
