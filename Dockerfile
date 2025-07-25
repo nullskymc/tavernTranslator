@@ -1,27 +1,42 @@
-# 使用官方的Python 3.11基础镜像
-FROM python:3.11-slim
+# ---- Builder Stage ----
+# 1. 构建前端
+FROM node:20-slim as builder
 
-# 设置工作目录
+WORKDIR /app/vue-frontend
+
+# 仅复制 package.json 和 package-lock.json 以利用缓存
+COPY vue-frontend/package*.json ./
+RUN npm install
+
+# 复制前端源代码并构建
+COPY vue-frontend/ ./
+RUN npm run build
+
+# ---- Python Base Stage ----
+# 2. 准备 Python 环境
+FROM python:3.11-slim as python-base
+
 WORKDIR /app
 
-# 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    curl \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# 安装 Python 依赖
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 安装Node.js 20.x
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+# ---- Final Stage ----
+# 3. 构建最终镜像
+FROM python:3.11-slim
 
-# 复制项目文件
-COPY . .
+WORKDIR /app
 
-# 设置deploy.sh为可执行
-RUN chmod +x deploy.sh
+# 从 python-base 阶段复制已安装的依赖
+COPY --from=python-base /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --from=python-base /app/ /app/
 
-# 使用deploy.sh脚本构建项目
-RUN ./deploy.sh --docker-build
+# 从 builder 阶段复制前端构建产物
+COPY --from=builder /app/vue-frontend/dist ./vue-frontend/dist
+
+# 复制后端源代码
+COPY src/ ./src/
 
 # 创建必要的目录
 RUN mkdir -p .uploads .output
