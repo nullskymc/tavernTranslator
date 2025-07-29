@@ -27,6 +27,11 @@
       "theme": "主题",
       "language": "中文"
     },
+    "viewSwitch": {
+      "title": "视图切换",
+      "character": "角色",
+      "characterBook": "角色书"
+    },
     "confirm": {
       "newBlank": "这将创建一个新的空白角色卡，当前数据将丢失。确定要继续吗？",
       "clearCard": "这将清除当前加载的角色卡数据，且无法恢复。确定要继续吗？"
@@ -49,6 +54,30 @@
     "messageExamplePlaceholder": "在此处输入对话示例...",
     "removeGreeting": "删除",
     "addGreeting": "添加问候语"
+  },
+  "characterBook": {
+    "title": "角色书",
+    "name": "名称",
+    "description": "描述",
+    "scanDepth": "扫描深度",
+    "tokenBudget": "令牌预算",
+    "recursiveScanning": "递归扫描",
+    "entries": "条目列表",
+    "addEntry": "添加条目",
+    "removeEntry": "删除条目",
+    "entry": "条目",
+    "entryName": "条目名称",
+    "entryKeys": "关键词",
+    "entrySecondaryKeys": "次要关键词",
+    "entryContent": "内容",
+    "entryEnabled": "启用",
+    "entryCaseSensitive": "区分大小写",
+    "entryPriority": "优先级",
+    "contentPlaceholder": "在此输入内容...",
+    "noCharacterBook": "当前角色卡没有角色书",
+    "createCharacterBookTip": "您可以创建一个角色书来管理角色的相关信息和设定",
+    "createCharacterBook": "创建角色书",
+    "characterBookCreated": "角色书已创建"
   },
   "settings": {
     "title": "翻译设置",

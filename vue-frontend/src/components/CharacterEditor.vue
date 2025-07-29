@@ -4,7 +4,22 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <span>{{ $t('editor.name') }}</span>
+          <div class="editor-tabs">
+            <div 
+              class="tab" 
+              :class="{ active: currentView === 'character' }"
+              @click="switchView('character')"
+            >
+              {{ $t('sidebar.viewSwitch.character') }}
+            </div>
+            <div 
+              class="tab" 
+              :class="{ active: currentView === 'character-book' }"
+              @click="switchView('character-book')"
+            >
+              {{ $t('sidebar.viewSwitch.characterBook') }}
+            </div>
+          </div>
         </div>
       </template>
 
@@ -150,6 +165,13 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { get, set } from 'lodash-es';
 
+const props = defineProps({
+  currentView: {
+    type: String,
+    default: 'character'
+  }
+});
+
 const store = useTranslatorStore();
 
 // 移动端检测
@@ -200,18 +222,64 @@ const removeGreeting = (index) => {
   greetings.splice(index, 1);
   store.updateCardField('data.alternate_greetings', greetings);
 };
+
+// 视图切换方法
+const switchView = (view) => {
+  // 通过事件将视图切换请求传递给父组件
+  window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
+};
 </script>
 
 <style scoped>
-.box-card {
-  border: none;
-  box-shadow: none;
-  background-color: transparent;
+.character-editor {
+  padding: 20px 0;
 }
 
 .card-header {
   font-size: 1.2em;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.editor-tabs {
+  display: flex;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tab {
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: var(--el-fill-color-light);
+  transition: all 0.3s;
+  border-right: 1px solid var(--el-border-color-light);
+  position: relative;
+}
+
+.tab:last-child {
+  border-right: none;
+}
+
+.tab:hover {
+  background-color: var(--el-fill-color);
+}
+
+.tab.active {
+  background-color: var(--el-color-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: white;
 }
 
 .translate-btn { 

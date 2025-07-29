@@ -63,3 +63,25 @@ class CharacterCardTranslator:
             error = parse_openai_error(e)
             self.logger.error(f"翻译字段 {field_name} 时出错: {error.message}")
             raise error
+            
+    def translate_character_book_content(self, content: str) -> str:
+        """翻译 character_book 中的 content 字段"""
+        if not content or not content.strip():
+            self.logger.info("character_book.content 为空，跳过翻译。")
+            return content
+            
+        # 使用基础模板翻译 character_book 内容
+        try:
+            messages = self.base_template.format_messages(text=content)
+            response = self.llm.invoke(messages)
+            
+            self.logger.info("character_book.content 翻译完成。")
+            
+            if isinstance(response.content, str):
+                return response.content
+            return str(response.content)
+            
+        except Exception as e:
+            error = parse_openai_error(e)
+            self.logger.error(f"翻译 character_book.content 时出错: {error.message}")
+            raise error

@@ -77,6 +77,32 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
         logging.error(f"翻译过程中发生意外错误：{e}")
         raise HTTPException(status_code=500, detail="翻译过程中发生内部错误。")
 
+@router.post("/character/translate-character-book")
+async def translate_character_book_content(data: Dict[str, Any] = Body(...)):
+    """翻译 character_book 中的 content 字段"""
+    content_to_translate = data.get('content')
+    settings = data.get('settings')
+    prompts = data.get('prompts')
+
+    if not all([content_to_translate, settings, prompts]):
+        raise HTTPException(status_code=400, detail="请求正文中缺少必要的参数。")
+
+    if not content_to_translate.strip():
+        return {"translated_content": ""}
+
+    try:
+        translator = get_translator(settings, prompts)
+        translated_content = translator.translate_character_book_content(content_to_translate)
+        return {"translated_content": translated_content}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except TranslationError as e:
+        logging.error(f"翻译失败：{e.message}")
+        raise HTTPException(status_code=500, detail=e.message)
+    except Exception as e:
+        logging.error(f"翻译过程中发生意外错误：{e}")
+        raise HTTPException(status_code=500, detail="翻译过程中发生内部错误。")
+
 @router.post("/character/export")
 async def export_character_card(
     json_data: str = Form(...),

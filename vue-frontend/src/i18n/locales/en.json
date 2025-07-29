@@ -27,6 +27,11 @@
       "theme": "Theme",
       "language": "English"
     },
+    "viewSwitch": {
+      "title": "View Switch",
+      "character": "Character",
+      "characterBook": "Character Book"
+    },
     "confirm": {
       "newBlank": "This will create a new blank character card, current data will be lost. Are you sure you want to continue?",
       "clearCard": "This will clear the currently loaded character card data and cannot be recovered. Are you sure you want to continue?"
@@ -49,6 +54,30 @@
     "messageExamplePlaceholder": "Enter message examples here...",
     "removeGreeting": "Remove",
     "addGreeting": "Add Greeting"
+  },
+  "characterBook": {
+    "title": "Character Book",
+    "name": "Name",
+    "description": "Description",
+    "scanDepth": "Scan Depth",
+    "tokenBudget": "Token Budget",
+    "recursiveScanning": "Recursive Scanning",
+    "entries": "Entries",
+    "addEntry": "Add Entry",
+    "removeEntry": "Remove Entry",
+    "entry": "Entry",
+    "entryName": "Entry Name",
+    "entryKeys": "Keys",
+    "entrySecondaryKeys": "Secondary Keys",
+    "entryContent": "Content",
+    "entryEnabled": "Enabled",
+    "entryCaseSensitive": "Case Sensitive",
+    "entryPriority": "Priority",
+    "contentPlaceholder": "Enter content here...",
+    "noCharacterBook": "No character book in current character card",
+    "createCharacterBookTip": "You can create a character book to manage character-related information and settings",
+    "createCharacterBook": "Create Character Book",
+    "characterBookCreated": "Character book created"
   },
   "settings": {
     "title": "Translation Settings",

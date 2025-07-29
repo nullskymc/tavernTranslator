@@ -9,6 +9,8 @@ src/__pycache__/
 .gradio/
 .output/
 .uploads/
+output/
+
 
 # 虚拟环境
 .venv/

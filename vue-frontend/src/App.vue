@@ -25,6 +25,8 @@
     <AppSidebar 
       :class="{ 'mobile-sidebar': isMobile, 'sidebar-visible': sidebarVisible }"
       @close="sidebarVisible = false"
+      :current-view="currentView"
+      @switch-view="currentView = $event"
     />
 
     <!-- 右侧主内容区 -->
@@ -37,7 +39,51 @@
 
         <!-- 如果已加载角色卡，显示编辑器组件 -->
         <div v-else class="editor-view">
-          <CharacterEditor />
+          <CharacterEditor v-if="currentView === 'character'" :current-view="currentView" />
+          <CharacterBookEditor 
+            v-else-if="currentView === 'character-book' && store.characterCard?.data?.character_book" 
+            :current-view="currentView" 
+          />
+          <div v-else-if="currentView === 'character-book' && !store.characterCard?.data?.character_book" class="no-character-book">
+            <el-card class="box-card">
+              <template #header>
+                <div class="card-header">
+                  <div class="editor-tabs">
+                    <div 
+                      class="tab" 
+                      :class="{ active: currentView === 'character' }"
+                      @click="currentView = 'character'"
+                    >
+                      {{ $t('sidebar.viewSwitch.character') }}
+                    </div>
+                    <div 
+                      class="tab" 
+                      :class="{ active: currentView === 'character-book' }"
+                      @click="currentView = 'character-book'"
+                    >
+                      {{ $t('sidebar.viewSwitch.characterBook') }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+              
+              <div class="no-content">
+                <el-alert
+                  :title="$t('characterBook.noCharacterBook')"
+                  type="info"
+                  show-icon
+                  :description="$t('characterBook.createCharacterBookTip')"
+                />
+                <el-button 
+                  type="primary" 
+                  @click="createCharacterBook"
+                  style="margin-top: 20px;"
+                >
+                  {{ $t('characterBook.createCharacterBook') }}
+                </el-button>
+              </div>
+            </el-card>
+          </div>
         </div>
       </div>
     </main>
@@ -48,21 +94,71 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { useThemeStore } from '@/stores/theme';
+import { ElMessage } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 import { Menu } from '@element-plus/icons-vue';
 
 // 导入核心布局组件
 import AppSidebar from './components/AppSidebar.vue';
 import CharacterEditor from './components/CharacterEditor.vue';
+import CharacterBookEditor from './components/CharacterBookEditor.vue';
 import ThemeToggle from './components/ThemeToggle.vue';
 import WelcomeView from './components/WelcomeView.vue'; // 一个新的欢迎组件
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
 
 const store = useTranslatorStore();
 const themeStore = useThemeStore();
+const { t: $t } = useI18n();
+
+// 当前视图状态
+const currentView = ref('character'); // 默认为角色编辑视图
 
 // 移动端响应式状态
 const isMobile = ref(false);
 const sidebarVisible = ref(false);
+
+// 视图切换方法
+const handleViewChange = (event) => {
+  currentView.value = event.detail.view;
+};
+
+// 创建 character_book
+const createCharacterBook = () => {
+  if (store.characterCard) {
+    store.updateCardField('data.character_book', {
+      "name": "",
+      "description": "",
+      "scan_depth": 0,
+      "token_budget": 0,
+      "recursive_scanning": false,
+      "extensions": {},
+      "entries": []
+    });
+    ElMessage.success($t('characterBook.characterBookCreated'));
+  }
+};
+
+onMounted(() => {
+  themeStore.initializeTheme();
+  checkMobile();
+  window.addEventListener('resize', handleResize);
+  
+  // 添加手势监听
+  document.addEventListener('touchstart', handleTouchStart, { passive: true });
+  document.addEventListener('touchmove', handleTouchMove, { passive: true });
+  document.addEventListener('touchend', handleTouchEnd, { passive: true });
+  
+  // 监听视图切换事件
+  window.addEventListener('view-change', handleViewChange);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+  document.removeEventListener('touchstart', handleTouchStart);
+  document.removeEventListener('touchmove', handleTouchMove);
+  document.removeEventListener('touchend', handleTouchEnd);
+  window.removeEventListener('view-change', handleViewChange);
+});
 
 // 手势支持
 const touchStartX = ref(0);
@@ -178,15 +274,66 @@ body {
   height: 100%;
 }
 
-/* 移动端遮罩层 */
-.mobile-overlay {
-  position: fixed;
-  top: 0;
+.no-character-book {
+  padding: 20px 0;
+}
+
+.no-character-book .box-card {
+  border: none;
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.card-header {
+  font-size: 1.2em;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.editor-tabs {
+  display: flex;
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tab {
+  padding: 8px 16px;
+  cursor: pointer;
+  background-color: var(--el-fill-color-light);
+  transition: all 0.3s;
+  border-right: 1px solid var(--el-border-color-light);
+  position: relative;
+}
+
+.tab:last-child {
+  border-right: none;
+}
+
+.tab:hover {
+  background-color: var(--el-fill-color);
+}
+
+.tab.active {
+  background-color: var(--el-color-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  right: 0;
+  height: 3px;
+  background-color: white;
+}
+
+.no-content {
+  text-align: center;
+  padding: 40px 20px;
 }
 
 /* 移动端头部 */
