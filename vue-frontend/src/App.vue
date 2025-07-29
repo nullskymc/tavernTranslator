@@ -1,5 +1,5 @@
 <template>
-  <div id="app-layout" v-loading.fullscreen.lock="store.isLoading" :element-loading-text="$t('app.loading')">
+  <div id="app-layout">
     <!-- 移动端遮罩层 -->
     <div 
       v-if="isMobile && sidebarVisible" 

@@ -49,6 +49,7 @@
     "exampleMessages": "示例消息",
     "alternateGreetings": "备用问候语",
     "translate": "翻译",
+    "batchTranslate": "一键翻译",
     "tags": "标签",
     "tagsPlaceholder": "使用逗号分隔标签",
     "messageExamplePlaceholder": "在此处输入对话示例...",
@@ -110,7 +111,8 @@
       "oneClickTranslate": "一键翻译",
       "imageExport": "图片导出"
     },
-    "instructions": "这是一个专为 SillyTavern 角色卡设计的翻译编辑工具，可以帮助你在中英文角色卡之间进行互译。<br>要开始使用，请点击左侧边栏的 <strong>\"上传卡片\"</strong> 按钮，或将您的 <code>.png</code> 格式角色卡文件拖拽到此窗口。<br>欢迎加入秋秋群 1043662159 交流项目出现的问题。<br>如果你觉得这个项目对你有帮助，请考虑为开发者<a href=\"https://github.com/nullskymc/tavernTranslator\">点个star</a>。<br>"
+    "instructions": "这是一个专为 SillyTavern 角色卡设计的翻译编辑工具，可以帮助你在中英文角色卡之间进行互译。要开始使用，请点击左侧边栏的 {uploadButton} 按钮，或将您的 {pngCode} 格式角色卡文件拖拽到此窗口。欢迎加入秋秋群 1043662159 交流项目出现的问题。如果你觉得这个项目对你有帮助，请考虑为开发者{githubLink}。",
+    "instructionsGithubLinkText": "点个star"
   },
   "messages": {
     "error": {

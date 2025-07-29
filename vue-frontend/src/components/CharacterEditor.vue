@@ -20,6 +20,16 @@
               {{ $t('sidebar.viewSwitch.characterBook') }}
             </div>
           </div>
+          <div class="header-actions">
+            <el-button 
+              type="primary" 
+              @click="batchTranslate" 
+              :loading="isBatchTranslating"
+              size="small"
+            >
+              {{ $t('editor.batchTranslate') }}
+            </el-button>
+          </div>
         </div>
       </template>
 
@@ -28,12 +38,12 @@
         <el-row :gutter="20">
           <el-col :span="isMobile ? 24 : 12">
             <el-form-item :label="`${$t('editor.name')} (Name)`">
-              <el-input v-model="name" />
+              <el-input v-model="name" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="isMobile ? 24 : 12">
             <el-form-item :label="`${$t('editor.tags')} (Tags)`">
-              <el-input v-model="tags" :placeholder="$t('editor.tagsPlaceholder')" />
+              <el-input v-model="tags" :placeholder="$t('editor.tagsPlaceholder')" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -52,7 +62,7 @@
                   </el-button>
                 </div>
               </template>
-              <el-input v-model="description" type="textarea" :rows="8" />
+              <el-input v-model="description" type="textarea" :rows="8" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -71,7 +81,7 @@
                   </el-button>
                 </div>
               </template>
-              <el-input v-model="personality" type="textarea" :rows="5" />
+              <el-input v-model="personality" type="textarea" :rows="5" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -90,7 +100,7 @@
                   </el-button>
                 </div>
               </template>
-              <el-input v-model="scenario" type="textarea" :rows="5" />
+              <el-input v-model="scenario" type="textarea" :rows="5" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -109,7 +119,7 @@
                   </el-button>
                 </div>
               </template>
-              <el-input v-model="first_mes" type="textarea" :rows="6" />
+              <el-input v-model="first_mes" type="textarea" :rows="6" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -128,7 +138,7 @@
                   </el-button>
                 </div>
               </template>
-              <el-input v-model="mes_example" type="textarea" :rows="12" :placeholder="$t('editor.messageExamplePlaceholder')" />
+              <el-input v-model="mes_example" type="textarea" :rows="12" :placeholder="$t('editor.messageExamplePlaceholder')" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -137,21 +147,21 @@
                 <span>{{ $t('editor.alternateGreetings') }} (Alternate Greetings)</span>
               </template>
               <div v-for="(greeting, index) in alternate_greetings" :key="index" class="greeting-item">
-                <el-input v-model="alternate_greetings[index]" type="textarea" :rows="2" />
+                <el-input v-model="alternate_greetings[index]" type="textarea" :rows="2" :disabled="store.isLoading" />
                 <div class="greeting-actions">
                   <el-button 
                     class="translate-btn" 
                     type="primary" 
                     text 
-                    @click="store.translateField(`data.alternate_greetings[${index}]`)" 
+                    @click="store.translateField(`data.alternate_greetings[${index}]`)") 
                     :loading="store.isLoading"
                   >
                     {{ $t('editor.translate') }}
                   </el-button>
-                  <el-button type="danger" text @click="removeGreeting(index)">{{ $t('editor.removeGreeting') }}</el-button>
+                  <el-button type="danger" text @click="removeGreeting(index)" :disabled="store.isLoading">{{ $t('editor.removeGreeting') }}</el-button>
                 </div>
               </div>
-              <el-button @click="addGreeting" type="primary" plain>{{ $t('editor.addGreeting') }}</el-button>
+              <el-button @click="addGreeting" type="primary" plain :disabled="store.isLoading">{{ $t('editor.addGreeting') }}</el-button>
             </el-form-item>
           </el-col>
         </el-row>
@@ -173,6 +183,7 @@ const props = defineProps({
 });
 
 const store = useTranslatorStore();
+const isBatchTranslating = ref(false);
 
 // 移动端检测
 const isMobile = ref(false);
@@ -228,6 +239,16 @@ const switchView = (view) => {
   // 通过事件将视图切换请求传递给父组件
   window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
 };
+
+// 批量翻译功能
+const batchTranslate = async () => {
+  isBatchTranslating.value = true;
+  try {
+    await store.batchTranslate();
+  } finally {
+    isBatchTranslating.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -240,6 +261,12 @@ const switchView = (view) => {
   font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .editor-tabs {

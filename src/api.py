@@ -5,11 +5,12 @@ import base64
 import json
 from fastapi import APIRouter, UploadFile, File, HTTPException, Body, Form
 from fastapi.responses import FileResponse
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from .extract_text import extract_embedded_text, embed_text_in_png
 from .errors import TranslationError
 from .utils import get_translator, handle_uploaded_file
+from .batch_translate import BatchTranslator
 
 # --- 配置 ---
 UPLOAD_FOLDER = os.path.abspath(os.environ.get('UPLOAD_FOLDER', '.uploads'))
@@ -102,6 +103,51 @@ async def translate_character_book_content(data: Dict[str, Any] = Body(...)):
     except Exception as e:
         logging.error(f"翻译过程中发生意外错误：{e}")
         raise HTTPException(status_code=500, detail="翻译过程中发生内部错误。")
+
+@router.post("/character/batch-translate")
+async def batch_translate_fields(data: Dict[str, Any] = Body(...)):
+    """批量翻译多个字段"""
+    fields = data.get('fields', [])
+    settings = data.get('settings')
+    prompts = data.get('prompts')
+    
+    if not all([fields, settings, prompts]):
+        raise HTTPException(status_code=400, detail="请求正文中缺少必要的参数。")
+    
+    if not isinstance(fields, list) or len(fields) == 0:
+        return {"results": [], "progress": {"completed": 0, "total": 0}}
+    
+    try:
+        translator = get_translator(settings, prompts)
+        batch_translator = BatchTranslator(translator, max_concurrent=3)  # 降低并发数避免限流
+        
+        # 转换字段格式以适应批量翻译器
+        formatted_fields = []
+        for field in fields:
+            if isinstance(field, dict) and "field_name" in field and "text" in field:
+                formatted_fields.append(field)
+        
+        # 进度跟踪
+        progress_info = {"completed": 0, "total": len(formatted_fields)}
+        
+        async def progress_callback(completed, total):
+            progress_info["completed"] = completed
+            # 注意：在实际应用中，我们可能需要使用WebSocket或其他机制实时推送进度
+            # 这里简化处理，仅在最终结果中返回进度信息
+        
+        results = await batch_translator.translate_fields(formatted_fields, progress_callback)
+        return {
+            "results": results, 
+            "progress": progress_info
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except TranslationError as e:
+        logging.error(f"批量翻译失败：{e.message}")
+        raise HTTPException(status_code=500, detail=e.message)
+    except Exception as e:
+        logging.error(f"批量翻译过程中发生意外错误：{e}")
+        raise HTTPException(status_code=500, detail="批量翻译过程中发生内部错误。")
 
 @router.post("/character/export")
 async def export_character_card(

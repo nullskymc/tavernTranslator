@@ -20,8 +20,8 @@ NC='\033[0m' # No Color
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_PATH="$PROJECT_ROOT/.venv"
 FRONTEND_PATH="$PROJECT_ROOT/vue-frontend"
-STATIC_PATH="$PROJECT_ROOT/static"
 BACKEND_PATH="$PROJECT_ROOT/src"
+# 注意：在新版中，静态文件夹已弃用，前端构建产物直接通过FastAPI提供服务
 
 # 打印带颜色的信息
 print_info() {
@@ -122,22 +122,16 @@ build_frontend() {
 
 # 部署前端
 deploy_frontend() {
-    print_step "部署前端到静态目录..."
+    print_step "完成前端构建..."
     
     cd "$PROJECT_ROOT"
     
-    # 备份现有静态文件（如果存在）
-    if [ -d "$STATIC_PATH" ]; then
-        print_info "备份现有静态文件..."
-        rm -rf "${STATIC_PATH}.backup"
-        cp -r "$STATIC_PATH" "${STATIC_PATH}.backup"
-    fi
+    # 在新版中，我们不再需要将构建产物复制到static目录
+    # FastAPI会直接从vue-frontend/dist提供静态文件
+    print_info "注意：在新版中，静态文件夹已弃用"
+    print_info "前端构建产物将直接通过FastAPI从vue-frontend/dist提供服务"
     
-    # 部署新的构建产物
-    rm -rf "$STATIC_PATH"
-    cp -r "$FRONTEND_PATH/dist" "$STATIC_PATH"
-    
-    print_success "前端部署完成"
+    print_success "前端准备完成"
 }
 
 # 启动后端服务
@@ -148,7 +142,7 @@ start_backend() {
     source "$VENV_PATH/bin/activate"
     
     print_info "后端配置："
-    print_info "  • 静态文件目录: $STATIC_PATH"
+    print_info "  • 静态文件目录: $FRONTEND_PATH/dist (通过FastAPI提供)"
     print_info "  • 服务端口: 8080"
     print_info "  • 访问地址: http://localhost:8080"
     
@@ -176,8 +170,7 @@ cleanup() {
     rm -rf "$FRONTEND_PATH/auto-imports.d.ts" 2>/dev/null || true
     rm -rf "$FRONTEND_PATH/components.d.ts" 2>/dev/null || true
     
-    # 清理备份文件
-    rm -rf "${STATIC_PATH}.backup" 2>/dev/null || true
+    # 注意：在新版中不再清理static文件夹，因为它已弃用
     
     print_success "清理完成"
 }

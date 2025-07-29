@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import axios from 'axios';
-import { ElMessage, ElNotification } from 'element-plus';
+import { ElMessage, ElNotification, ElLoading } from 'element-plus';
 import { get, set } from 'lodash-es';
 import type { CharacterCard, TranslationSettings } from '@/types';
 
@@ -171,6 +171,161 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
   };
 
+  const batchTranslate = async () => {
+    if (!characterCard.value) return;
+    if (!translationSettings.value.api_key) {
+      ElMessage.warning('请先在设置中提供您的 API Key');
+      return;
+    }
+
+    // 收集所有需要翻译的字段
+    const fieldsToTranslate = [];
+    
+    // 收集角色卡主要字段 (与手动翻译按钮对应的字段相同)
+    // 注意：name 字段通常不需要翻译，所以排除它
+    const mainFields = [
+      'data.description',
+      'data.personality',
+      'data.scenario',
+      'data.first_mes',
+      'data.mes_example'
+    ];
+    
+    // 添加主要字段
+    for (const field of mainFields) {
+      const text = get(characterCard.value, field);
+      if (text && typeof text === 'string' && text.trim()) {
+        fieldsToTranslate.push({
+          field_name: field.split('.').pop() || field,
+          text: text
+        });
+      }
+    }
+    
+    // 添加alternate_greetings字段
+    const greetings = get(characterCard.value, 'data.alternate_greetings', []);
+    if (Array.isArray(greetings)) {
+      for (let i = 0; i < greetings.length; i++) {
+        const greeting = greetings[i];
+        if (greeting && typeof greeting === 'string' && greeting.trim()) {
+          fieldsToTranslate.push({
+            field_name: `alternate_greetings[${i}]`,
+            text: greeting
+          });
+        }
+      }
+    }
+    
+    // 添加character_book字段
+    const characterBook = get(characterCard.value, 'data.character_book');
+    if (characterBook && typeof characterBook === 'object') {
+      // character_book的description字段
+      const bookDescription = get(characterBook, 'description');
+      if (bookDescription && typeof bookDescription === 'string' && bookDescription.trim()) {
+        fieldsToTranslate.push({
+          field_name: 'character_book.description',
+          text: bookDescription
+        });
+      }
+      
+      // 添加lore条目内容
+      const lore = get(characterBook, 'lore', []);
+      if (Array.isArray(lore)) {
+        for (let i = 0; i < lore.length; i++) {
+          const loreItem = lore[i];
+          if (loreItem && typeof loreItem === 'object' && loreItem.content) {
+            const loreContent = loreItem.content;
+            if (loreContent && typeof loreContent === 'string' && loreContent.trim()) {
+              fieldsToTranslate.push({
+                field_name: `character_book.lore[${i}].content`,
+                text: loreContent
+              });
+            }
+          }
+        }
+      }
+    }
+    
+    if (fieldsToTranslate.length === 0) {
+      ElMessage.info('没有需要翻译的字段');
+      return;
+    }
+    
+    // 设置批量翻译状态，锁定编辑框
+    isLoading.value = true;
+    
+    // 显示进度信息
+    let completedCount = 0;
+    const totalFields = fieldsToTranslate.length;
+    
+    // 创建一个不会遮挡界面的进度通知
+    const notification = ElNotification({
+      title: '批量翻译进行中',
+      message: `正在翻译字段 (0/${totalFields})...`,
+      duration: 0, // 不自动关闭
+      dangerouslyUseHTMLString: true,
+      // 确保通知始终可见
+      showClose: false,
+    });
+    
+    try {
+      const response = await axios.post('/api/v1/character/batch-translate', {
+        fields: fieldsToTranslate,
+        settings: {
+          api_key: translationSettings.value.api_key,
+          base_url: translationSettings.value.base_url,
+          model_name: translationSettings.value.model_name,
+        },
+        prompts: translationSettings.value.prompts,
+      });
+      
+      // 更新翻译结果
+      const results = response.data.results;
+      let successCount = 0;
+      
+      for (const result of results) {
+        if (result.success) {
+          // 构造字段路径
+          let path = '';
+          if (result.field_name.startsWith('alternate_greetings[')) {
+            path = `data.${result.field_name}`;
+          } else if (result.field_name.startsWith('character_book.')) {
+            path = `data.${result.field_name}`;
+          } else {
+            path = `data.${result.field_name}`;
+          }
+          
+          set(characterCard.value, path, result.translated_text);
+          successCount++;
+        }
+        
+        // 更新进度
+        completedCount++;
+        notification.message = `正在翻译字段 (${completedCount}/${totalFields})...`;
+      }
+      
+      // 关闭进度通知并显示成功消息
+      notification.close();
+      ElNotification.success({
+        title: '批量翻译完成',
+        message: `成功翻译 ${successCount}/${fieldsToTranslate.length} 个字段`,
+        duration: 3000
+      });
+    } catch (error: any) {
+      // 关闭进度通知并显示错误消息
+      notification.close();
+      const errorMessage = error.response?.data?.detail || '批量翻译服务出错';
+      ElNotification.error({ 
+        title: '批量翻译失败', 
+        message: errorMessage,
+        duration: 0 // 错误消息不自动关闭
+      });
+    } finally {
+      // 解锁编辑框
+      isLoading.value = false;
+    }
+  };
+
   const exportCardAsImage = async () => {
     if (!characterCard.value || !characterImageB64.value) {
       ElMessage.error('没有角色卡数据或基础图片可供导出');
@@ -317,6 +472,7 @@ export const useTranslatorStore = defineStore('translator', () => {
     handleCardUpload,
     updateBaseImage,
     translateField,
+    batchTranslate,
     exportCardAsImage,
     resetStore,
     exportCardAsJson,

@@ -23,7 +23,19 @@
         </div>
       </div>
 
-      <p class="instructions" v-html="$t('welcome.instructions')"></p>
+      <div class="instructions">
+        <i18n-t keypath="welcome.instructions" tag="p">
+          <template #uploadButton>
+            <strong>{{ $t('sidebar.actions.uploadCard') }}</strong>
+          </template>
+          <template #pngCode>
+            <code>.png</code>
+          </template>
+          <template #githubLink>
+            <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">{{ $t('welcome.instructionsGithubLinkText') }}</a>
+          </template>
+        </i18n-t>
+      </div>
     </div>
   </div>
 </template>

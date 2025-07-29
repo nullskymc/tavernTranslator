@@ -19,6 +19,16 @@
               {{ $t('sidebar.viewSwitch.characterBook') }}
             </div>
           </div>
+          <div class="header-actions">
+            <el-button 
+              type="primary" 
+              @click="batchTranslate" 
+              :loading="isBatchTranslating"
+              size="small"
+            >
+              {{ $t('editor.batchTranslate') }}
+            </el-button>
+          </div>
         </div>
       </template>
 
@@ -27,27 +37,27 @@
         <el-row :gutter="20">
           <el-col :span="isMobile ? 24 : 12">
             <el-form-item :label="`${$t('characterBook.name')} (Name)`">
-              <el-input v-model="bookName" />
+              <el-input v-model="bookName" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="isMobile ? 24 : 12">
             <el-form-item :label="`${$t('characterBook.description')} (Description)`">
-              <el-input v-model="bookDescription" />
+              <el-input v-model="bookDescription" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="isMobile ? 24 : 8">
             <el-form-item :label="`${$t('characterBook.scanDepth')} (Scan Depth)`">
-              <el-input-number v-model="scanDepth" :min="0" />
+              <el-input-number v-model="scanDepth" :min="0" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="isMobile ? 24 : 8">
             <el-form-item :label="`${$t('characterBook.tokenBudget')} (Token Budget)`">
-              <el-input-number v-model="tokenBudget" :min="0" />
+              <el-input-number v-model="tokenBudget" :min="0" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
           <el-col :span="isMobile ? 24 : 8">
             <el-form-item :label="`${$t('characterBook.recursiveScanning')} (Recursive Scanning)`">
-              <el-switch v-model="recursiveScanning" />
+              <el-switch v-model="recursiveScanning" :disabled="store.isLoading" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -57,7 +67,7 @@
       <div class="entries-section">
         <div class="section-header">
           <h3>{{ $t('characterBook.entries') }}</h3>
-          <el-button @click="addEntry" type="primary" plain>{{ $t('characterBook.addEntry') }}</el-button>
+          <el-button @click="addEntry" type="primary" plain :disabled="store.isLoading">{{ $t('characterBook.addEntry') }}</el-button>
         </div>
 
         <div v-for="(entry, index) in entries" :key="entry.id || index" class="entry-item">
@@ -65,7 +75,7 @@
             <template #header>
               <div class="entry-header">
                 <span>{{ $t('characterBook.entry') }} {{ index + 1 }}</span>
-                <el-button @click="removeEntry(index)" type="danger" text>{{ $t('characterBook.removeEntry') }}</el-button>
+                <el-button @click="removeEntry(index)" type="danger" text :disabled="store.isLoading">{{ $t('characterBook.removeEntry') }}</el-button>
               </div>
             </template>
 
@@ -73,17 +83,17 @@
               <el-row :gutter="20">
                 <el-col :span="isMobile ? 24 : 12">
                   <el-form-item :label="`${$t('characterBook.entryName')} (Name)`">
-                    <el-input v-model="entry.name" />
+                    <el-input v-model="entry.name" :disabled="store.isLoading" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="isMobile ? 24 : 12">
                   <el-form-item :label="`${$t('characterBook.entryKeys')} (Keys)`">
-                    <el-input v-model="entryKeys[index]" />
+                    <el-input v-model="entryKeys[index]" :disabled="store.isLoading" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="isMobile ? 24 : 12">
                   <el-form-item :label="`${$t('characterBook.entrySecondaryKeys')} (Secondary Keys)`">
-                    <el-input v-model="entrySecondaryKeys[index]" />
+                    <el-input v-model="entrySecondaryKeys[index]" :disabled="store.isLoading" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="24">
@@ -107,22 +117,23 @@
                       type="textarea" 
                       :rows="6" 
                       :placeholder="$t('characterBook.contentPlaceholder')"
+                      :disabled="store.isLoading"
                     />
                   </el-form-item>
                 </el-col>
                 <el-col :span="isMobile ? 24 : 8">
                   <el-form-item :label="`${$t('characterBook.entryEnabled')} (Enabled)`">
-                    <el-switch v-model="entry.enabled" />
+                    <el-switch v-model="entry.enabled" :disabled="store.isLoading" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="isMobile ? 24 : 8">
                   <el-form-item :label="`${$t('characterBook.entryCaseSensitive')} (Case Sensitive)`">
-                    <el-switch v-model="entry.case_sensitive" />
+                    <el-switch v-model="entry.case_sensitive" :disabled="store.isLoading" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="isMobile ? 24 : 8">
                   <el-form-item :label="`${$t('characterBook.entryPriority')} (Priority)`">
-                    <el-input-number v-model="entry.priority" :min="0" />
+                    <el-input-number v-model="entry.priority" :min="0" :disabled="store.isLoading" />
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -149,6 +160,7 @@ const props = defineProps({
 });
 
 const store = useTranslatorStore();
+const isBatchTranslating = ref(false);
 
 // 移动端检测
 const isMobile = ref(false);
@@ -201,8 +213,8 @@ const recursiveScanning = computed({
 
 // entries 字段
 const entries = computed({
-  get: () => characterBook.value?.entries || [],
-  set: (value) => store.updateCardField('data.character_book.entries', value)
+  get: () => characterBook.value?.lore || [],
+  set: (value) => store.updateCardField('data.character_book.lore', value)
 });
 
 // 处理 keys 和 secondary_keys 的字符串表示
@@ -215,7 +227,7 @@ const entryKeys = computed({
         newEntries[index].keys = value.split(',').map(k => k.trim()).filter(Boolean);
       }
     });
-    store.updateCardField('data.character_book.entries', newEntries);
+    store.updateCardField('data.character_book.lore', newEntries);
   }
 });
 
@@ -228,7 +240,7 @@ const entrySecondaryKeys = computed({
         newEntries[index].secondary_keys = value.split(',').map(k => k.trim()).filter(Boolean);
       }
     });
-    store.updateCardField('data.character_book.entries', newEntries);
+    store.updateCardField('data.character_book.lore', newEntries);
   }
 });
 
@@ -246,18 +258,18 @@ const addEntry = () => {
     priority: 0,
     id: Date.now() // 用于 Vue key
   });
-  store.updateCardField('data.character_book.entries', newEntries);
+  store.updateCardField('data.character_book.lore', newEntries);
 };
 
 const removeEntry = (index) => {
   const newEntries = [...(entries.value || [])];
   newEntries.splice(index, 1);
-  store.updateCardField('data.character_book.entries', newEntries);
+  store.updateCardField('data.character_book.lore', newEntries);
 };
 
 // 翻译 content 字段
 const translateContent = async (index) => {
-  if (!characterBook.value?.entries?.[index]?.content) {
+  if (!characterBook.value?.lore?.[index]?.content) {
     ElMessage.warning('内容为空，无需翻译');
     return;
   }
@@ -270,7 +282,7 @@ const translateContent = async (index) => {
   store.isLoading = true;
   try {
     const response = await axios.post('/api/v1/character/translate-character-book', {
-      content: characterBook.value.entries[index].content,
+      content: characterBook.value.lore[index].content,
       settings: {
         api_key: store.translationSettings.api_key,
         base_url: store.translationSettings.base_url,
@@ -282,7 +294,7 @@ const translateContent = async (index) => {
     // 更新内容
     const newEntries = [...(entries.value || [])];
     newEntries[index].content = response.data.translated_content;
-    store.updateCardField('data.character_book.entries', newEntries);
+    store.updateCardField('data.character_book.lore', newEntries);
     
     ElMessage.success('内容翻译成功');
   } catch (error: any) {
@@ -293,11 +305,21 @@ const translateContent = async (index) => {
   }
 };
 
-// 视图切换方法
-const switchView = (view) => {
-  // 通过事件将视图切换请求传递给父组件
-  window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
-};
+  // 视图切换方法
+  const switchView = (view) => {
+    // 通过事件将视图切换请求传递给父组件
+    window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
+  };
+
+  // 批量翻译功能
+  const batchTranslate = async () => {
+    isBatchTranslating.value = true;
+    try {
+      await store.batchTranslate();
+    } finally {
+      isBatchTranslating.value = false;
+    }
+  };
 </script>
 
 <style scoped>
@@ -310,6 +332,12 @@ const switchView = (view) => {
   font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .editor-tabs {
