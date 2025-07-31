@@ -153,7 +153,7 @@
                     class="translate-btn" 
                     type="primary" 
                     text 
-                    @click="store.translateField(`data.alternate_greetings[${index}]`)") 
+                    @click="store.translateField(`data.alternate_greetings[${index}]`)" 
                     :loading="store.isLoading"
                   >
                     {{ $t('editor.translate') }}
