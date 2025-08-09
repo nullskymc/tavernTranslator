@@ -4,22 +4,14 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <div class="editor-tabs">
-            <div 
-              class="tab" 
-              :class="{ active: currentView === 'character' }"
-              @click="switchView('character')"
-            >
-              {{ $t('sidebar.viewSwitch.character') }}
-            </div>
-            <div 
-              class="tab" 
-              :class="{ active: currentView === 'character-book' }"
-              @click="switchView('character-book')"
-            >
-              {{ $t('sidebar.viewSwitch.characterBook') }}
-            </div>
-          </div>
+          <EditorTabs
+            :tabs="[
+              { label: $t('sidebar.viewSwitch.character'), value: 'character' },
+              { label: $t('sidebar.viewSwitch.characterBook'), value: 'character-book' },
+            ]"
+            :model-value="currentView"
+            @update:modelValue="switchView"
+          />
           <div class="header-actions">
             <el-button 
               type="primary" 
@@ -49,18 +41,12 @@
           <el-col :span="24">
             <el-form-item>
               <template #label>
-                <div class="label-with-btn">
-                  <span>{{ $t('editor.description') }} (Description)</span>
-                  <el-button 
-                    class="translate-btn" 
-                    type="primary" 
-                    text 
-                    @click="store.translateField('data.description')" 
-                    :loading="store.isLoading"
-                  >
-                    {{ $t('editor.translate') }}
-                  </el-button>
-                </div>
+                <FormLabelWithTranslate
+                  :label="`${$t('editor.description')} (Description)`"
+                  :button-text="$t('editor.translate')"
+                  :loading="store.isLoading"
+                  @translate="store.translateField('data.description')"
+                />
               </template>
               <el-input v-model="description" type="textarea" :rows="8" :disabled="store.isLoading" />
             </el-form-item>
@@ -68,18 +54,12 @@
           <el-col :span="24">
             <el-form-item>
               <template #label>
-                <div class="label-with-btn">
-                  <span>{{ $t('editor.personality') }} (Personality)</span>
-                  <el-button 
-                    class="translate-btn" 
-                    type="primary" 
-                    text 
-                    @click="store.translateField('data.personality')" 
-                    :loading="store.isLoading"
-                  >
-                    {{ $t('editor.translate') }}
-                  </el-button>
-                </div>
+                <FormLabelWithTranslate
+                  :label="`${$t('editor.personality')} (Personality)`"
+                  :button-text="$t('editor.translate')"
+                  :loading="store.isLoading"
+                  @translate="store.translateField('data.personality')"
+                />
               </template>
               <el-input v-model="personality" type="textarea" :rows="5" :disabled="store.isLoading" />
             </el-form-item>
@@ -87,18 +67,12 @@
           <el-col :span="24">
             <el-form-item>
               <template #label>
-                <div class="label-with-btn">
-                  <span>{{ $t('editor.scenario') }} (Scenario)</span>
-                  <el-button 
-                    class="translate-btn" 
-                    type="primary" 
-                    text 
-                    @click="store.translateField('data.scenario')" 
-                    :loading="store.isLoading"
-                  >
-                    {{ $t('editor.translate') }}
-                  </el-button>
-                </div>
+                <FormLabelWithTranslate
+                  :label="`${$t('editor.scenario')} (Scenario)`"
+                  :button-text="$t('editor.translate')"
+                  :loading="store.isLoading"
+                  @translate="store.translateField('data.scenario')"
+                />
               </template>
               <el-input v-model="scenario" type="textarea" :rows="5" :disabled="store.isLoading" />
             </el-form-item>
@@ -106,18 +80,12 @@
           <el-col :span="24">
             <el-form-item>
               <template #label>
-                <div class="label-with-btn">
-                  <span>{{ $t('editor.firstMessage') }} (First Message)</span>
-                  <el-button 
-                    class="translate-btn" 
-                    type="primary" 
-                    text 
-                    @click="store.translateField('data.first_mes')" 
-                    :loading="store.isLoading"
-                  >
-                    {{ $t('editor.translate') }}
-                  </el-button>
-                </div>
+                <FormLabelWithTranslate
+                  :label="`${$t('editor.firstMessage')} (First Message)`"
+                  :button-text="$t('editor.translate')"
+                  :loading="store.isLoading"
+                  @translate="store.translateField('data.first_mes')"
+                />
               </template>
               <el-input v-model="first_mes" type="textarea" :rows="6" :disabled="store.isLoading" />
             </el-form-item>
@@ -125,18 +93,12 @@
           <el-col :span="24">
             <el-form-item>
               <template #label>
-                <div class="label-with-btn">
-                  <span>{{ $t('editor.exampleMessages') }} (Message Example)</span>
-                  <el-button 
-                    class="translate-btn" 
-                    type="primary" 
-                    text 
-                    @click="store.translateField('data.mes_example')" 
-                    :loading="store.isLoading"
-                  >
-                    {{ $t('editor.translate') }}
-                  </el-button>
-                </div>
+                <FormLabelWithTranslate
+                  :label="`${$t('editor.exampleMessages')} (Message Example)`"
+                  :button-text="$t('editor.translate')"
+                  :loading="store.isLoading"
+                  @translate="store.translateField('data.mes_example')"
+                />
               </template>
               <el-input v-model="mes_example" type="textarea" :rows="12" :placeholder="$t('editor.messageExamplePlaceholder')" :disabled="store.isLoading" />
             </el-form-item>
@@ -171,9 +133,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
-import { get, set } from 'lodash-es';
+import { get } from 'lodash-es';
+import EditorTabs from './ui/EditorTabs.vue';
+import FormLabelWithTranslate from './ui/FormLabelWithTranslate.vue';
+import { useResponsive } from '@/composables/useResponsive';
 
 const props = defineProps({
   currentView: {
@@ -185,29 +150,12 @@ const props = defineProps({
 const store = useTranslatorStore();
 const isBatchTranslating = ref(false);
 
-// 移动端检测
-const isMobile = ref(false);
+// 移动端检测（复用）
+const { isMobile } = useResponsive();
 
-const checkMobile = () => {
-  isMobile.value = window.innerWidth <= 768;
-};
-
-const handleResize = () => {
-  checkMobile();
-};
-
-onMounted(() => {
-  checkMobile();
-  window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-});
-
-const useVModel = (path, defaultValue = '') => computed({
-  get: () => get(store.characterCard, path, defaultValue),
-  set: (value) => store.updateCardField(path, value),
+const useVModel = <T = string>(path: string, defaultValue?: T) => computed<T>({
+  get: () => get(store.characterCard as any, path, (defaultValue as any) ?? ('' as any)) as T,
+  set: (value: T) => store.updateCardField(path, value as any),
 });
 
 const name = useVModel('data.name');
@@ -216,7 +164,7 @@ const personality = useVModel('data.personality');
 const scenario = useVModel('data.scenario');
 const first_mes = useVModel('data.first_mes');
 const mes_example = useVModel('data.mes_example');
-const alternate_greetings = useVModel('data.alternate_greetings', []);
+const alternate_greetings = useVModel<string[]>('data.alternate_greetings', []);
 const tags = computed({
   get: () => (get(store.characterCard, 'data.tags', []) || []).join(', '),
   set: (value) => store.updateCardField('data.tags', value.split(',').map(t => t.trim()).filter(Boolean))
@@ -228,14 +176,14 @@ const addGreeting = () => {
   store.updateCardField('data.alternate_greetings', greetings);
 };
 
-const removeGreeting = (index) => {
+const removeGreeting = (index: number) => {
   const greetings = alternate_greetings.value || [];
   greetings.splice(index, 1);
   store.updateCardField('data.alternate_greetings', greetings);
 };
 
 // 视图切换方法
-const switchView = (view) => {
+const switchView = (view: string) => {
   // 通过事件将视图切换请求传递给父组件
   window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
 };

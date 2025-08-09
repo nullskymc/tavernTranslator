@@ -9,6 +9,7 @@ src/__pycache__/
 .gradio/
 .output/
 .uploads/
+uploads/
 output/
 
 

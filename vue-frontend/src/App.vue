@@ -48,22 +48,14 @@
             <el-card class="box-card">
               <template #header>
                 <div class="card-header">
-                  <div class="editor-tabs">
-                    <div 
-                      class="tab" 
-                      :class="{ active: currentView === 'character' }"
-                      @click="currentView = 'character'"
-                    >
-                      {{ $t('sidebar.viewSwitch.character') }}
-                    </div>
-                    <div 
-                      class="tab" 
-                      :class="{ active: currentView === 'character-book' }"
-                      @click="currentView = 'character-book'"
-                    >
-                      {{ $t('sidebar.viewSwitch.characterBook') }}
-                    </div>
-                  </div>
+                  <EditorTabs
+                    :tabs="[
+                      { label: $t('sidebar.viewSwitch.character'), value: 'character' },
+                      { label: $t('sidebar.viewSwitch.characterBook'), value: 'character-book' },
+                    ]"
+                    :model-value="currentView"
+                    @update:modelValue="(val: string) => currentView = val"
+                  />
                 </div>
               </template>
               
@@ -102,9 +94,10 @@ import { Menu } from '@element-plus/icons-vue';
 import AppSidebar from './components/AppSidebar.vue';
 import CharacterEditor from './components/CharacterEditor.vue';
 import CharacterBookEditor from './components/CharacterBookEditor.vue';
-import ThemeToggle from './components/ThemeToggle.vue';
 import WelcomeView from './components/WelcomeView.vue'; // 一个新的欢迎组件
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
+import EditorTabs from './components/ui/EditorTabs.vue';
+import { useResponsive } from './composables/useResponsive';
 
 const store = useTranslatorStore();
 const themeStore = useThemeStore();
@@ -114,12 +107,13 @@ const { t: $t } = useI18n();
 const currentView = ref('character'); // 默认为角色编辑视图
 
 // 移动端响应式状态
-const isMobile = ref(false);
+const { isMobile } = useResponsive();
 const sidebarVisible = ref(false);
 
 // 视图切换方法
-const handleViewChange = (event) => {
-  currentView.value = event.detail.view;
+const handleViewChange = (event: Event) => {
+  const ev = event as CustomEvent<{ view: string }>;
+  currentView.value = ev.detail.view;
 };
 
 // 创建 character_book
@@ -173,12 +167,12 @@ const checkMobile = () => {
 };
 
 // 手势处理
-const handleTouchStart = (e) => {
+const handleTouchStart = (e: TouchEvent) => {
   if (!isMobile.value) return;
   touchStartX.value = e.touches[0].clientX;
 };
 
-const handleTouchMove = (e) => {
+const handleTouchMove = (e: TouchEvent) => {
   if (!isMobile.value) return;
   touchEndX.value = e.touches[0].clientX;
 };
@@ -204,23 +198,7 @@ const handleResize = () => {
   checkMobile();
 };
 
-onMounted(() => {
-  themeStore.initializeTheme();
-  checkMobile();
-  window.addEventListener('resize', handleResize);
-  
-  // 添加手势监听
-  document.addEventListener('touchstart', handleTouchStart, { passive: true });
-  document.addEventListener('touchmove', handleTouchMove, { passive: true });
-  document.addEventListener('touchend', handleTouchEnd, { passive: true });
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-  document.removeEventListener('touchstart', handleTouchStart);
-  document.removeEventListener('touchmove', handleTouchMove);
-  document.removeEventListener('touchend', handleTouchEnd);
-});
+// 重复生命周期块已移除
 </script>
 
 <style>

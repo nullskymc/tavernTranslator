@@ -3,22 +3,14 @@
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <div class="editor-tabs">
-            <div 
-              class="tab" 
-              :class="{ active: currentView === 'character' }"
-              @click="switchView('character')"
-            >
-              {{ $t('sidebar.viewSwitch.character') }}
-            </div>
-            <div 
-              class="tab" 
-              :class="{ active: currentView === 'character-book' }"
-              @click="switchView('character-book')"
-            >
-              {{ $t('sidebar.viewSwitch.characterBook') }}
-            </div>
-          </div>
+          <EditorTabs
+            :tabs="[
+              { label: $t('sidebar.viewSwitch.character'), value: 'character' },
+              { label: $t('sidebar.viewSwitch.characterBook'), value: 'character-book' },
+            ]"
+            :model-value="currentView"
+            @update:modelValue="switchView"
+          />
           <div class="header-actions">
             <el-button 
               type="primary" 
@@ -99,18 +91,12 @@
                 <el-col :span="24">
                   <el-form-item>
                     <template #label>
-                      <div class="label-with-btn">
-                        <span>{{ $t('characterBook.entryContent') }} (Content)</span>
-                        <el-button 
-                          class="translate-btn" 
-                          type="primary" 
-                          text 
-                          @click="translateContent(index)" 
-                          :loading="store.isLoading"
-                        >
-                          {{ $t('editor.translate') }}
-                        </el-button>
-                      </div>
+                      <FormLabelWithTranslate
+                        :label="`${$t('characterBook.entryContent')} (Content)`"
+                        :button-text="$t('editor.translate')"
+                        :loading="store.isLoading"
+                        @translate="translateContent(index)"
+                      />
                     </template>
                     <el-input 
                       v-model="entry.content" 
@@ -146,11 +132,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
-import { get, set } from 'lodash-es';
+import { get } from 'lodash-es';
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import EditorTabs from './ui/EditorTabs.vue';
+import FormLabelWithTranslate from './ui/FormLabelWithTranslate.vue';
+import { useResponsive } from '@/composables/useResponsive';
 
 const props = defineProps({
   currentView: {
@@ -162,25 +151,8 @@ const props = defineProps({
 const store = useTranslatorStore();
 const isBatchTranslating = ref(false);
 
-// 移动端检测
-const isMobile = ref(false);
-
-const checkMobile = () => {
-  isMobile.value = window.innerWidth <= 768;
-};
-
-const handleResize = () => {
-  checkMobile();
-};
-
-onMounted(() => {
-  checkMobile();
-  window.addEventListener('resize', handleResize);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
-});
+// 移动端检测（复用）
+const { isMobile } = useResponsive();
 
 // character_book 数据访问
 const characterBook = computed(() => store.characterCard?.data?.character_book);
@@ -222,9 +194,9 @@ const entryKeys = computed({
   get: () => (entries.value || []).map(entry => (entry.keys || []).join(', ')),
   set: (values) => {
     const newEntries = [...(entries.value || [])];
-    values.forEach((value, index) => {
+  values.forEach((value: string, index: number) => {
       if (newEntries[index]) {
-        newEntries[index].keys = value.split(',').map(k => k.trim()).filter(Boolean);
+    newEntries[index].keys = value.split(',').map((k: string) => k.trim()).filter(Boolean);
       }
     });
     store.updateCardField('data.character_book.lore', newEntries);
@@ -235,9 +207,9 @@ const entrySecondaryKeys = computed({
   get: () => (entries.value || []).map(entry => (entry.secondary_keys || []).join(', ')),
   set: (values) => {
     const newEntries = [...(entries.value || [])];
-    values.forEach((value, index) => {
+  values.forEach((value: string, index: number) => {
       if (newEntries[index]) {
-        newEntries[index].secondary_keys = value.split(',').map(k => k.trim()).filter(Boolean);
+    newEntries[index].secondary_keys = value.split(',').map((k: string) => k.trim()).filter(Boolean);
       }
     });
     store.updateCardField('data.character_book.lore', newEntries);
@@ -261,14 +233,14 @@ const addEntry = () => {
   store.updateCardField('data.character_book.lore', newEntries);
 };
 
-const removeEntry = (index) => {
+const removeEntry = (index: number) => {
   const newEntries = [...(entries.value || [])];
   newEntries.splice(index, 1);
   store.updateCardField('data.character_book.lore', newEntries);
 };
 
 // 翻译 content 字段
-const translateContent = async (index) => {
+const translateContent = async (index: number) => {
   if (!characterBook.value?.lore?.[index]?.content) {
     ElMessage.warning('内容为空，无需翻译');
     return;
@@ -306,7 +278,7 @@ const translateContent = async (index) => {
 };
 
   // 视图切换方法
-  const switchView = (view) => {
+  const switchView = (view: string) => {
     // 通过事件将视图切换请求传递给父组件
     window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
   };
