@@ -183,3 +183,20 @@
     }
   }
 }
+
+/* 移动端防止水平滚动 */
+@media (max-width: 768px) {
+  .el-form,
+  .el-form-item,
+  .el-input,
+  .el-textarea {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .el-textarea__inner,
+  .el-input__inner {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}

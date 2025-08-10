@@ -1,5 +1,7 @@
 /* 导入主题设置 */
 @import './theme.css';
+/* 导入 Apple 风格主题 */
+@import './apple-theme.css';
 /* 导入移动端样式 */
 @import './mobile.css';
 
@@ -16,10 +18,12 @@ body {
   color: var(--el-text-color-primary);
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
 #app {
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .container {
@@ -381,4 +385,34 @@ a:hover {
 
 .fa-spin {
   animation: spin 1s linear infinite;
+}
+
+/* 防止水平滚动的样式 */
+.el-form {
+  width: 100%;
+}
+
+.el-form-item {
+  width: 100%;
+}
+
+.el-row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+}
+
+.el-col {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.el-input,
+.el-textarea {
+  max-width: 100%;
+}
+
+.el-textarea__inner,
+.el-input__inner {
+  max-width: 100%;
 }

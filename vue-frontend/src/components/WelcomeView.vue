@@ -1,41 +1,39 @@
 <template>
   <div class="welcome-container">
-    <div class="welcome-box">
-      <h1 class="title">{{ $t('welcome.title') }}</h1>
-      <p class="subtitle">{{ $t('welcome.subtitle') }}</p>
-      
-      <div class="features">
-        <div class="feature-item">
-          <el-icon><EditPen /></el-icon>
-          <span>{{ $t('welcome.features.onlineEdit') }}</span>
-        </div>
-        <div class="feature-item">
-          <el-icon><DataLine /></el-icon>
-          <span>{{ $t('welcome.features.localStorage') }}</span>
-        </div>
-        <div class="feature-item">
-          <el-icon><Switch /></el-icon>
-          <span>{{ $t('welcome.features.oneClickTranslate') }}</span>
-        </div>
-        <div class="feature-item">
-          <el-icon><Download /></el-icon>
-          <span>{{ $t('welcome.features.imageExport') }}</span>
-        </div>
+    <h1 class="title">{{ $t('welcome.title') }}</h1>
+    <p class="subtitle">{{ $t('welcome.subtitle') }}</p>
+    
+    <div class="features">
+      <div class="feature-item">
+        <el-icon><EditPen /></el-icon>
+        <span>{{ $t('welcome.features.onlineEdit') }}</span>
       </div>
+      <div class="feature-item">
+        <el-icon><DataLine /></el-icon>
+        <span>{{ $t('welcome.features.localStorage') }}</span>
+      </div>
+      <div class="feature-item">
+        <el-icon><Switch /></el-icon>
+        <span>{{ $t('welcome.features.oneClickTranslate') }}</span>
+      </div>
+      <div class="feature-item">
+        <el-icon><Download /></el-icon>
+        <span>{{ $t('welcome.features.imageExport') }}</span>
+      </div>
+    </div>
 
-      <div class="instructions">
-        <i18n-t keypath="welcome.instructions" tag="p">
-          <template #uploadButton>
-            <strong>{{ $t('sidebar.actions.uploadCard') }}</strong>
-          </template>
-          <template #pngCode>
-            <code>.png</code>
-          </template>
-          <template #githubLink>
-            <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">{{ $t('welcome.instructionsGithubLinkText') }}</a>
-          </template>
-        </i18n-t>
-      </div>
+    <div class="instructions">
+      <i18n-t keypath="welcome.instructions" tag="p">
+        <template #uploadButton>
+          <strong>{{ $t('sidebar.actions.uploadCard') }}</strong>
+        </template>
+        <template #pngCode>
+          <code>.png</code>
+        </template>
+        <template #githubLink>
+          <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">{{ $t('welcome.instructionsGithubLinkText') }}</a>
+        </template>
+      </i18n-t>
     </div>
   </div>
 </template>
@@ -91,35 +89,35 @@ onUnmounted(() => {
 <style scoped>
 .welcome-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   text-align: center;
-  border: 2px dashed var(--el-border-color);
-  border-radius: 12px;
-  transition: background-color 0.3s, border-color 0.3s;
+  border: 2px dashed var(--apple-border-color);
+  border-radius: var(--apple-border-radius-large);
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+  background-color: var(--apple-bg-color);
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px;
 }
 
 .welcome-container.dragover {
-  background-color: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary);
-}
-
-.welcome-box {
-  max-width: 600px;
-  padding: 40px;
+  background-color: var(--apple-color-primary-light);
+  border-color: var(--apple-color-primary);
 }
 
 .title {
   font-size: 2.5em;
   font-weight: 700;
-  color: var(--el-text-color-primary);
+  color: var(--apple-text-color-primary);
   margin-bottom: 10px;
 }
 
 .subtitle {
   font-size: 1.2em;
-  color: var(--el-text-color-secondary);
+  color: var(--apple-text-color-secondary);
   margin-bottom: 40px;
 }
 
@@ -136,14 +134,21 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 1em;
-  color: var(--el-text-color-regular);
+  color: var(--apple-text-color-primary);
   flex-direction: column;
   text-align: center;
   min-width: 80px;
+  padding: 12px;
+  border-radius: var(--apple-border-radius-medium);
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+}
+
+.feature-item:hover {
+  background-color: var(--apple-bg-color-secondary);
 }
 
 .feature-item .el-icon {
-  color: var(--el-color-primary);
+  color: var(--apple-color-primary);
   font-size: 24px;
 }
 

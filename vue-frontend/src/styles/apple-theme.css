@@ -1,0 +1,112 @@
+/* Apple 风格主题变量定义 */
+:root {
+  /* 主色调 - 蓝色 */
+  --apple-color-primary: #007AFF;
+  --apple-color-primary-light: #338BFF;
+  --apple-color-primary-dark: #0062CC;
+  
+  /* 成功 - 绿色 */
+  --apple-color-success: #34C759;
+  --apple-color-success-light: #5CD47D;
+  --apple-color-success-dark: #299F47;
+  
+  /* 警告 - 橙色 */
+  --apple-color-warning: #FF9500;
+  --apple-color-warning-light: #FFA933;
+  --apple-color-warning-dark: #CC7700;
+  
+  /* 危险 - 红色 */
+  --apple-color-danger: #FF3B30;
+  --apple-color-danger-light: #FF5C52;
+  --apple-color-danger-dark: #CC2F26;
+  
+  /* 中性色 */
+  --apple-color-gray-1: #8E8E93;
+  --apple-color-gray-2: #AEAEB2;
+  --apple-color-gray-3: #C7C7CC;
+  --apple-color-gray-4: #D1D1D6;
+  --apple-color-gray-5: #E5E5EA;
+  --apple-color-gray-6: #F2F2F7;
+  
+  /* 背景色 */
+  --apple-bg-color: #FFFFFF;
+  --apple-bg-color-secondary: #F2F2F7;
+  --apple-bg-color-tertiary: #FFFFFF;
+  
+  /* 文字颜色 */
+  --apple-text-color-primary: #000000;
+  --apple-text-color-secondary: #8E8E93;
+  --apple-text-color-tertiary: #C7C7CC;
+  --apple-text-color-inverse: #FFFFFF;
+  
+  /* 边框颜色 */
+  --apple-border-color: #D1D1D6;
+  --apple-border-color-secondary: #E5E5EA;
+  
+  /* 阴影 */
+  --apple-shadow-small: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --apple-shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --apple-shadow-large: 0 4px 16px rgba(0, 0, 0, 0.15);
+  
+  /* 圆角 */
+  --apple-border-radius-small: 4px;
+  --apple-border-radius-medium: 8px;
+  --apple-border-radius-large: 12px;
+  --apple-border-radius-xl: 16px;
+  --apple-border-radius-full: 9999px;
+  
+  /* 过渡效果 */
+  --apple-transition-duration: 0.2s;
+  --apple-transition-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* 暗色主题 */
+.dark-theme {
+  /* 主色调 - 蓝色 */
+  --apple-color-primary: #0A84FF;
+  --apple-color-primary-light: #409CFF;
+  --apple-color-primary-dark: #0A6ED1;
+  
+  /* 成功 - 绿色 */
+  --apple-color-success: #30D158;
+  --apple-color-success-light: #5ACD70;
+  --apple-color-success-dark: #24A043;
+  
+  /* 警告 - 橙色 */
+  --apple-color-warning: #FF9F0A;
+  --apple-color-warning-light: #FFB340;
+  --apple-color-warning-dark: #CC7F08;
+  
+  /* 危险 - 红色 */
+  --apple-color-danger: #FF453A;
+  --apple-color-danger-light: #FF6961;
+  --apple-color-danger-dark: #CC372E;
+  
+  /* 中性色 */
+  --apple-color-gray-1: #8E8E93;
+  --apple-color-gray-2: #636366;
+  --apple-color-gray-3: #48484A;
+  --apple-color-gray-4: #3A3A3C;
+  --apple-color-gray-5: #2C2C2E;
+  --apple-color-gray-6: #1C1C1E;
+  
+  /* 背景色 */
+  --apple-bg-color: #000000;
+  --apple-bg-color-secondary: #1C1C1E;
+  --apple-bg-color-tertiary: #2C2C2E;
+  
+  /* 文字颜色 */
+  --apple-text-color-primary: #FFFFFF;
+  --apple-text-color-secondary: #98989D;
+  --apple-text-color-tertiary: #48484A;
+  --apple-text-color-inverse: #000000;
+  
+  /* 边框颜色 */
+  --apple-border-color: #3A3A3C;
+  --apple-border-color-secondary: #2C2C2E;
+  
+  /* 阴影 (暗色主题下通常不使用深色阴影) */
+  --apple-shadow-small: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --apple-shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --apple-shadow-large: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
