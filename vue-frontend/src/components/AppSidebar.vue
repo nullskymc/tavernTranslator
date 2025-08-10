@@ -26,28 +26,26 @@
 
       <!-- 操作按钮 -->
       <div class="actions-section">
-        <div class="export-buttons-wrapper">
-          <div>
-            <el-button 
-              type="primary" 
-              @click="store.exportCardAsImage()" 
-              :icon="Download" 
-              :disabled="!store.characterCard"
-              :loading="store.isLoading"
-            >
-              {{ $t('sidebar.export.image') }}
-            </el-button>
-          </div>
+        <div class="export-buttons-container">
+          <el-button 
+            type="primary" 
+            @click="store.exportCardAsImage()" 
+            :icon="Download" 
+            :disabled="!store.characterCard"
+            :loading="store.isLoading"
+            size="small"
+          >
+            {{ $t('sidebar.export.image') }}
+          </el-button>
 
-          <div>
-            <el-button 
-              @click="store.exportCardAsJson()" 
-              :icon="Document" 
-              :disabled="!store.characterCard"
-            >
-              {{ $t('sidebar.export.json') }}
-            </el-button>
-          </div>
+          <el-button 
+            @click="store.exportCardAsJson()" 
+            :icon="Document" 
+            :disabled="!store.characterCard"
+            size="small"
+          >
+            {{ $t('sidebar.export.json') }}
+          </el-button>
         </div>
       </div>
 
@@ -212,8 +210,8 @@ const confirmReset = () => {
 .app-sidebar {
   width: 300px;
   height: 100vh;
-  background-color: var(--el-bg-color-page);
-  border-right: 1px solid var(--el-border-color-light);
+  background-color: var(--apple-bg-color-tertiary);
+  border-right: 1px solid var(--apple-border-color);
   display: flex;
   flex-direction: column;
   padding: 20px;
@@ -291,20 +289,20 @@ const confirmReset = () => {
   align-items: center;
   gap: 12px;
   padding-bottom: 20px;
-  border-bottom: 1px solid var(--el-border-color-light);
+  border-bottom: 1px solid var(--apple-border-color);
 }
 
 .logo {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: var(--apple-border-radius-full);
 }
 
 .sidebar-header h2 {
   font-size: 1.2em;
   font-weight: 600;
   margin: 0;
-  color: var(--el-text-color-primary);
+  color: var(--apple-text-color-primary);
 }
 
 .sidebar-content {
@@ -313,6 +311,10 @@ const confirmReset = () => {
   margin-top: 20px;
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+  padding: 10px;
+  border-radius: var(--apple-border-radius-medium);
+  background-color: var(--apple-bg-color);
+  box-shadow: var(--apple-shadow-small);
 }
 
 .sidebar-content::-webkit-scrollbar {
@@ -333,10 +335,12 @@ const confirmReset = () => {
 .image-preview-wrapper {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 8px;
+  border-radius: var(--apple-border-radius-large);
   overflow: hidden;
   margin-bottom: 10px;
-  background-color: var(--el-fill-color-light);
+  background-color: var(--apple-bg-color-secondary);
+  box-shadow: var(--apple-shadow-small);
+  border: 1px solid var(--apple-border-color);
 }
 
 .image-preview {
@@ -352,54 +356,30 @@ const confirmReset = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--el-text-color-placeholder);
+  color: var(--apple-text-color-secondary);
 }
 
 .image-placeholder .el-icon {
   font-size: 48px;
+  color: var(--apple-color-gray-3);
 }
 
 .actions-section {
   margin-bottom: 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px; /* Spacing between title and button group */
 }
 
-.export-buttons-wrapper {
+.export-buttons-container {
   display: flex;
-  flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
-.export-buttons-wrapper .el-button {
-  width: 100%; /* Make them full width */
-  box-sizing: border-box;
+.export-buttons-container .el-button {
+  flex: 1;
+  justify-content: center;
 }
 
-/* 确保导出按钮在暗色主题下正确显示 */
-.dark-theme .export-buttons-wrapper .el-button--primary {
-  background-color: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-  color: var(--el-bg-color);
-}
 
-.dark-theme .export-buttons-wrapper .el-button--primary:hover {
-  background-color: var(--el-color-primary-dark-2);
-  border-color: var(--el-color-primary-dark-2);
-}
-
-.dark-theme .export-buttons-wrapper .el-button:not(.el-button--primary) {
-  background-color: var(--el-fill-color);
-  border-color: var(--el-border-color);
-  color: var(--el-text-color-primary);
-}
-
-.dark-theme .export-buttons-wrapper .el-button:not(.el-button--primary):hover {
-  background-color: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary);
-  color: var(--el-color-primary);
-}
 
 
 
@@ -433,49 +413,100 @@ const confirmReset = () => {
   position: relative;
   width: 50px; /* 初始宽度，与按钮直径相同 */
   height: 50px; /* 与按钮直径相同 */
-  transition: width 0.3s ease, background-color 0.3s ease;
-  border-radius: 25px; /* 圆角 */
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+  border-radius: var(--apple-border-radius-full); /* 圆角 */
   overflow: hidden; /* 隐藏溢出的文本 */
-  background-color: var(--el-fill-color-light);
+  background-color: var(--apple-bg-color-secondary);
   box-sizing: border-box;
   cursor: pointer;
+  box-shadow: var(--apple-shadow-small);
 }
 
 .dark-theme .action-button-wrapper {
-  background-color: var(--el-fill-color-light) !important;
+  background-color: var(--apple-bg-color-secondary) !important;
 }
 
 .action-button-wrapper:hover {
   width: 120px; /* 悬停时展开的宽度 */
-  background-color: var(--el-color-primary-light-9);
+  background-color: var(--apple-color-primary);
 }
 
 .dark-theme .action-button-wrapper:hover {
-  background-color: var(--el-fill-color) !important;
+  background-color: var(--apple-color-primary) !important;
+}
+
+/* 修复按钮 hover 时变成蓝色的问题 */
+.action-button-wrapper:hover .el-button:not(.el-button--danger) {
+  background-color: var(--apple-color-primary);
+  border-color: var(--apple-color-primary);
+  color: var(--apple-text-color-inverse);
+}
+
+/* 确保危险按钮在 hover 时保持红色 */
+.action-button-wrapper:hover .el-button--danger {
+  background-color: var(--el-color-danger-dark-2);
+  border-color: var(--el-color-danger-dark-2);
+  color: var(--apple-text-color-inverse);
+}
+
+/* 暗色主题下的按钮样式 */
+.dark-theme .action-button-wrapper .el-button {
+  background-color: var(--apple-bg-color-tertiary);
+  border-color: var(--apple-border-color);
+  color: var(--apple-text-color-primary);
+}
+
+.dark-theme .action-button-wrapper:hover .el-button:not(.el-button--danger) {
+  background-color: var(--apple-color-primary);
+  border-color: var(--apple-color-primary);
+  color: var(--apple-text-color-inverse);
+}
+
+.dark-theme .action-button-wrapper:hover .el-button--danger {
+  background-color: var(--el-color-danger-dark-2);
+  border-color: var(--el-color-danger-dark-2);
+  color: var(--apple-text-color-inverse);
 }
 
 .action-button-wrapper .el-button {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
+  border-radius: var(--apple-border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   flex-shrink: 0; /* 防止按钮在父容器展开时被压缩 */
+  background-color: var(--apple-bg-color-tertiary);
+  border: 1px solid var(--apple-border-color);
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+}
+
+/* 确保危险按钮类型正确显示 */
+.action-button-wrapper .el-button--danger {
+  background-color: var(--el-color-danger);
+  border-color: var(--el-color-danger);
+  color: var(--el-bg-color);
+}
+
+.action-button-wrapper .el-button--danger:hover {
+  background-color: var(--el-color-danger-dark-2);
+  border-color: var(--el-color-danger-dark-2);
 }
 
 .action-button-wrapper .button-text {
   white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  color: var(--el-text-color-primary);
+  transition: opacity var(--apple-transition-duration) var(--apple-transition-easing);
+  color: var(--apple-text-color-primary);
   font-size: 0.8em;
   margin-left: 8px; /* 文本与图标的间距 */
+  font-weight: 500;
 }
 
 .action-button-wrapper:hover .button-text {
   opacity: 1;
+  color: var(--apple-text-color-inverse);
 }
 
 .sidebar-footer {

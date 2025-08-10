@@ -31,51 +31,16 @@
 
     <!-- 右侧主内容区 -->
     <main class="main-content" :class="{ 'mobile-content': isMobile }">
-      <div class="main-content-inner">
-        <!-- 如果没有加载角色卡，显示欢迎/上传提示 -->
-        <div v-if="!store.characterCard" class="welcome-view">
-          <WelcomeView />
-        </div>
+      <!-- 如果没有加载角色卡，显示欢迎/上传提示 -->
+      <div v-if="!store.characterCard" class="welcome-view">
+        <WelcomeView />
+      </div>
 
-        <!-- 如果已加载角色卡，显示编辑器组件 -->
-        <div v-else class="editor-view">
+      <!-- 如果已加载角色卡，显示编辑器组件 -->
+      <div v-else class="editor-view">
+        <div class="editor-view-inner">
           <CharacterEditor v-if="currentView === 'character'" :current-view="currentView" />
-          <CharacterBookEditor 
-            v-else-if="currentView === 'character-book' && store.characterCard?.data?.character_book" 
-            :current-view="currentView" 
-          />
-          <div v-else-if="currentView === 'character-book' && !store.characterCard?.data?.character_book" class="no-character-book">
-            <el-card class="box-card">
-              <template #header>
-                <div class="card-header">
-                  <EditorTabs
-                    :tabs="[
-                      { label: $t('sidebar.viewSwitch.character'), value: 'character' },
-                      { label: $t('sidebar.viewSwitch.characterBook'), value: 'character-book' },
-                    ]"
-                    :model-value="currentView"
-                    @update:modelValue="(val: string) => currentView = val"
-                  />
-                </div>
-              </template>
-              
-              <div class="no-content">
-                <el-alert
-                  :title="$t('characterBook.noCharacterBook')"
-                  type="info"
-                  show-icon
-                  :description="$t('characterBook.createCharacterBookTip')"
-                />
-                <el-button 
-                  type="primary" 
-                  @click="createCharacterBook"
-                  style="margin-top: 20px;"
-                >
-                  {{ $t('characterBook.createCharacterBook') }}
-                </el-button>
-              </div>
-            </el-card>
-          </div>
+          <CharacterBookEditor v-else-if="currentView === 'character-book'" :current-view="currentView" />
         </div>
       </div>
     </main>
@@ -97,6 +62,7 @@ import CharacterBookEditor from './components/CharacterBookEditor.vue';
 import WelcomeView from './components/WelcomeView.vue'; // 一个新的欢迎组件
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
 import EditorTabs from './components/ui/EditorTabs.vue';
+import EditorLayout from './components/common/EditorLayout.vue';
 import { useResponsive } from './composables/useResponsive';
 
 const store = useTranslatorStore();
@@ -211,11 +177,11 @@ html, body {
 }
 
 body {
-  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--el-bg-color-page);
-  color: var(--el-text-color-primary);
+  background-color: var(--apple-bg-color-secondary);
+  color: var(--apple-text-color-primary);
   overflow: hidden; /* 防止整体页面滚动 */
 }
 </style>
@@ -231,6 +197,7 @@ body {
   position: relative;
   margin: 0;
   padding: 0;
+  background-color: var(--apple-bg-color-secondary);
 }
 
 .main-content {
@@ -241,78 +208,37 @@ body {
   box-sizing: border-box;
   min-width: 0; /* 防止flex item溢出 */
   margin: 0; /* 确保没有外边距 */
+  background-color: var(--apple-bg-color);
+  border-radius: var(--apple-border-radius-large);
+  box-shadow: var(--apple-shadow-medium);
+  overflow-x: hidden;
 }
 
 .main-content-inner {
   max-width: 1000px;
   margin: 0 auto;
+  padding: 20px;
 }
 
 .welcome-view, .editor-view {
   height: 100%;
-}
-
-.no-character-book {
-  padding: 20px 0;
-}
-
-.no-character-book .box-card {
-  border: none;
-  box-shadow: none;
-  background-color: transparent;
-}
-
-.card-header {
-  font-size: 1.2em;
-  font-weight: 600;
+  background-color: var(--apple-bg-color);
+  border-radius: var(--apple-border-radius-large);
+  box-shadow: var(--apple-shadow-medium);
+  padding: 0; /* 移除padding，让内部容器控制 */
   display: flex;
-  align-items: center;
+  flex-direction: column;
 }
 
-.editor-tabs {
-  display: flex;
-  border: 1px solid var(--el-border-color-light);
-  border-radius: 4px;
-  overflow: hidden;
+.editor-view-inner {
+  flex: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.tab {
-  padding: 8px 16px;
-  cursor: pointer;
-  background-color: var(--el-fill-color-light);
-  transition: all 0.3s;
-  border-right: 1px solid var(--el-border-color-light);
-  position: relative;
-}
-
-.tab:last-child {
-  border-right: none;
-}
-
-.tab:hover {
-  background-color: var(--el-fill-color);
-}
-
-.tab.active {
-  background-color: var(--el-color-primary);
-  color: white;
-  font-weight: 600;
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background-color: white;
-}
-
-.no-content {
-  text-align: center;
-  padding: 40px 20px;
-}
+/* no-character-book and no-content styles removed: handled inside CharacterBookEditor */
 
 /* 移动端头部 */
 .mobile-header {
@@ -371,6 +297,7 @@ body {
   margin-top: 60px;
   height: calc(100vh - 60px) !important;
   padding: 16px;
+  overflow-x: hidden;
 }
 
 /* 桌面端语言切换器 */
@@ -389,10 +316,16 @@ body {
   
   .main-content {
     padding: 16px;
+    overflow-x: hidden;
   }
   
   .main-content-inner {
     max-width: 100%;
+  }
+  
+  .editor-view-inner {
+    padding: 16px;
+    overflow-x: hidden;
   }
   
   /* 隐藏桌面端语言切换器 */
@@ -404,6 +337,7 @@ body {
 @media (max-width: 480px) {
   .mobile-content {
     padding: 12px;
+    overflow-x: hidden;
   }
   
   .mobile-header {
@@ -413,6 +347,11 @@ body {
   .mobile-content {
     margin-top: 56px;
     height: calc(100vh - 56px) !important;
+  }
+  
+  .editor-view-inner {
+    padding: 12px;
+    overflow-x: hidden;
   }
 }
 </style>
