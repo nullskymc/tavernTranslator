@@ -47,6 +47,7 @@
     "scenario": "Scenario",
     "firstMessage": "First Message",
     "exampleMessages": "Example Messages",
+    "creatorNotes": "Creator Notes",
     "alternateGreetings": "Alternate Greetings",
     "translate": "Translate",
     "batchTranslate": "Batch Translate",

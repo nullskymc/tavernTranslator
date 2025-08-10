@@ -46,6 +46,9 @@ class CharacterCardTranslator:
             template = self.description_template
         elif field_name in ["first_mes", "mes_example", "alternate_greetings"]:
             template = self.dialogue_template
+        elif field_name == "creator_notes":
+            # creator_notes 字段使用基础模板进行翻译
+            template = self.base_template
         else:
             template = self.base_template
         

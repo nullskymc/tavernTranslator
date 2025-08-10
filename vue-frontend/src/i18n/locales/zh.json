@@ -47,6 +47,7 @@
     "scenario": "场景",
     "firstMessage": "第一条消息",
     "exampleMessages": "示例消息",
+    "creatorNotes": "创作者笔记",
     "alternateGreetings": "备用问候语",
     "translate": "翻译",
     "batchTranslate": "一键翻译",

@@ -188,7 +188,8 @@ export const useTranslatorStore = defineStore('translator', () => {
       'data.personality',
       'data.scenario',
       'data.first_mes',
-      'data.mes_example'
+      'data.mes_example',
+      'data.creator_notes'
     ];
     
     // 添加主要字段
@@ -390,7 +391,23 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
   };
 
-  const handleJsonUpload = (file: File) => {
+  const handleJsonUpload = async (file: File) => {
+    // 显示确认对话框
+    try {
+      await ElMessageBox.confirm(
+        '上传 JSON 文件将替换当前的角色卡数据。您确定要继续吗？',
+        '确认上传',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      );
+    } catch {
+      // 用户取消操作
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
