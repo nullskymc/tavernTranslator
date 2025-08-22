@@ -3,8 +3,12 @@ import json
 import os
 import re
 import hashlib
+import logging
 
 from .translate import CharacterCardTranslator
+from .graphs.langgraph_translator import LangGraphCharacterCardTranslator
+
+logger = logging.getLogger(__name__)
 
 def load_json(file_path: str) -> Dict[str, Any]:
     """从指定路径加载JSON文件。"""
@@ -20,8 +24,8 @@ def pretty_print_json(data: Dict[str, Any]) -> None:
     """以美化格式打印JSON数据。"""
     print(json.dumps(data, indent=4, ensure_ascii=False))
 
-def get_translator(settings: Dict[str, str], prompts: Dict[str, str]) -> CharacterCardTranslator:
-    """根据提供的设置和提示词初始化并返回CharacterCardTranslator实例。"""
+def get_translator(settings: Dict[str, str], prompts: Dict[str, str], use_langgraph: bool = True) -> CharacterCardTranslator:
+    """根据提供的设置和提示词初始化并返回翻译器实例。"""
     api_key = settings.get('api_key')
     base_url = settings.get('base_url', "https://api.openai.com/v1")
     model_name = settings.get('model_name', "gpt-4-1106-preview")
@@ -29,7 +33,12 @@ def get_translator(settings: Dict[str, str], prompts: Dict[str, str]) -> Charact
     if not all([api_key, base_url, model_name, prompts]):
         raise ValueError("翻译器配置不完整，请提供 API Key, Base URL, 模型名称和提示词。")
 
-    return CharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts)
+    if use_langgraph:
+        logger.info("使用基于LangGraph的翻译器")
+        return LangGraphCharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts)
+    else:
+        logger.info("使用传统翻译器")
+        return CharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts)
 
 def handle_uploaded_file(content: bytes, upload_folder: str, character_data: Dict) -> str:
     """

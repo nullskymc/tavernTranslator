@@ -38,7 +38,7 @@ class CharacterCardTranslator:
     def translate_field(self, field_name: str, text: str) -> str:
         """根据字段类型选择合适的模板进行翻译。"""
         if not text or not text.strip():
-            self.logger.info(f"字段 {field_name} 为空，跳过翻译。")
+            self.logger.debug(f"字段 {field_name} 为空，跳过翻译。")
             return text
 
         # 选择合适的模板
@@ -56,7 +56,7 @@ class CharacterCardTranslator:
             messages = template.format_messages(text=text)
             response = self.llm.invoke(messages)
             
-            self.logger.info(f"字段 {field_name} 翻译完成。")
+            self.logger.debug(f"字段 {field_name} 翻译完成。")
             
             if isinstance(response.content, str):
                 return response.content
@@ -70,7 +70,7 @@ class CharacterCardTranslator:
     def translate_character_book_content(self, content: str) -> str:
         """翻译 character_book 中的 content 字段"""
         if not content or not content.strip():
-            self.logger.info("character_book.content 为空，跳过翻译。")
+            self.logger.debug("character_book.content 为空，跳过翻译。")
             return content
             
         # 使用基础模板翻译 character_book 内容
@@ -78,7 +78,7 @@ class CharacterCardTranslator:
             messages = self.base_template.format_messages(text=content)
             response = self.llm.invoke(messages)
             
-            self.logger.info("character_book.content 翻译完成。")
+            self.logger.debug("character_book.content 翻译完成。")
             
             if isinstance(response.content, str):
                 return response.content
