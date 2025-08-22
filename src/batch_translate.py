@@ -3,6 +3,7 @@ import logging
 from typing import Dict, Any, List
 from concurrent.futures import ThreadPoolExecutor
 from .translate import CharacterCardTranslator
+from .graphs.langgraph_translator import LangGraphCharacterCardTranslator
 from .errors import TranslationError
 
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +16,7 @@ class BatchTranslator:
         self.translator = translator
         self.max_concurrent = max_concurrent
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent)
+        self.use_langgraph = isinstance(translator, LangGraphCharacterCardTranslator)
         
     async def translate_fields(self, fields: List[Dict[str, Any]], progress_callback=None) -> List[Dict[str, Any]]:
         """并发翻译多个字段，支持进度回调"""
@@ -29,10 +31,18 @@ class BatchTranslator:
                     field_name = field_data["field_name"]
                     text = field_data["text"]
                     
-                    if field_name == "character_book.content":
-                        translated_text = self.translator.translate_character_book_content(text)
+                    if self.use_langgraph:
+                        # 使用异步LangGraph翻译
+                        if field_name == "character_book.content":
+                            translated_text = await self.translator.async_translate_character_book_content(text)
+                        else:
+                            translated_text = await self.translator.async_translate_field(field_name, text)
                     else:
-                        translated_text = self.translator.translate_field(field_name, text)
+                        # 使用传统同步翻译
+                        if field_name == "character_book.content":
+                            translated_text = self.translator.translate_character_book_content(text)
+                        else:
+                            translated_text = self.translator.translate_field(field_name, text)
                     
                     # 更新完成计数并调用进度回调
                     completed_count += 1
@@ -46,7 +56,7 @@ class BatchTranslator:
                         "success": True
                     }
                 except Exception as e:
-                    logger.error(f"翻译字段 {field_data['field_name']} 时出错: {str(e)}")
+                    logger.warning(f"翻译字段 {field_data['field_name']} 时出错: {str(e)}")
                     # 更新完成计数并调用进度回调（即使失败也算完成）
                     completed_count += 1
                     if progress_callback:

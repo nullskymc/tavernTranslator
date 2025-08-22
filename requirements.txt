@@ -1,5 +1,6 @@
 langchain_core
 langchain-openai
+langgraph
 fastapi
 uvicorn
 python-multipart

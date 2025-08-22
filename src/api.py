@@ -58,6 +58,7 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
     field_name = data.get('field_name')
     settings = data.get('settings')
     prompts = data.get('prompts')  # 新增 prompts 参数
+    use_langgraph = data.get('use_langgraph', True)  # 默认使用LangGraph
 
     if not all([text_to_translate, field_name, settings, prompts]):
         raise HTTPException(status_code=400, detail="请求正文中缺少必要的参数。")
@@ -66,7 +67,7 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
         return {"translated_text": ""}
 
     try:
-        translator = get_translator(settings, prompts)  # 将 prompts 传递给 get_translator
+        translator = get_translator(settings, prompts, use_langgraph)  # 将 prompts 和 use_langgraph 传递给 get_translator
         translated_text = translator.translate_field(field_name, text_to_translate)
         return {"translated_text": translated_text}
     except ValueError as e:
@@ -84,6 +85,7 @@ async def translate_character_book_content(data: Dict[str, Any] = Body(...)):
     content_to_translate = data.get('content')
     settings = data.get('settings')
     prompts = data.get('prompts')
+    use_langgraph = data.get('use_langgraph', True)  # 默认使用LangGraph
 
     if not all([content_to_translate, settings, prompts]):
         raise HTTPException(status_code=400, detail="请求正文中缺少必要的参数。")
@@ -92,7 +94,7 @@ async def translate_character_book_content(data: Dict[str, Any] = Body(...)):
         return {"translated_content": ""}
 
     try:
-        translator = get_translator(settings, prompts)
+        translator = get_translator(settings, prompts, use_langgraph)
         translated_content = translator.translate_character_book_content(content_to_translate)
         return {"translated_content": translated_content}
     except ValueError as e:
@@ -110,6 +112,7 @@ async def batch_translate_fields(data: Dict[str, Any] = Body(...)):
     fields = data.get('fields', [])
     settings = data.get('settings')
     prompts = data.get('prompts')
+    use_langgraph = data.get('use_langgraph', True)  # 默认使用LangGraph
     
     if not all([fields, settings, prompts]):
         raise HTTPException(status_code=400, detail="请求正文中缺少必要的参数。")
@@ -118,7 +121,7 @@ async def batch_translate_fields(data: Dict[str, Any] = Body(...)):
         return {"results": [], "progress": {"completed": 0, "total": 0}}
     
     try:
-        translator = get_translator(settings, prompts)
+        translator = get_translator(settings, prompts, use_langgraph)
         batch_translator = BatchTranslator(translator, max_concurrent=3)  # 降低并发数避免限流
         
         # 转换字段格式以适应批量翻译器
