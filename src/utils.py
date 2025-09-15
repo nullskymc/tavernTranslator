@@ -5,10 +5,53 @@ import re
 import hashlib
 import logging
 
+import functools
+import time
+import asyncio
+
 from .translate import CharacterCardTranslator
 from .graphs.langgraph_translator import LangGraphCharacterCardTranslator
 
 logger = logging.getLogger(__name__)
+
+
+# 通用同步指数退避重试装饰器
+def retry_with_exponential_backoff(
+    retries=5, initial_delay=1, max_delay=16, exceptions=(Exception,)
+):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            delay = initial_delay
+            for attempt in range(retries):
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    if attempt == retries - 1:
+                        raise
+                    time.sleep(delay)
+                    delay = min(delay * 2, max_delay)
+        return wrapper
+    return decorator
+
+# 通用异步指数退避重试装饰器
+def async_retry_with_exponential_backoff(
+    retries=5, initial_delay=1, max_delay=16, exceptions=(Exception,)
+):
+    def decorator(func):
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            delay = initial_delay
+            for attempt in range(retries):
+                try:
+                    return await func(*args, **kwargs)
+                except exceptions as e:
+                    if attempt == retries - 1:
+                        raise
+                    await asyncio.sleep(delay)
+                    delay = min(delay * 2, max_delay)
+        return wrapper
+    return decorator
 
 def load_json(file_path: str) -> Dict[str, Any]:
     """从指定路径加载JSON文件。"""
