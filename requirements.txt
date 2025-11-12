@@ -1,4 +1,4 @@
-langchain_core
+langchain-core
 langchain-openai
 langgraph
 fastapi
