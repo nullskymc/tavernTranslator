@@ -110,14 +110,28 @@ def embed_text_in_png(png_file_path, text_data, output_path=None):
             offset += 8 + chunk_length + 4
 
         # 构造新的文本块（使用tEXt块，不做压缩）
-        json_str = json.dumps(text_data, ensure_ascii=False)
-        text_payload = "chara\0" + base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
-        text_bytes = text_payload.encode('utf-8')
-        new_chunk_length = len(text_bytes)
+        # 提取实际的角色数据（去掉 "data" 包装层如果存在）
+        if isinstance(text_data, dict) and "data" in text_data and len(text_data) == 1:
+            # 只有 "data" 一个键，这是包装格式，提取内部数据
+            actual_data = text_data["data"]
+        else:
+            actual_data = text_data
+        
+        # 将数据编码为JSON字符串，然后base64编码
+        json_str = json.dumps(actual_data, ensure_ascii=False)
+        b64_data = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
+        
+        # tEXt块格式: keyword\0text
+        # keyword = "chara", text = base64编码的JSON
+        keyword = b'chara'
+        text_bytes = b64_data.encode('utf-8')
+        chunk_content = keyword + b'\x00' + text_bytes
+        
+        new_chunk_length = len(chunk_content)
         new_length_bytes = new_chunk_length.to_bytes(4, byteorder='big')
         new_chunk_type = b'tEXt'
-        new_chunk_crc = zlib.crc32(new_chunk_type + text_bytes).to_bytes(4, byteorder='big')
-        new_text_chunk = new_length_bytes + new_chunk_type + text_bytes + new_chunk_crc
+        new_chunk_crc = zlib.crc32(new_chunk_type + chunk_content).to_bytes(4, byteorder='big')
+        new_text_chunk = new_length_bytes + new_chunk_type + chunk_content + new_chunk_crc
 
         # 重构PNG文件：在IEND前插入新的文本块
         new_data = bytearray(b'\x89PNG\r\n\x1a\n')
