@@ -180,7 +180,11 @@ async def export_character_card(
         result_path = embed_text_in_png(temp_image_path, character_data, output_path)
 
         if result_path:
-            char_name = character_data.get("data", {}).get("name", "character")
+            # 兼容两种数据结构：带 "data" 包装和不带包装
+            if "data" in character_data and isinstance(character_data["data"], dict):
+                char_name = character_data["data"].get("name", "character")
+            else:
+                char_name = character_data.get("name", "character")
             download_name = f"{char_name}.png"
             return FileResponse(path=result_path, media_type='image/png', filename=download_name)
         else:
