@@ -38,6 +38,11 @@ async def upload_character_card(file: UploadFile = File(...)):
         character_data = extract_embedded_text(content)
         if not character_data:
             character_data = {"data": {"name": "新角色", "description": ""}}
+        else:
+            # 检查数据结构，如果没有 "data" 字段，则包装一下
+            # 某些角色卡（如 TavernAI/SillyTavern）直接存储字段，不带 "data" 包装
+            if "data" not in character_data:
+                character_data = {"data": character_data}
 
         # 使用辅助函数保存文件
         handle_uploaded_file(content, UPLOAD_FOLDER, character_data)

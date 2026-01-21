@@ -31,18 +31,45 @@ def extract_embedded_text(source: Union[str, bytes]):
             if chunk_type in (b'tEXt', b'zTXt'):
                 chunk_data = data[offset+8:offset+8+chunk_length]
                 
-                # 解压缩数据
-                text_data = (
-                    zlib.decompress(chunk_data).decode('utf-8') 
-                    if chunk_type == b'zTXt' 
-                    else chunk_data.decode('utf-8')
-                )
+                # 处理不同类型的文本块
+                if chunk_type == b'tEXt':
+                    # tEXt格式: keyword\0text
+                    null_pos = chunk_data.find(b'\x00')
+                    if null_pos != -1:
+                        keyword = chunk_data[:null_pos].decode('latin-1')
+                        text_data = chunk_data[null_pos+1:].decode('latin-1')
+                    else:
+                        # 没有null分隔符，尝试直接解码
+                        text_data = chunk_data.decode('utf-8')
+                        keyword = None
+                elif chunk_type == b'zTXt':
+                    # zTXt格式: keyword\0compression_method\0compressed_text
+                    null_pos = chunk_data.find(b'\x00')
+                    if null_pos != -1:
+                        keyword = chunk_data[:null_pos].decode('latin-1')
+                        compressed = chunk_data[null_pos+2:]  # 跳过keyword和compression_method
+                        text_data = zlib.decompress(compressed).decode('utf-8')
+                    else:
+                        text_data = zlib.decompress(chunk_data).decode('utf-8')
+                        keyword = None
                 
-                # 处理数据
+                # 处理角色卡数据
+                # 情况1: keyword是"chara"，text_data是base64编码的JSON
+                if keyword == "chara":
+                    try:
+                        decoded_data = base64.b64decode(text_data).decode('utf-8')
+                        return json.loads(decoded_data)
+                    except:
+                        pass
+                
+                # 情况2: text_data以"chara\0"开头（旧格式）
                 if text_data.startswith("chara"):
-                    b64_data = text_data[6:] # 跳过 "chara\0"
-                    decoded_data = base64.b64decode(b64_data).decode('utf-8')
-                    return json.loads(decoded_data)
+                    try:
+                        b64_data = text_data[6:]  # 跳过 "chara\0"
+                        decoded_data = base64.b64decode(b64_data).decode('utf-8')
+                        return json.loads(decoded_data)
+                    except:
+                        pass
             
             offset += 8 + chunk_length + 4
 
@@ -114,3 +141,13 @@ def embed_text_in_png(png_file_path, text_data, output_path=None):
     except Exception as e:
         logging.error(f"嵌入文本数据时出错：{e}")
         return None
+
+if __name__ == "__main__":
+    # 提取文本数据
+    import os
+    files = os.listdir('.uploads')
+    if files:
+        file_path = os.path.join('.uploads', files[0])
+        print(f"正在分析文件: {file_path}")
+        extracted_text = extract_embedded_text(file_path)
+        print("提取的文本数据:", extracted_text)
