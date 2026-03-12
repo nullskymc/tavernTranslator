@@ -295,13 +295,11 @@ const translateContent = async (index: number) => {
   }
 };
 
-  // 视图切换：先更新本地视图让指示条动画，再延迟通知父级切换
+  // 视图切换：下划线 tab 无需动画延迟，直接切换
   const switchView = (view: string) => {
     if (localView.value === view) return;
     localView.value = view;
-    setTimeout(() => {
-      window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
-    }, 220);
+    window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
   };
 
   // 批量翻译功能
@@ -343,37 +341,55 @@ const translateContent = async (index: number) => {
 }
 
 .entries-section {
-  margin-top: 30px;
+  margin-top: 24px;
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
+/* Section header: flat, no heavy h3 weight */
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .section-header h3 {
   margin: 0;
-  font-size: 1.1em;
+  font-size: 11px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--el-text-color-secondary);
 }
 
 .entry-item {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
+/* Flat card for each entry — thin border, no shadow */
 .entry-card {
   border: 1px solid var(--el-border-color-light);
+  box-shadow: none;
+  border-radius: 6px;
+}
+
+:deep(.entry-card .el-card__header) {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  background: var(--el-fill-color-lighter);
 }
 
 .entry-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--el-text-color-secondary);
 }
 
 .no-book-content {
@@ -385,33 +401,12 @@ const translateContent = async (index: number) => {
   gap: 20px;
 }
 
-/* 移动端样式 */
+/* Mobile */
 @media (max-width: 768px) {
-  .character-book-editor {
-    padding: 0;
-  }
-  
-  .book-form .el-col {
-    padding: 0 5px;
-  }
-  
   .section-header {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
-  }
-  
-  .entry-item {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  
-  .entry-actions {
-    flex-direction: row;
-    justify-content: space-between;
-    margin-left: 0;
-    gap: 8px;
   }
 }
 
@@ -419,19 +414,9 @@ const translateContent = async (index: number) => {
   .book-form .el-form-item {
     margin-bottom: 16px;
   }
-  
+
   .book-form .el-col {
     padding: 0 2px;
-  }
-  
-  .entry-actions .el-button {
-    font-size: 12px;
-    padding: 4px 8px;
-  }
-  
-  .translate-btn {
-    font-size: 12px;
-    padding: 2px 6px;
   }
 }
 </style>

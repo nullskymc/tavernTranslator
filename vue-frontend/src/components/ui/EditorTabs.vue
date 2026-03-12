@@ -5,14 +5,14 @@
     role="tablist"
     aria-label="Editor view switch"
   >
-    <!-- Sliding indicator -->
-    <div 
+    <!-- Sliding underline indicator -->
+    <div
       class="indicator"
       v-show="indicatorWidth > 0"
       :style="{ width: indicatorWidth + 'px', transform: `translateX(${indicatorLeft}px)` }"
       aria-hidden="true"
     />
-    <div
+    <button
       v-for="tab in tabs"
       :key="tab.value"
       class="tab"
@@ -26,7 +26,7 @@
       :data-value="tab.value"
     >
       {{ tab.label }}
-    </div>
+    </button>
   </div>
 </template>
 
@@ -43,30 +43,17 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>();
 
-// container element to measure active tab
 const containerEl = ref<HTMLElement | null>(null);
-
 const indicatorLeft = ref(0);
 const indicatorWidth = ref(0);
 
 function updateIndicator() {
   const container = containerEl.value;
-  if (!container) {
-    indicatorWidth.value = 0;
-    indicatorLeft.value = 0;
-    return;
-  }
+  if (!container) { indicatorWidth.value = 0; return; }
   const activeEl = container.querySelector(`.tab[data-value="${props.modelValue}"]`) as HTMLElement | null;
-  if (!activeEl) {
-    indicatorWidth.value = 0;
-    indicatorLeft.value = 0;
-    return;
-  }
-  // Compute left relative to container
-  const left = activeEl.offsetLeft;
-  const width = activeEl.offsetWidth;
-  indicatorLeft.value = left;
-  indicatorWidth.value = width;
+  if (!activeEl) { indicatorWidth.value = 0; return; }
+  indicatorLeft.value = activeEl.offsetLeft;
+  indicatorWidth.value = activeEl.offsetWidth;
 }
 
 onMounted(async () => {
@@ -92,84 +79,65 @@ watch(() => props.tabs, async () => {
 
 <style scoped>
 .editor-tabs {
-  --segmented-height: 34px;
-  --segmented-padding: 4px;
   display: inline-flex;
-  background: color-mix(in oklab, var(--apple-bg-color-secondary) 92%, transparent);
-  backdrop-filter: saturate(120%) blur(8px);
-  -webkit-backdrop-filter: saturate(120%) blur(8px);
-  border: 1px solid var(--apple-border-color, rgba(0,0,0,0.08));
-  border-radius: 999px;
-  overflow: hidden;
-  padding: var(--segmented-padding);
   position: relative;
-  align-items: center;
-  gap: 2px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.04);
+  align-items: stretch;
+  border-bottom: 1px solid var(--apple-border-color);
+  gap: 0;
   user-select: none;
 }
 
+/* Bottom sliding underline */
 .indicator {
   position: absolute;
-  top: var(--segmented-padding);
-  bottom: var(--segmented-padding);
+  bottom: -1px;
   left: 0;
-  border-radius: 999px;
-  background: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--apple-color-primary) 98%, white 2%),
-      color-mix(in oklab, var(--apple-color-primary) 92%, black 8%)
-    );
-  box-shadow: 0 4px 10px color-mix(in oklab, var(--apple-color-primary) 16%, black 0%), var(--apple-shadow-small);
-  transition: transform var(--apple-transition-duration, 220ms) var(--apple-transition-easing, ease), width var(--apple-transition-duration, 220ms) var(--apple-transition-easing, ease);
-  z-index: 0;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--apple-text-color-primary);
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+              width 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
   pointer-events: none;
 }
 
 .tab {
-  padding: 8px 16px;
+  padding: 10px 16px;
   cursor: pointer;
-  background-color: transparent;
-  transition: color var(--apple-transition-duration, 200ms) var(--apple-transition-easing, ease), background-color var(--apple-transition-duration, 200ms) var(--apple-transition-easing, ease), transform 120ms ease;
-  border-radius: 999px;
-  position: relative;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--apple-text-color-secondary);
-  z-index: 1; /* Above indicator */
-  line-height: calc(var(--segmented-height) - var(--segmented-padding) * 2);
-  height: calc(var(--segmented-height) - var(--segmented-padding) * 2);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 88px;
+  color: var(--apple-text-color-tertiary);
+  position: relative;
+  transition: color 150ms ease;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
 }
 
 .tab:hover {
-  background-color: color-mix(in oklab, var(--apple-bg-color-tertiary) 60%, transparent);
-  color: var(--apple-text-color-primary);
+  color: var(--apple-text-color-secondary);
 }
 
 .tab.active {
-  background-color: transparent; /* use indicator as background */
-  color: var(--apple-text-color-inverse);
+  color: var(--apple-text-color-primary);
   font-weight: 600;
 }
 
-.tab:active {
-  transform: translateY(0.5px) scale(0.99);
+.tab:focus-visible {
+  outline: 2px solid var(--apple-color-primary);
+  outline-offset: -2px;
+  border-radius: 4px;
 }
 
-.tab:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--apple-color-primary) 30%, transparent);
-  border-radius: 999px;
+.tab:active {
+  opacity: 0.75;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .indicator {
-    transition: none;
-  }
-  .tab {
     transition: none;
   }
 }

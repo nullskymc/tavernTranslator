@@ -18,6 +18,7 @@
       "json": "导出为JSON"
     },
     "actions": {
+      "title": "操作",
       "uploadCard": "上传卡片",
       "uploadJson": "上传JSON",
       "newBlank": "新建空白卡",

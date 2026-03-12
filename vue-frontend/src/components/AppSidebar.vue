@@ -1,19 +1,20 @@
 <template>
   <div class="app-sidebar">
-    <!-- 移动端关闭按钮 -->
+    <!-- Mobile close button -->
     <div class="mobile-close-btn" @click="$emit('close')">
       <el-icon><Close /></el-icon>
     </div>
 
+    <!-- Header -->
     <div class="sidebar-header">
       <img src="/img/index.png" alt="Logo" class="logo" />
       <h2>{{ $t('sidebar.title') }}</h2>
     </div>
 
+    <!-- Scrollable content -->
     <div class="sidebar-content">
-      <!-- 角色图片预览 -->
+      <!-- Character image -->
       <div class="character-image-section">
-        
         <div class="image-preview-wrapper">
           <img v-if="store.characterImageB64" :src="store.characterImageB64" :alt="$t('sidebar.image.preview')" class="image-preview" />
           <div v-else class="image-placeholder">
@@ -21,26 +22,24 @@
             <span>{{ $t('sidebar.image.placeholder') }}</span>
           </div>
         </div>
-        <!-- Removed original "更换图片" button here -->
       </div>
 
-      <!-- 操作按钮 -->
+      <!-- Export buttons -->
       <div class="actions-section">
         <div class="export-buttons-container">
-          <el-button 
-            type="primary" 
-            @click="store.exportCardAsImage()" 
-            :icon="Download" 
+          <el-button
+            type="primary"
+            @click="store.exportCardAsImage()"
+            :icon="Download"
             :disabled="!store.characterCard"
             :loading="store.isLoading"
             size="small"
           >
             {{ $t('sidebar.export.image') }}
           </el-button>
-
-          <el-button 
-            @click="store.exportCardAsJson()" 
-            :icon="Document" 
+          <el-button
+            @click="store.exportCardAsJson()"
+            :icon="Document"
             :disabled="!store.characterCard"
             size="small"
           >
@@ -49,87 +48,57 @@
         </div>
       </div>
 
-      <!-- 快速操作 -->
-      <div class="quick-actions-section">
-        
-        <div class="action-buttons-group">
-          <div class="action-buttons-row">
-            <!-- "上传卡片" button -->
-            <div class="action-button-wrapper">
-              <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display: none;" />
-              <el-button @click="triggerFileUpload" circle>
-                <el-icon><Upload /></el-icon>
-              </el-button>
-              <span class="button-text">{{ $t('sidebar.actions.uploadCard') }}</span>
-            </div>
+      <!-- Action list - OpenAI style -->
+      <span class="section-label">{{ $t('sidebar.actions.title') }}</span>
+      <nav class="action-list">
+        <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display:none;" />
+        <input type="file" ref="jsonUploader" @change="handleJsonFileChange" accept="application/json" style="display:none;" />
+        <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display:none;" />
 
-            <!-- "上传JSON" button -->
-            <div class="action-button-wrapper">
-              <input type="file" ref="jsonUploader" @change="handleJsonFileChange" accept="application/json" style="display: none;" />
-              <el-button @click="triggerJsonUpload" circle>
-                <el-icon><FolderOpened /></el-icon>
-              </el-button>
-              <span class="button-text">{{ $t('sidebar.actions.uploadJson') }}</span>
-            </div>
+        <button class="action-item" @click="triggerFileUpload">
+          <span class="action-icon"><el-icon><Upload /></el-icon></span>
+          <span class="action-label">{{ $t('sidebar.actions.uploadCard') }}</span>
+        </button>
 
-            <!-- "新建空白卡" button -->
-            <div class="action-button-wrapper">
-              <el-button @click="createNewCard" circle>
-                <el-icon><DocumentAdd /></el-icon>
-              </el-button>
-              <span class="button-text">{{ $t('sidebar.actions.newBlank') }}</span>
-            </div>
-          </div>
+        <button class="action-item" @click="triggerJsonUpload">
+          <span class="action-icon"><el-icon><FolderOpened /></el-icon></span>
+          <span class="action-label">{{ $t('sidebar.actions.uploadJson') }}</span>
+        </button>
 
-          <div class="action-buttons-row">
-            <!-- "更换图片" button -->
-            <div class="action-button-wrapper">
-              <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display: none;" />
-              <el-button @click="triggerImageUpload" :disabled="!store.characterCard" circle>
-                <el-icon><Picture /></el-icon>
-              </el-button>
-              <span class="button-text">{{ $t('sidebar.actions.changeImage') }}</span>
-            </div>
+        <button class="action-item" @click="createNewCard">
+          <span class="action-icon"><el-icon><DocumentAdd /></el-icon></span>
+          <span class="action-label">{{ $t('sidebar.actions.newBlank') }}</span>
+        </button>
 
-            <!-- "翻译设置" button -->
-            <div class="action-button-wrapper">
-              <el-button @click="settingsDialogVisible = true" circle>
-                <el-icon><Setting /></el-icon>
-              </el-button>
-              <span class="button-text">{{ $t('sidebar.actions.translationSettings') }}</span>
-            </div>
+        <button class="action-item" @click="triggerImageUpload" :disabled="!store.characterCard">
+          <span class="action-icon"><el-icon><Picture /></el-icon></span>
+          <span class="action-label">{{ $t('sidebar.actions.changeImage') }}</span>
+        </button>
 
-            <!-- "清除卡片" button -->
-            <div class="action-button-wrapper">
-              <el-button @click="confirmReset" :disabled="!store.characterCard" circle type="danger">
-                <el-icon><Delete /></el-icon>
-              </el-button>
-              <span class="button-text">{{ $t('sidebar.actions.clearCard') }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        <button class="action-item" @click="settingsDialogVisible = true">
+          <span class="action-icon"><el-icon><Setting /></el-icon></span>
+          <span class="action-label">{{ $t('sidebar.actions.translationSettings') }}</span>
+        </button>
+
+        <button class="action-item action-item--danger" @click="confirmReset" :disabled="!store.characterCard">
+          <span class="action-icon"><el-icon><Delete /></el-icon></span>
+          <span class="action-label">{{ $t('sidebar.actions.clearCard') }}</span>
+        </button>
+      </nav>
     </div>
 
-    <!-- 底部控制按钮 -->
-    <div class="sidebar-controls">
-      <div class="action-buttons-row">
-        <div class="action-button-wrapper">
-          <ThemeToggle />
-          <span class="button-text">{{ $t('sidebar.actions.theme') }}</span>
-        </div>
-        <div class="action-button-wrapper">
-          <LanguageSwitcher />
-          <span class="button-text">{{ $t('sidebar.actions.language') }}</span>
-        </div>
-      </div>
-    </div>
-
+    <!-- Bottom controls -->
     <div class="sidebar-footer">
-      <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">{{ $t('sidebar.footer.github') }}</a>
+      <div class="footer-controls">
+        <ThemeToggle />
+        <LanguageSwitcher />
+      </div>
+      <a href="https://github.com/nullskymc/tavernTranslator" target="_blank" class="github-link">
+        {{ $t('sidebar.footer.github') }}
+      </a>
     </div>
 
-    <!-- 翻译设置对话框 -->
+    <!-- Settings dialog -->
     <TranslationSettingsDialog v-model="settingsDialogVisible" />
   </div>
 </template>
@@ -144,7 +113,6 @@ import TranslationSettingsDialog from './TranslationSettingsDialog.vue';
 import ThemeToggle from './ThemeToggle.vue';
 import LanguageSwitcher from './LanguageSwitcher.vue';
 
-// 定义emit事件
 const emit = defineEmits(['close']);
 
 const store = useTranslatorStore();
@@ -152,10 +120,9 @@ const { t: $t } = useI18n();
 
 const imageUploader = ref(null);
 const fileUploader = ref(null);
-const jsonUploader = ref(null); // 新增：JSON 文件上传的 ref
+const jsonUploader = ref(null);
 const settingsDialogVisible = ref(false);
 
-// --- 图片处理 ---
 const triggerImageUpload = () => imageUploader.value?.click();
 const handleImageChange = (event) => {
   const file = event.target.files[0];
@@ -166,170 +133,135 @@ const handleImageChange = (event) => {
   } else {
     ElMessage.error($t('messages.error.invalidPng'));
   }
-  event.target.value = ''; // 重置input，以便可以再次选择相同的文件
+  event.target.value = '';
 };
 
-// --- 文件上传处理 ---
 const triggerFileUpload = () => fileUploader.value?.click();
 const handleFileChange = (event) => {
   const file = event.target.files[0];
-  if (file) {
-    store.handleCardUpload(file);
-  }
-  event.target.value = ''; // 重置input
+  if (file) store.handleCardUpload(file);
+  event.target.value = '';
 };
 
-// --- JSON 文件上传处理 ---
 const triggerJsonUpload = () => jsonUploader.value?.click();
 const handleJsonFileChange = (event) => {
   const file = event.target.files[0];
   if (file && file.type === 'application/json') {
-    store.handleJsonUpload(file); // 调用 store 中的新方法
+    store.handleJsonUpload(file);
   } else {
     ElMessage.error($t('messages.error.invalidJson'));
   }
   event.target.value = '';
 };
 
-// --- 新建空白卡 ---
 const createNewCard = () => {
   ElMessageBox.confirm($t('sidebar.confirm.newBlank'), $t('messages.confirm.title'), {
-    confirmButtonText: $t('messages.confirm.confirm'), cancelButtonText: $t('messages.confirm.cancel'), type: 'warning',
-  }).then(() => store.createNewCard()).catch(() => {}); // 调用 store 中的新方法
+    confirmButtonText: $t('messages.confirm.confirm'),
+    cancelButtonText: $t('messages.confirm.cancel'),
+    type: 'warning',
+  }).then(() => store.createNewCard()).catch(() => {});
 };
 
-// --- 重置确认 ---
 const confirmReset = () => {
   ElMessageBox.confirm($t('sidebar.confirm.clearCard'), $t('messages.confirm.title'), {
-    confirmButtonText: $t('messages.confirm.confirm'), cancelButtonText: $t('messages.confirm.cancel'), type: 'warning',
+    confirmButtonText: $t('messages.confirm.confirm'),
+    cancelButtonText: $t('messages.confirm.cancel'),
+    type: 'warning',
   }).then(() => store.resetStore()).catch(() => {});
 };
 </script>
 
 <style scoped>
+/* ===========================
+   Sidebar - OpenAI style
+   =========================== */
 .app-sidebar {
-  width: 300px;
+  /* Flexible width: shrinks to ~220px, grows up to 280px based on content */
+  width: fit-content;
+  min-width: 220px;
+  max-width: 280px;
   height: 100vh;
-  background-color: var(--apple-bg-color-tertiary);
+  background-color: var(--apple-bg-sidebar);
   border-right: 1px solid var(--apple-border-color);
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 0;
   box-sizing: border-box;
   position: relative;
-  flex-shrink: 0; /* 防止被压缩 */
-  margin: 0; /* 确保没有外边距 */
-  z-index: 1; /* 确保在正确层级 */
+  flex-shrink: 0;
+  z-index: 1;
+  /* overflow: hidden removed — let flex column children clip themselves */
 }
 
-/* 暗色主题下的侧边栏样式 */
-.dark-theme .app-sidebar {
-  background-color: var(--el-bg-color);
-  border-right: 1px solid var(--el-border-color);
-}
-
-/* 暗色主题下的边框修复 */
-.dark-theme .sidebar-header {
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-.dark-theme .sidebar-footer {
-  border-top: 1px solid var(--el-border-color);
-}
-
-.dark-theme .sidebar-controls {
-  border-top: 1px solid var(--el-border-color);
-  border-bottom: 1px solid var(--el-border-color);
-}
-
-/* 文字颜色修复 */
-.dark-theme .sidebar-header h2 {
-  color: var(--el-text-color-primary);
-}
-
-.dark-theme .sidebar-footer a {
-  color: var(--el-text-color-secondary);
-}
-
-.dark-theme .sidebar-footer a:hover {
-  color: var(--el-color-primary);
-}
-
-/* 移动端关闭按钮 */
+/* Mobile close button */
 .mobile-close-btn {
   display: none;
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: var(--el-fill-color-light);
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--apple-border-radius-medium);
+  background-color: var(--apple-color-gray-5);
   cursor: pointer;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: background-color 0.2s;
+  transition: background-color var(--apple-transition-duration) var(--apple-transition-easing);
+  color: var(--apple-text-color-secondary);
+  font-size: 14px;
 }
 
 .mobile-close-btn:hover {
-  background-color: var(--el-fill-color);
-}
-
-.dark-theme .mobile-close-btn {
-  background-color: var(--el-fill-color-light);
-}
-
-.dark-theme .mobile-close-btn:hover {
-  background-color: var(--el-fill-color);
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--apple-border-color);
-}
-
-.logo {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--apple-border-radius-full);
-}
-
-.sidebar-header h2 {
-  font-size: 1.2em;
-  font-weight: 600;
-  margin: 0;
+  background-color: var(--apple-color-gray-4);
   color: var(--apple-text-color-primary);
 }
 
+/* Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--apple-border-color);
+  flex-shrink: 0;
+}
+
+.logo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--apple-border-radius-medium);
+  flex-shrink: 0;
+}
+
+.sidebar-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--apple-text-color-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Content scroll area */
 .sidebar-content {
   flex-grow: 1;
   overflow-y: auto;
-  margin-top: 20px;
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-  padding: 10px;
-  border-radius: var(--apple-border-radius-medium);
-  background-color: var(--apple-bg-color);
-  box-shadow: var(--apple-shadow-small);
+  overflow-x: hidden;
+  padding: 12px 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .sidebar-content::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, and Opera */
+  display: none;
 }
 
-.section-title {
-  font-size: 0.9em;
-  color: var(--el-text-color-secondary);
-  margin-bottom: 10px;
-  font-weight: 500;
-}
-
-.character-image-section, .settings-section {
-  margin-bottom: 25px;
+/* Image section */
+.character-image-section {
+  margin-bottom: 12px;
 }
 
 .image-preview-wrapper {
@@ -337,9 +269,7 @@ const confirmReset = () => {
   aspect-ratio: 1 / 1;
   border-radius: var(--apple-border-radius-large);
   overflow: hidden;
-  margin-bottom: 10px;
-  background-color: var(--apple-bg-color-secondary);
-  box-shadow: var(--apple-shadow-small);
+  background-color: var(--apple-color-gray-5);
   border: 1px solid var(--apple-border-color);
 }
 
@@ -347,6 +277,7 @@ const confirmReset = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .image-placeholder {
@@ -356,274 +287,186 @@ const confirmReset = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--apple-text-color-secondary);
+  gap: 6px;
+  color: var(--apple-text-color-tertiary);
+  font-size: 11px;
 }
 
 .image-placeholder .el-icon {
-  font-size: 48px;
+  font-size: 28px;
   color: var(--apple-color-gray-3);
 }
 
+/* Export section */
 .actions-section {
-  margin-bottom: 25px;
+  margin-bottom: 8px;
 }
 
 .export-buttons-container {
   display: flex;
-  gap: 10px;
+  gap: 6px;
   width: 100%;
 }
 
 .export-buttons-container .el-button {
-  flex: 1;
+  flex: 1 1 0;       /* grow equally but allow shrink */
+  min-width: 0;      /* allow content to shrink below intrinsic size */
   justify-content: center;
+  font-size: 12px;
+  height: auto;
+  min-height: 30px;
+  padding: 4px 8px;
+  white-space: normal;   /* let text wrap on narrow widths */
+  line-height: 1.3;
+  word-break: break-word;
 }
 
-
-
-
-
-
-.settings-section .el-button {
-  width: 100%;
-  justify-content: flex-start;
-  padding: 8px 12px;
+/* Section label */
+.section-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--apple-text-color-tertiary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 8px 4px;
 }
 
-.quick-actions-section {
-  margin-bottom: 25px;
-}
-
-.action-buttons-group {
+/* Action list - OpenAI nav item style */
+.action-list {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* 行之间的间距 */
+  gap: 1px;
 }
 
-.action-buttons-row {
+.action-item {
   display: flex;
-  justify-content: space-around;
-  gap: 10px; /* 按钮之间的间距 */
-}
-
-.action-button-wrapper {
-  display: flex;
-  align-items: center; /* 垂直居中 */
-  justify-content: flex-start; /* 初始左对齐 */
-  position: relative;
-  width: 50px; /* 初始宽度，与按钮直径相同 */
-  height: 50px; /* 与按钮直径相同 */
-  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
-  border-radius: var(--apple-border-radius-full); /* 圆角 */
-  overflow: hidden; /* 隐藏溢出的文本 */
-  background-color: var(--apple-bg-color-secondary);
-  box-sizing: border-box;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--apple-border-radius-medium);
+  border: none;
+  background: transparent;
   cursor: pointer;
-  box-shadow: var(--apple-shadow-small);
-}
-
-.dark-theme .action-button-wrapper {
-  background-color: var(--apple-bg-color-secondary) !important;
-}
-
-.action-button-wrapper:hover {
-  width: 120px; /* 悬停时展开的宽度 */
-  background-color: var(--apple-color-primary);
-}
-
-.dark-theme .action-button-wrapper:hover {
-  background-color: var(--apple-color-primary) !important;
-}
-
-/* 修复按钮 hover 时变成蓝色的问题 */
-.action-button-wrapper:hover .el-button:not(.el-button--danger) {
-  background-color: var(--apple-color-primary);
-  border-color: var(--apple-color-primary);
-  color: var(--apple-text-color-inverse);
-}
-
-/* 确保危险按钮在 hover 时保持红色 */
-.action-button-wrapper:hover .el-button--danger {
-  background-color: var(--el-color-danger-dark-2);
-  border-color: var(--el-color-danger-dark-2);
-  color: var(--apple-text-color-inverse);
-}
-
-/* 暗色主题下的按钮样式 */
-.dark-theme .action-button-wrapper .el-button {
-  background-color: var(--apple-bg-color-tertiary);
-  border-color: var(--apple-border-color);
   color: var(--apple-text-color-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+  transition: background-color var(--apple-transition-duration) var(--apple-transition-easing);
+  line-height: 1.4;
 }
 
-.dark-theme .action-button-wrapper:hover .el-button:not(.el-button--danger) {
-  background-color: var(--apple-color-primary);
-  border-color: var(--apple-color-primary);
-  color: var(--apple-text-color-inverse);
+.action-item:hover {
+  background-color: var(--apple-color-gray-5);
 }
 
-.dark-theme .action-button-wrapper:hover .el-button--danger {
-  background-color: var(--el-color-danger-dark-2);
-  border-color: var(--el-color-danger-dark-2);
-  color: var(--apple-text-color-inverse);
+.action-item:active {
+  background-color: var(--apple-color-gray-4);
 }
 
-.action-button-wrapper .el-button {
-  width: 50px;
-  height: 50px;
-  border-radius: var(--apple-border-radius-full);
+.action-item:disabled {
+  color: var(--apple-text-color-tertiary);
+  cursor: not-allowed;
+}
+
+.action-item:disabled:hover {
+  background: transparent;
+}
+
+.action-item--danger {
+  color: var(--apple-color-danger);
+}
+
+.action-item--danger:hover {
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.action-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  flex-shrink: 0; /* 防止按钮在父容器展开时被压缩 */
-  background-color: var(--apple-bg-color-tertiary);
-  border: 1px solid var(--apple-border-color);
-  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  font-size: 15px;
+  color: var(--apple-text-color-secondary);
 }
 
-/* 确保危险按钮类型正确显示 */
-.action-button-wrapper .el-button--danger {
-  background-color: var(--el-color-danger);
-  border-color: var(--el-color-danger);
-  color: var(--el-bg-color);
+.action-item--danger .action-icon {
+  color: var(--apple-color-danger);
 }
 
-.action-button-wrapper .el-button--danger:hover {
-  background-color: var(--el-color-danger-dark-2);
-  border-color: var(--el-color-danger-dark-2);
+.action-item:disabled .action-icon {
+  color: var(--apple-text-color-tertiary);
 }
 
-.action-button-wrapper .button-text {
+.action-label {
+  flex: 1;
   white-space: nowrap;
-  opacity: 0;
-  transition: opacity var(--apple-transition-duration) var(--apple-transition-easing);
-  color: var(--apple-text-color-primary);
-  font-size: 0.8em;
-  margin-left: 8px; /* 文本与图标的间距 */
-  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.action-button-wrapper:hover .button-text {
-  opacity: 1;
-  color: var(--apple-text-color-inverse);
-}
-
+/* Footer */
 .sidebar-footer {
-  padding-top: 20px;
-  border-top: 1px solid var(--el-border-color-light);
-  text-align: center;
+  flex-shrink: 0;
+  padding: 10px 8px;
+  border-top: 1px solid var(--apple-border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.sidebar-footer a {
-  color: var(--el-text-color-secondary);
+.footer-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.github-link {
+  font-size: 11px;
+  color: var(--apple-text-color-tertiary);
   text-decoration: none;
-  font-size: 0.9em;
-}
-.sidebar-footer a:hover {
-  color: var(--el-color-primary);
-}
-
-.sidebar-controls {
-  padding: 16px 0;
-  border-top: 1px solid var(--el-border-color-light);
-  border-bottom: 1px solid var(--el-border-color-light);
-  margin: 0 20px;
+  text-align: center;
+  display: block;
+  transition: color var(--apple-transition-duration) var(--apple-transition-easing);
 }
 
-/* 移动端样式 */
+.github-link:hover {
+  color: var(--apple-text-color-secondary);
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .mobile-close-btn {
     display: flex;
   }
-  
-  .app-sidebar {
-    padding: 16px;
-  }
-  
+
   .sidebar-header {
-    padding-top: 40px; /* 为关闭按钮留出空间 */
+    padding-top: 52px;
   }
-  
-  .character-image-section {
-    margin-bottom: 20px;
-  }
-  
+
   .image-preview-wrapper {
-    max-width: 200px;
-    margin: 0 auto 10px;
+    max-width: 180px;
+    margin: 0 auto;
   }
-  
-  .action-buttons-row {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .action-button-wrapper, .theme-toggle, .language-switcher {
-    width: 100%;
-    height: 50px;
-    border-radius: 25px;
-    justify-content: flex-start;
-    padding: 0 16px;
-  }
-  
-  .action-button-wrapper:hover, .theme-toggle:hover, .language-switcher:hover {
-    width: 100%;
-  }
-  
-  .action-button-wrapper .button-text, .theme-toggle .button-text, .language-switcher .button-text {
-    opacity: 1;
-    margin-left: 12px;
-  }
-  
-  .export-buttons-wrapper {
-    gap: 8px;
-  }
-  
-  .sidebar-controls {
-    margin: 0 16px;
-  }
-  
-  .sidebar-controls .action-buttons-row {
-    gap: 8px;
+
+  .action-item {
+    padding: 10px 12px;
+    font-size: 14px;
   }
 }
 
 @media (max-width: 480px) {
   .app-sidebar {
-    width: 280px;
-    padding: 12px;
+    min-width: 240px;
+    max-width: 280px;
   }
-  
-  .sidebar-header h2 {
-    font-size: 1.1em;
-  }
-  
-  .logo {
-    width: 36px;
-    height: 36px;
-  }
-  
+
   .image-preview-wrapper {
-    max-width: 150px;
-  }
-  
-  .action-button-wrapper, .theme-toggle, .language-switcher {
-    height: 45px;
-    padding: 0 12px;
-  }
-  
-  .action-button-wrapper .el-button, .theme-toggle .theme-button, .language-switcher .language-button {
-    width: 45px;
-    height: 45px;
-  }
-  
-  .action-button-wrapper .button-text, .theme-toggle .button-text, .language-switcher .button-text {
-    font-size: 0.85em;
-  }
-  
-  .sidebar-controls {
-    margin: 0 12px;
+    max-width: 140px;
   }
 }
 </style>

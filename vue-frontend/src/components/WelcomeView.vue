@@ -1,248 +1,282 @@
 <template>
-  <div class="welcome-container">
-    <h1 class="title">{{ $t('welcome.title') }}</h1>
-    <p class="subtitle">{{ $t('welcome.subtitle') }}</p>
-    
-    <div class="features">
-      <div class="feature-item">
-        <el-icon><EditPen /></el-icon>
-        <span>{{ $t('welcome.features.onlineEdit') }}</span>
+  <div
+    class="welcome-container"
+    :class="{ 'is-dragover': isDragover }"
+    @dragover.prevent="isDragover = true"
+    @dragleave.prevent="isDragover = false"
+    @drop.prevent="handleDrop"
+  >
+    <div class="welcome-content">
+      <!-- Logo / Icon area -->
+      <div class="hero-icon">
+        <img src="/img/index.png" alt="TavernTranslator" class="hero-logo" />
       </div>
-      <div class="feature-item">
-        <el-icon><DataLine /></el-icon>
-        <span>{{ $t('welcome.features.localStorage') }}</span>
-      </div>
-      <div class="feature-item">
-        <el-icon><Switch /></el-icon>
-        <span>{{ $t('welcome.features.oneClickTranslate') }}</span>
-      </div>
-      <div class="feature-item">
-        <el-icon><Download /></el-icon>
-        <span>{{ $t('welcome.features.imageExport') }}</span>
-      </div>
-    </div>
 
-    <div class="instructions">
-      <i18n-t keypath="welcome.instructions" tag="p">
-        <template #uploadButton>
-          <strong>{{ $t('sidebar.actions.uploadCard') }}</strong>
-        </template>
-        <template #pngCode>
-          <code>.png</code>
-        </template>
-        <template #githubLink>
-          <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">{{ $t('welcome.instructionsGithubLinkText') }}</a>
-        </template>
-      </i18n-t>
+      <h1 class="hero-title">{{ $t('welcome.title') }}</h1>
+      <p class="hero-subtitle">{{ $t('welcome.subtitle') }}</p>
+
+      <!-- Feature pills -->
+      <div class="features">
+        <div class="feature-pill">
+          <el-icon><EditPen /></el-icon>
+          <span>{{ $t('welcome.features.onlineEdit') }}</span>
+        </div>
+        <div class="feature-pill">
+          <el-icon><DataLine /></el-icon>
+          <span>{{ $t('welcome.features.localStorage') }}</span>
+        </div>
+        <div class="feature-pill">
+          <el-icon><Switch /></el-icon>
+          <span>{{ $t('welcome.features.oneClickTranslate') }}</span>
+        </div>
+        <div class="feature-pill">
+          <el-icon><Download /></el-icon>
+          <span>{{ $t('welcome.features.imageExport') }}</span>
+        </div>
+      </div>
+
+      <!-- Drop zone hint -->
+      <div class="drop-hint">
+        <el-icon class="drop-icon"><Upload /></el-icon>
+        <div class="drop-text">
+          <i18n-t keypath="welcome.instructions" tag="span">
+            <template #uploadButton>
+              <strong>{{ $t('sidebar.actions.uploadCard') }}</strong>
+            </template>
+            <template #pngCode>
+              <code>.png</code>
+            </template>
+            <template #githubLink>
+              <a href="https://github.com/nullskymc/tavernTranslator" target="_blank">{{ $t('welcome.instructionsGithubLinkText') }}</a>
+            </template>
+          </i18n-t>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { EditPen, DataLine, Switch, Download } from '@element-plus/icons-vue';
+import { ref } from 'vue';
+import { EditPen, DataLine, Switch, Download, Upload } from '@element-plus/icons-vue';
 import { useTranslatorStore } from '@/stores/translator';
 
 const store = useTranslatorStore();
+const isDragover = ref(false);
 
-// 拖拽上传逻辑
-const setupDragAndDrop = (element) => {
-  element.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    element.classList.add('dragover');
-  });
-
-  element.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    element.classList.remove('dragover');
-  });
-
-  element.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    element.classList.remove('dragover');
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type === 'image/png') {
-        store.handleCardUpload(file);
-      }
+const handleDrop = (e: DragEvent) => {
+  isDragover.value = false;
+  if (e.dataTransfer?.files?.[0]) {
+    const file = e.dataTransfer.files[0];
+    if (file.type === 'image/png') {
+      store.handleCardUpload(file);
     }
-  });
+  }
 };
-
-import { onMounted, onUnmounted } from 'vue';
-let container = null;
-onMounted(() => {
-  container = document.querySelector('.welcome-container');
-  if (container) {
-    setupDragAndDrop(container);
-  }
-});
-onUnmounted(() => {
-  if (container) {
-    // 移除事件监听器以防内存泄漏
-  }
-});
 </script>
 
 <style scoped>
 .welcome-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  text-align: center;
-  border: 2px dashed var(--apple-border-color);
-  border-radius: var(--apple-border-radius-large);
-  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+  flex: 1;
+  min-height: 100%;
+  padding: 40px 24px;
+  box-sizing: border-box;
+  transition: background-color var(--apple-transition-duration) var(--apple-transition-easing);
   background-color: var(--apple-bg-color);
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 40px;
 }
 
-.welcome-container.dragover {
-  background-color: var(--apple-color-primary-light);
-  border-color: var(--apple-color-primary);
+.welcome-container.is-dragover {
+  background-color: var(--apple-color-primary-alpha);
 }
 
-.title {
-  font-size: 2.5em;
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 520px;
+  width: 100%;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero icon */
+.hero-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--apple-shadow-medium);
+}
+
+.hero-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Titles */
+.hero-title {
+  font-size: 28px;
   font-weight: 700;
   color: var(--apple-text-color-primary);
-  margin-bottom: 10px;
+  margin: 0 0 10px;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 
-.subtitle {
-  font-size: 1.2em;
+.hero-subtitle {
+  font-size: 15px;
   color: var(--apple-text-color-secondary);
-  margin-bottom: 40px;
-}
-
-.features {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 40px;
-  flex-wrap: wrap;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1em;
-  color: var(--apple-text-color-primary);
-  flex-direction: column;
-  text-align: center;
-  min-width: 80px;
-  padding: 12px;
-  border-radius: var(--apple-border-radius-medium);
-  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
-}
-
-.feature-item:hover {
-  background-color: var(--apple-bg-color-secondary);
-}
-
-.feature-item .el-icon {
-  color: var(--apple-color-primary);
-  font-size: 24px;
-}
-
-.instructions {
-  font-size: 1em;
-  color: var(--el-text-color-secondary);
+  margin: 0 0 32px;
   line-height: 1.6;
 }
 
-.instructions code {
-  background-color: var(--el-fill-color-light);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
+/* Feature pills */
+.features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 40px;
 }
 
-.instructions a {
-  color: var(--el-color-primary);
-  text-decoration: none;
+.feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--apple-border-radius-full);
+  border: 1px solid var(--apple-border-color);
+  background-color: var(--apple-bg-color-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--apple-text-color-secondary);
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
 }
 
-.instructions a:hover {
+.feature-pill:hover {
+  border-color: var(--apple-color-primary);
+  color: var(--apple-color-primary);
+  background-color: var(--apple-color-primary-alpha);
+}
+
+.feature-pill .el-icon {
+  font-size: 13px;
+  color: var(--apple-color-primary);
+}
+
+/* Drop zone */
+.drop-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 32px;
+  border: 1.5px dashed var(--apple-border-color-strong);
+  border-radius: var(--apple-border-radius-xl);
+  background-color: var(--apple-bg-color-secondary);
+  width: 100%;
+  box-sizing: border-box;
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+}
+
+.welcome-container.is-dragover .drop-hint {
+  border-color: var(--apple-color-primary);
+  background-color: var(--apple-color-primary-alpha);
+}
+
+.drop-icon {
+  font-size: 24px;
+  color: var(--apple-text-color-tertiary);
+}
+
+.welcome-container.is-dragover .drop-icon {
+  color: var(--apple-color-primary);
+}
+
+.drop-text {
+  font-size: 13px;
+  color: var(--apple-text-color-secondary);
+  line-height: 1.6;
+}
+
+.drop-text strong {
+  color: var(--apple-text-color-primary);
+  font-weight: 600;
+}
+
+.drop-text code {
+  background-color: var(--apple-color-gray-5);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Mono', monospace;
+  font-size: 12px;
+  color: var(--apple-text-color-primary);
+}
+
+.drop-text a {
+  color: var(--apple-color-primary);
+  font-weight: 500;
+}
+
+.drop-text a:hover {
   text-decoration: underline;
 }
 
-/* 移动端样式 */
+/* Mobile */
 @media (max-width: 768px) {
-  .welcome-box {
-    padding: 24px 16px;
+  .welcome-container {
+    padding: 32px 16px;
+    align-items: flex-start;
   }
-  
-  .title {
-    font-size: 2em;
+
+  .hero-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
   }
-  
-  .subtitle {
-    font-size: 1.1em;
+
+  .hero-title {
+    font-size: 24px;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
     margin-bottom: 24px;
   }
-  
+
   .features {
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 6px;
+    margin-bottom: 28px;
   }
-  
-  .feature-item {
-    min-width: 70px;
+
+  .feature-pill {
+    font-size: 11px;
+    padding: 5px 10px;
   }
-  
-  .feature-item .el-icon {
-    font-size: 20px;
-  }
-  
-  .instructions {
-    font-size: 0.9em;
+
+  .drop-hint {
+    padding: 20px;
   }
 }
 
 @media (max-width: 480px) {
-  .welcome-container {
-    border: 1px dashed var(--el-border-color);
-    padding: 16px;
+  .hero-title {
+    font-size: 22px;
   }
-  
-  .welcome-box {
-    padding: 16px 8px;
-  }
-  
-  .title {
-    font-size: 1.8em;
-  }
-  
-  .subtitle {
-    font-size: 1em;
-  }
-  
+
   .features {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  
-  .feature-item {
-    flex-direction: row;
-    justify-content: flex-start;
-    text-align: left;
-    min-width: auto;
-  }
-  
-  .feature-item .el-icon {
-    font-size: 18px;
-  }
-  
-  .instructions {
-    font-size: 0.85em;
+    gap: 5px;
   }
 }
 </style>

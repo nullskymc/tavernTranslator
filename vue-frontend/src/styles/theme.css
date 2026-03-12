@@ -1,189 +1,188 @@
-/* Element Plus 主题变量定义 */
+/* Element Plus theme - OpenAI inspired */
 :root {
-  /* 使用 Element Plus 官方颜色变量 */
-  --el-color-primary: #409eff;
-  --el-color-primary-light-3: #79bbff;
-  --el-color-primary-light-5: #a0cfff;
-  --el-color-primary-light-7: #c6e2ff;
-  --el-color-primary-light-8: #d9ecff;
-  --el-color-primary-light-9: #ecf5ff;
-  --el-color-primary-dark-2: #337ecc;
-  
-  --el-color-success: #67c23a;
-  --el-color-success-light-3: #95d475;
-  --el-color-success-light-5: #b3e19d;
-  --el-color-success-light-7: #d1edc4;
-  --el-color-success-light-8: #e1f3d8;
-  --el-color-success-light-9: #f0f9eb;
-  
-  --el-color-warning: #e6a23c;
-  --el-color-warning-light-3: #eebe77;
-  --el-color-warning-light-5: #f3d19e;
-  --el-color-warning-light-7: #f8e3c5;
-  --el-color-warning-light-8: #faecd8;
-  --el-color-warning-light-9: #fdf6ec;
-  
-  --el-color-danger: #f56c6c;
-  --el-color-danger-light-3: #f89898;
-  --el-color-danger-light-5: #fab6b6;
-  --el-color-danger-light-7: #fcd3d3;
-  --el-color-danger-light-8: #fde2e2;
+  /* Primary - OpenAI green */
+  --el-color-primary: #10a37f;
+  --el-color-primary-light-3: #3db89a;
+  --el-color-primary-light-5: #6ccab5;
+  --el-color-primary-light-7: #9addd0;
+  --el-color-primary-light-8: #b2e6dc;
+  --el-color-primary-light-9: #d9f3ee;
+  --el-color-primary-dark-2: #0d8a6a;
+
+  --el-color-success: #10a37f;
+  --el-color-success-light-3: #3db89a;
+  --el-color-success-light-5: #6ccab5;
+  --el-color-success-light-7: #9addd0;
+  --el-color-success-light-8: #b2e6dc;
+  --el-color-success-light-9: #d9f3ee;
+
+  --el-color-warning: #f5a623;
+  --el-color-warning-light-3: #f7b84e;
+  --el-color-warning-light-5: #f9c97a;
+  --el-color-warning-light-7: #fbdaa5;
+  --el-color-warning-light-8: #fce3bb;
+  --el-color-warning-light-9: #fef3e2;
+
+  --el-color-danger: #ef4444;
+  --el-color-danger-light-3: #f47070;
+  --el-color-danger-light-5: #f89898;
+  --el-color-danger-light-7: #fbc0c0;
+  --el-color-danger-light-8: #fdd0d0;
   --el-color-danger-light-9: #fef0f0;
-  
-  --el-color-info: #909399;
-  --el-color-info-light-3: #b1b3b8;
-  --el-color-info-light-5: #c8c9cc;
-  --el-color-info-light-7: #dedfe0;
-  --el-color-info-light-8: #e9e9eb;
-  --el-color-info-light-9: #f4f4f5;
 
-  /* 背景色 */
+  --el-color-info: #6b7280;
+  --el-color-info-light-3: #9ca3af;
+  --el-color-info-light-5: #b5bcc7;
+  --el-color-info-light-7: #ced3db;
+  --el-color-info-light-8: #dde0e5;
+  --el-color-info-light-9: #f3f4f6;
+
+  /* Backgrounds */
   --el-bg-color: #ffffff;
-  --el-bg-color-page: #f2f3f5;
+  --el-bg-color-page: #f7f7f8;
   --el-bg-color-overlay: #ffffff;
-  
-  /* 文字颜色 */
-  --el-text-color-primary: #303133;
-  --el-text-color-regular: #606266;
-  --el-text-color-secondary: #909399;
-  --el-text-color-placeholder: #a8abb2;
-  --el-text-color-disabled: #c0c4cc;
-  
-  /* 边框颜色 */
-  --el-border-color: #dcdfe6;
-  --el-border-color-light: #e4e7ed;
-  --el-border-color-lighter: #ebeef5;
-  --el-border-color-extra-light: #f2f6fc;
-  --el-border-color-dark: #d4d7de;
-  --el-border-color-darker: #cdd0d6;
-  
-  /* 填充色 */
-  --el-fill-color: #f0f2f5;
-  --el-fill-color-light: #f5f7fa;
+
+  /* Text */
+  --el-text-color-primary: #0d0d0d;
+  --el-text-color-regular: #374151;
+  --el-text-color-secondary: #6b7280;
+  --el-text-color-placeholder: #9ca3af;
+  --el-text-color-disabled: #d1d5db;
+
+  /* Borders */
+  --el-border-color: #e5e7eb;
+  --el-border-color-light: #f3f4f6;
+  --el-border-color-lighter: #f9fafb;
+  --el-border-color-extra-light: #fafafa;
+  --el-border-color-dark: #d1d5db;
+  --el-border-color-darker: #9ca3af;
+
+  /* Fill */
+  --el-fill-color: #f3f4f6;
+  --el-fill-color-light: #f9fafb;
   --el-fill-color-lighter: #fafafa;
-  --el-fill-color-extra-light: #fafcff;
-  --el-fill-color-dark: #ebedf0;
-  --el-fill-color-darker: #e6e8eb;
+  --el-fill-color-extra-light: #fdfdfd;
+  --el-fill-color-dark: #e5e7eb;
+  --el-fill-color-darker: #d1d5db;
   --el-fill-color-blank: #ffffff;
-  
-  /* 阴影 */
-  --el-box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.04), 0px 8px 20px rgba(0, 0, 0, 0.08);
-  --el-box-shadow-light: 0px 0px 12px rgba(0, 0, 0, 0.12);
-  --el-box-shadow-lighter: 0px 0px 6px rgba(0, 0, 0, 0.12);
-  --el-box-shadow-dark: 0px 16px 48px 16px rgba(0, 0, 0, 0.08), 0px 12px 32px rgba(0, 0, 0, 0.12), 0px 8px 16px -8px rgba(0, 0, 0, 0.16);
-  
-  /* 禁用状态 */
+
+  /* Shadows */
+  --el-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --el-box-shadow-light: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --el-box-shadow-lighter: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --el-box-shadow-dark: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Disabled */
   --el-disabled-bg-color: var(--el-fill-color-light);
   --el-disabled-text-color: var(--el-text-color-placeholder);
   --el-disabled-border-color: var(--el-border-color-light);
-  
-  /* 自定义项目变量 */
+
+  /* Custom project vars */
   --header-text: #ffffff;
-  --header-divider: rgba(255, 255, 255, 0.8);
-  --gradient-primary: linear-gradient(135deg, #409eff, #0ea5e9, #0d9488);
-  
-  /* 过渡效果 */
-  --el-transition-duration: 0.3s;
-  --el-transition-duration-fast: 0.2s;
+  --header-divider: rgba(255, 255, 255, 0.6);
+  --gradient-primary: linear-gradient(135deg, #10a37f, #0d8a6a);
+
+  /* Transitions */
+  --el-transition-duration: 0.15s;
+  --el-transition-duration-fast: 0.1s;
 }
 
-/* 暗色主题 */
+/* Dark theme */
 .dark-theme {
-  /* Element Plus 暗色主题变量 */
-  --el-color-primary: #409eff;
-  --el-color-primary-light-3: #3375b9;
-  --el-color-primary-light-5: #2a598a;
-  --el-color-primary-light-7: #213d5c;
-  --el-color-primary-light-8: #1d3043;
-  --el-color-primary-light-9: #18222c;
-  --el-color-primary-dark-2: #66b1ff;
-  
-  --el-color-success: #67c23a;
-  --el-color-success-light-3: #529b2e;
-  --el-color-success-light-5: #437424;
-  --el-color-success-light-7: #344e1a;
-  --el-color-success-light-8: #2b4016;
-  --el-color-success-light-9: #233312;
-  
-  --el-color-warning: #e6a23c;
-  --el-color-warning-light-3: #b88230;
-  --el-color-warning-light-5: #946827;
-  --el-color-warning-light-7: #714e1e;
-  --el-color-warning-light-8: #5d4119;
-  --el-color-warning-light-9: #4a3515;
-  
-  --el-color-danger: #f56c6c;
-  --el-color-danger-light-3: #c45656;
-  --el-color-danger-light-5: #a04747;
-  --el-color-danger-light-7: #7c3838;
-  --el-color-danger-light-8: #672f2f;
-  --el-color-danger-light-9: #532525;
-  
-  --el-color-info: #909399;
-  --el-color-info-light-3: #73767a;
-  --el-color-info-light-5: #5e6064;
-  --el-color-info-light-7: #494a4e;
-  --el-color-info-light-8: #3c3d40;
-  --el-color-info-light-9: #303133;
+  --el-color-primary: #19c37d;
+  --el-color-primary-light-3: #0f7a4e;
+  --el-color-primary-light-5: #0a5c3b;
+  --el-color-primary-light-7: #083d27;
+  --el-color-primary-light-8: #062d1e;
+  --el-color-primary-light-9: #041e14;
+  --el-color-primary-dark-2: #2dd68f;
 
-  /* 背景色 - 暗色主题 */
-  --el-bg-color: #141414;
-  --el-bg-color-page: #0a0a0a;
-  --el-bg-color-overlay: #1d1e1f;
-  
-  /* 文字颜色 - 暗色主题 */
-  --el-text-color-primary: #e5eaf3;
-  --el-text-color-regular: #cfd3dc;
-  --el-text-color-secondary: #a3a6ad;
-  --el-text-color-placeholder: #8d9095;
-  --el-text-color-disabled: #6c6e72;
-  
-  /* 边框颜色 - 暗色主题 */
-  --el-border-color: #4c4d4f;
-  --el-border-color-light: #414243;
-  --el-border-color-lighter: #363637;
-  --el-border-color-extra-light: #2b2b2c;
-  --el-border-color-dark: #58585b;
-  --el-border-color-darker: #636466;
-  
-  /* 填充色 - 暗色主题 */
-  --el-fill-color: #2b2b2c;
-  --el-fill-color-light: #262727;
-  --el-fill-color-lighter: #1f2021;
-  --el-fill-color-extra-light: #191a1b;
-  --el-fill-color-dark: #303133;
-  --el-fill-color-darker: #36383a;
-  --el-fill-color-blank: #141414;
-  
-  /* 阴影 - 暗色主题 */
-  --el-box-shadow: 0px 12px 32px 4px rgba(0, 0, 0, 0.36), 0px 8px 20px rgba(0, 0, 0, 0.72);
-  --el-box-shadow-light: 0px 0px 12px rgba(0, 0, 0, 0.72);
-  --el-box-shadow-lighter: 0px 0px 6px rgba(0, 0, 0, 0.72);
-  --el-box-shadow-dark: 0px 16px 48px 16px rgba(0, 0, 0, 0.72), 0px 12px 32px rgba(0, 0, 0, 0.84), 0px 8px 16px -8px rgba(0, 0, 0, 0.9);
-  
-  /* 禁用状态 - 暗色主题 */
+  --el-color-success: #19c37d;
+  --el-color-success-light-3: #0f7a4e;
+  --el-color-success-light-5: #0a5c3b;
+  --el-color-success-light-7: #083d27;
+  --el-color-success-light-8: #062d1e;
+  --el-color-success-light-9: #041e14;
+
+  --el-color-warning: #f59e0b;
+  --el-color-warning-light-3: #926008;
+  --el-color-warning-light-5: #6e4806;
+  --el-color-warning-light-7: #4a3005;
+  --el-color-warning-light-8: #362404;
+  --el-color-warning-light-9: #221803;
+
+  --el-color-danger: #f87171;
+  --el-color-danger-light-3: #9b2626;
+  --el-color-danger-light-5: #7a1e1e;
+  --el-color-danger-light-7: #591515;
+  --el-color-danger-light-8: #451010;
+  --el-color-danger-light-9: #310b0b;
+
+  --el-color-info: #8e8ea0;
+  --el-color-info-light-3: #5a5a6e;
+  --el-color-info-light-5: #47475a;
+  --el-color-info-light-7: #353547;
+  --el-color-info-light-8: #2a2a3a;
+  --el-color-info-light-9: #1e1e2e;
+
+  /* Backgrounds */
+  --el-bg-color: #343541;
+  --el-bg-color-page: #202123;
+  --el-bg-color-overlay: #40414f;
+
+  /* Text */
+  --el-text-color-primary: #ececf1;
+  --el-text-color-regular: #d1d5db;
+  --el-text-color-secondary: #8e8ea0;
+  --el-text-color-placeholder: #6b6b7d;
+  --el-text-color-disabled: #4a4a5a;
+
+  /* Borders */
+  --el-border-color: rgba(255, 255, 255, 0.1);
+  --el-border-color-light: rgba(255, 255, 255, 0.07);
+  --el-border-color-lighter: rgba(255, 255, 255, 0.05);
+  --el-border-color-extra-light: rgba(255, 255, 255, 0.03);
+  --el-border-color-dark: rgba(255, 255, 255, 0.15);
+  --el-border-color-darker: rgba(255, 255, 255, 0.2);
+
+  /* Fill */
+  --el-fill-color: #40414f;
+  --el-fill-color-light: #3c3d4a;
+  --el-fill-color-lighter: #383948;
+  --el-fill-color-extra-light: #343541;
+  --el-fill-color-dark: #444554;
+  --el-fill-color-darker: #4a4b5a;
+  --el-fill-color-blank: #343541;
+
+  /* Shadows */
+  --el-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --el-box-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --el-box-shadow-lighter: 0 1px 4px rgba(0, 0, 0, 0.25);
+  --el-box-shadow-dark: 0 10px 25px rgba(0, 0, 0, 0.6);
+
+  /* Disabled */
   --el-disabled-bg-color: var(--el-fill-color-light);
   --el-disabled-text-color: var(--el-text-color-placeholder);
   --el-disabled-border-color: var(--el-border-color-light);
-  
-  /* 自定义项目变量 - 暗色主题 */
-  --header-text: #ffffff;
-  --header-divider: rgba(255, 255, 255, 0.8);
-  --gradient-primary: linear-gradient(135deg, #1e3a8a, #0c4a6e, #134e4a);
+
+  /* Custom */
+  --header-text: #ececf1;
+  --header-divider: rgba(255, 255, 255, 0.15);
+  --gradient-primary: linear-gradient(135deg, #19c37d, #0f7a4e);
 }
 
-/* 主题切换过渡效果 */
+/* Theme transition */
 .theme-transition,
 .theme-transition *,
 .theme-transition *:before,
 .theme-transition *:after {
-  transition: all 300ms !important;
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease !important;
   transition-delay: 0 !important;
 }
 
-/* Element Plus 暗色主题下按钮样式补充 */
+/* Dark theme button overrides */
 .dark-theme .el-button--primary.is-text {
-  color: var(--el-color-primary-light-3);
+  color: var(--el-color-primary);
   background-color: transparent;
   border-color: transparent;
 }
@@ -200,13 +199,13 @@
 }
 
 .dark-theme .el-button--primary.is-plain:hover {
-  color: var(--el-bg-color);
+  color: #ffffff;
   background-color: var(--el-color-primary);
   border-color: var(--el-color-primary);
 }
 
 .dark-theme .el-button--danger.is-text {
-  color: var(--el-color-danger-light-3);
+  color: var(--el-color-danger);
   background-color: transparent;
   border-color: transparent;
 }
@@ -228,7 +227,6 @@
   border-color: var(--el-color-primary);
 }
 
-/* 圆形按钮样式 */
 .dark-theme .el-button.is-circle {
   background-color: var(--el-fill-color);
   border-color: var(--el-border-color);
@@ -238,10 +236,10 @@
 .dark-theme .el-button--danger.is-circle {
   background-color: var(--el-color-danger);
   border-color: var(--el-color-danger);
-  color: var(--el-bg-color);
+  color: #ffffff;
 }
 
 .dark-theme .el-button--danger.is-circle:hover {
-  background-color: var(--el-color-danger-light-3);
-  border-color: var(--el-color-danger-light-3);
+  background-color: var(--el-color-danger-dark-2);
+  border-color: var(--el-color-danger-dark-2);
 }

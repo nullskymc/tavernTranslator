@@ -18,6 +18,7 @@
       "json": "Export as JSON"
     },
     "actions": {
+      "title": "Actions",
       "uploadCard": "Upload Card",
       "uploadJson": "Upload JSON",
       "newBlank": "New Blank Card",

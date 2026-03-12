@@ -215,14 +215,11 @@ const batchTranslate = async () => {
     isBatchTranslating.value = false;
   }
 };
-// 视图切换：先更新本地视图让指示条动画，再延迟通知父级切换
+// 视图切换：下划线 tab 无需动画延迟，直接切换
 function switchView(view: string) {
   if (localView.value === view) return;
   localView.value = view;
-  // 等待指示条动画 (~200ms) 完成后再切换父视图
-  setTimeout(() => {
-    window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
-  }, 220);
+  window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
 }
 
 </script>
@@ -240,75 +237,37 @@ function switchView(view: string) {
   overflow-x: hidden;
 }
 
-.translate-btn { 
-  margin-left: 10px; 
-}
-
-.greeting-item { 
-  display: flex; 
-  align-items: center; 
-  margin-bottom: 10px; 
-  width: 100%; 
-}
-
-.greeting-item .el-input { 
-  flex-grow: 1; 
-}
-
-.greeting-actions { 
-  display: flex; 
-  flex-direction: column; 
-  margin-left: 8px; 
-}
-
-.label-with-btn {
+/* Alternate greeting row */
+.greeting-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
   width: 100%;
 }
 
-.label-with-btn .translate-btn {
-  margin-left: 10px;
+.greeting-item .el-input {
+  flex-grow: 1;
 }
 
-/* 移动端样式 */
+.greeting-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
-  .character-editor {
-    padding: 0;
-  }
-  
-  .editor-form .el-col {
-    padding: 0 5px;
-  }
-  
   .greeting-item {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
   }
-  
+
   .greeting-actions {
     flex-direction: row;
-    justify-content: space-between;
-    margin-left: 0;
+    justify-content: flex-end;
     gap: 8px;
-  }
-  
-  .translate-btn {
-    margin-left: 0;
-    margin-top: 4px;
-  }
-  
-  .label-with-btn {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  
-  .label-with-btn .translate-btn {
-    margin-left: 0;
-    align-self: flex-end;
   }
 }
 
@@ -316,19 +275,14 @@ function switchView(view: string) {
   .editor-form .el-form-item {
     margin-bottom: 16px;
   }
-  
+
   .editor-form .el-col {
     padding: 0 2px;
   }
-  
+
   .greeting-actions .el-button {
     font-size: 12px;
     padding: 4px 8px;
-  }
-  
-  .translate-btn {
-    font-size: 12px;
-    padding: 2px 6px;
   }
 }
 </style>

@@ -23,20 +23,21 @@
   flex-direction: column;
 }
 
+/* The tabs slot already renders its own underline border via EditorTabs.
+   Keep this row as a flex container for tabs + actions only — no extra border. */
 .card-header {
-  font-size: 1.2em;
-  font-weight: 600;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--apple-border-color);
+  margin-bottom: 16px;
+  /* Bottom border is owned by EditorTabs; don't double it */
 }
 
 .header-actions {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 1px; /* align baseline with tab underline */
 }
 
 .editor-content {
@@ -45,22 +46,13 @@
   overflow-x: hidden;
 }
 
-/* 移动端样式 */
 @media (max-width: 768px) {
   .editor-layout {
     padding: 0;
   }
-  
-  .card-header {
-    font-size: 1.1em;
-  }
 }
 
 @media (max-width: 480px) {
-  .card-header {
-    font-size: 1em;
-  }
-  
   .header-actions .el-button {
     font-size: 12px;
     padding: 4px 8px;

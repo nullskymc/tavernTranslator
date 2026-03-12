@@ -1,104 +1,47 @@
 <template>
-  <el-button class="theme-button" circle @click="toggleTheme">
-    <el-icon><component :is="isDarkTheme ? Sunny : Moon" /></el-icon>
-  </el-button>
+  <el-tooltip :content="isDarkTheme ? $t('sidebar.actions.theme') + ' (Light)' : $t('sidebar.actions.theme') + ' (Dark)'" placement="top">
+    <button class="control-btn" @click="toggleTheme" :aria-label="isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'">
+      <el-icon><component :is="isDarkTheme ? Sunny : Moon" /></el-icon>
+    </button>
+  </el-tooltip>
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useThemeStore } from '../stores/theme'
-import { Sunny, Moon } from '@element-plus/icons-vue'
+import { storeToRefs } from 'pinia';
+import { useThemeStore } from '../stores/theme';
+import { Sunny, Moon } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n';
 
-const themeStore = useThemeStore()
-const { isDarkTheme } = storeToRefs(themeStore)
-const { toggleTheme } = themeStore
+const { t: $t } = useI18n();
+const themeStore = useThemeStore();
+const { isDarkTheme } = storeToRefs(themeStore);
+const { toggleTheme } = themeStore;
 </script>
 
 <style scoped>
-
-
-.theme-button {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+.control-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--apple-border-radius-medium);
+  border: 1px solid var(--apple-border-color);
+  background-color: var(--apple-bg-color);
+  color: var(--apple-text-color-secondary);
+  cursor: pointer;
+  font-size: 15px;
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
   flex-shrink: 0;
-  background-color: var(--el-fill-color-light);
-  border: none;
-  color: var(--el-text-color-primary);
 }
 
-.theme-button:hover {
-  background-color: var(--el-color-primary-light-9);
+.control-btn:hover {
+  background-color: var(--apple-color-gray-5);
+  color: var(--apple-text-color-primary);
+  border-color: var(--apple-border-color-strong);
 }
 
-.theme-button .el-icon {
-  font-size: 18px;
-  transition: color 0.3s ease;
-}
-
-.button-text {
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  color: var(--el-text-color-primary);
-  font-size: 0.8em;
-  margin-left: 8px;
-}
-
-.dark-theme .button-text {
-  color: var(--text-primary) !important;
-}
-
-.theme-toggle:hover .button-text {
-  opacity: 1;
-}
-
-/* 移动端样式 */
-@media (max-width: 768px) {
-  .theme-toggle {
-    width: 100%;
-    height: 50px;
-    border-radius: 25px;
-    justify-content: flex-start;
-    padding: 0 16px;
-  }
-  
-  .theme-toggle:hover {
-    width: 100%;
-  }
-  
-  .theme-button {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .button-text {
-    opacity: 1;
-    margin-left: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .theme-toggle {
-    height: 45px;
-    padding: 0 12px;
-  }
-  
-  .theme-button {
-    width: 45px;
-    height: 45px;
-  }
-  
-  .theme-button .el-icon {
-    font-size: 16px;
-  }
-  
-  .button-text {
-    font-size: 0.85em;
-  }
+.control-btn:active {
+  background-color: var(--apple-color-gray-4);
 }
 </style>
