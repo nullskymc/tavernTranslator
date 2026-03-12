@@ -1,11 +1,14 @@
 <template>
   <div id="app-layout">
     <!-- 移动端遮罩层 -->
-    <div 
-      v-if="isMobile && sidebarVisible" 
-      class="mobile-overlay"
-      @click="sidebarVisible = false"
-    ></div>
+    <Transition name="fade">
+      <div 
+        v-if="isMobile && sidebarVisible" 
+        class="mobile-overlay"
+        style="position:fixed;inset:0;z-index:1000;"
+        @click="sidebarVisible = false"
+      ></div>
+    </Transition>
 
     <!-- 移动端头部 -->
     <header v-if="isMobile" class="mobile-header">
@@ -168,7 +171,6 @@ const handleResize = () => {
 </script>
 
 <style>
-/* 全局样式重置和基础设置 */
 html, body {
   margin: 0;
   padding: 0;
@@ -177,181 +179,154 @@ html, body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   background-color: var(--apple-bg-color-secondary);
   color: var(--apple-text-color-primary);
-  overflow: hidden; /* 防止整体页面滚动 */
+  overflow: hidden;
 }
 </style>
 
 <style scoped>
-
-/* 新的根布局 */
+/* Root layout - OpenAI style two-panel */
 #app-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   position: relative;
-  margin: 0;
-  padding: 0;
   background-color: var(--apple-bg-color-secondary);
 }
 
+/* Main content area - clean, no card styling */
 .main-content {
   flex-grow: 1;
   height: 100vh;
   overflow-y: auto;
-  padding: 20px;
-  box-sizing: border-box;
-  min-width: 0; /* 防止flex item溢出 */
-  margin: 0; /* 确保没有外边距 */
-  background-color: var(--apple-bg-color);
-  border-radius: var(--apple-border-radius-large);
-  box-shadow: var(--apple-shadow-medium);
   overflow-x: hidden;
-}
-
-.main-content-inner {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.welcome-view, .editor-view {
-  height: 100%;
+  min-width: 0;
   background-color: var(--apple-bg-color);
-  border-radius: var(--apple-border-radius-large);
-  box-shadow: var(--apple-shadow-medium);
-  padding: 0; /* 移除padding，让内部容器控制 */
   display: flex;
   flex-direction: column;
 }
 
+.welcome-view,
+.editor-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .editor-view-inner {
   flex: 1;
-  padding: 20px;
+  padding: 24px 32px;
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-/* no-character-book and no-content styles removed: handled inside CharacterBookEditor */
-
-/* 移动端头部 */
+/* Mobile header */
 .mobile-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background-color: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-light);
+  height: 56px;
+  background-color: var(--apple-bg-color);
+  border-bottom: 1px solid var(--apple-border-color);
   display: flex;
   align-items: center;
   padding: 0 16px;
   z-index: 1000;
   box-sizing: border-box;
+  gap: 12px;
 }
 
 .mobile-menu-btn {
-  margin-right: 16px;
+  flex-shrink: 0;
 }
 
 .mobile-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 18px;
+  gap: 8px;
+  font-size: 15px;
   font-weight: 600;
+  color: var(--apple-text-color-primary);
   flex-grow: 1;
 }
 
 .mobile-logo {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
 }
 
-/* 移动端侧边栏 */
+/* Mobile sidebar */
 .mobile-sidebar {
   position: fixed !important;
   top: 0;
   left: 0;
-  width: 300px !important;
+  width: 280px !important;
+  max-width: 85vw !important;
   height: 100vh !important;
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 1000;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1001;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.12);
 }
 
 .mobile-sidebar.sidebar-visible {
   transform: translateX(0);
 }
 
-/* 移动端主内容 */
+/* Mobile overlay */
+.mobile-overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+/* Mobile content */
 .mobile-content {
-  margin-top: 60px;
-  height: calc(100vh - 60px) !important;
-  padding: 16px;
+  margin-top: 56px;
+  height: calc(100vh - 56px) !important;
   overflow-x: hidden;
 }
 
-/* 桌面端语言切换器 */
-.language-switcher-desktop {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
+.mobile-content .editor-view-inner {
+  padding: 16px;
 }
 
-/* 移动端响应式 */
+/* Responsive */
 @media (max-width: 768px) {
   #app-layout {
     flex-direction: column;
   }
-  
+
   .main-content {
-    padding: 16px;
-    overflow-x: hidden;
+    padding: 0;
   }
-  
-  .main-content-inner {
-    max-width: 100%;
-  }
-  
+
   .editor-view-inner {
     padding: 16px;
-    overflow-x: hidden;
-  }
-  
-  /* 隐藏桌面端语言切换器 */
-  .language-switcher-desktop {
-    display: none;
+    max-width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .mobile-content {
-    padding: 12px;
-    overflow-x: hidden;
-  }
-  
   .mobile-header {
-    height: 56px;
+    height: 52px;
   }
-  
+
   .mobile-content {
-    margin-top: 56px;
-    height: calc(100vh - 56px) !important;
+    margin-top: 52px;
+    height: calc(100vh - 52px) !important;
   }
-  
+
   .editor-view-inner {
     padding: 12px;
-    overflow-x: hidden;
   }
 }
 </style>

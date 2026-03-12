@@ -129,3 +129,76 @@ const saveSettings = () => {
   dialogVisible.value = false;
 };
 </script>
+
+<style scoped>
+/* Tighten the form to match the flat OpenAI aesthetic */
+:deep(.el-dialog__header) {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--el-border-color-light);
+  margin-right: 0;
+}
+
+:deep(.el-dialog__title) {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--el-text-color-primary);
+}
+
+:deep(.el-dialog__body) {
+  padding: 20px 24px;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 12px 24px 20px;
+  border-top: 1px solid var(--el-border-color-light);
+}
+
+/* Form labels: uppercase micro-label style */
+:deep(.el-form-item__label) {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--el-text-color-secondary);
+  line-height: 1.4;
+  padding-bottom: 6px;
+}
+
+/* Tighter form item spacing */
+:deep(.el-form-item) {
+  margin-bottom: 16px;
+}
+
+/* Collapse section — flat, no card shadow */
+:deep(.el-collapse) {
+  border-top: 1px solid var(--el-border-color-light);
+  border-bottom: none;
+  margin-top: 4px;
+}
+
+:deep(.el-collapse-item__header) {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--el-text-color-secondary);
+  height: 40px;
+  line-height: 40px;
+}
+
+:deep(.el-collapse-item__content) {
+  padding-bottom: 12px;
+}
+
+/* Radio buttons */
+:deep(.el-radio__label) {
+  font-size: 13px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+</style>

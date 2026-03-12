@@ -1,6 +1,6 @@
 <template>
   <div class="label-with-btn">
-    <span>{{ label }}</span>
+    <span class="label-text">{{ label }}</span>
     <el-button
       v-if="showButton"
       class="translate-btn"
@@ -12,7 +12,6 @@
       {{ buttonText }}
     </el-button>
   </div>
-  
 </template>
 
 <script setup lang="ts">
@@ -35,19 +34,34 @@ withDefaults(
   width: 100%;
 }
 
+/* The label text — inherit from el-form-item__label (uppercase micro style via index.css).
+   Override font-size/weight only for the inline translate context where it may
+   be rendered outside the normal form-item label slot. */
+.label-text {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+/* Translate button: compact text link, no extra horizontal margin */
 .translate-btn {
-  margin-left: 10px;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 0;
+  height: auto;
+  line-height: 1.4;
+  color: var(--el-color-primary);
+}
+
+.translate-btn:hover {
+  opacity: 0.8;
 }
 
 @media (max-width: 768px) {
   .label-with-btn {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  .label-with-btn .translate-btn {
-    margin-left: 0;
-    align-self: flex-end;
+    flex-direction: row; /* keep inline even on mobile */
+    align-items: center;
   }
 }
 </style>
