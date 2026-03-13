@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import axios from 'axios';
 import { ElMessage, ElNotification, ElLoading } from 'element-plus';
 import { get, set } from 'lodash-es';
-import type { CharacterCard, TranslationSettings } from '@/types';
+import type { CharacterCard, TranslationSettings, GlossaryEntry } from '@/types';
 
 // --- Helper ---
 function base64ToBlob(base64: string, mimeType: string): Blob {
@@ -20,6 +20,7 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
 const CARD_STORAGE_KEY = 'characterCard';
 const SETTINGS_STORAGE_KEY = 'translationSettings';
 const IMAGE_STORAGE_KEY = 'characterImageB64';
+const GLOSSARY_STORAGE_KEY = 'glossaryEntries';
 
 export const defaultPromptsZh = {
   base_template: `你是一个专业的翻译专家。请按照以下要求进行翻译：
@@ -90,6 +91,7 @@ export const useTranslatorStore = defineStore('translator', () => {
   const characterCard = ref<CharacterCard | null>(null);
   const characterImageB64 = ref<string | null>(null);
   const isLoading = ref(false);
+  const glossaryEntries = ref<GlossaryEntry[]>([]);
   const translationSettings = ref<TranslationSettings>({
     api_key: '',
     base_url: 'https://api.openai.com/v1',
@@ -116,6 +118,61 @@ export const useTranslatorStore = defineStore('translator', () => {
     } catch (e) { 
       localStorage.removeItem(SETTINGS_STORAGE_KEY); 
     }
+
+    const savedGlossary = localStorage.getItem(GLOSSARY_STORAGE_KEY);
+    if (savedGlossary) try { glossaryEntries.value = JSON.parse(savedGlossary); } catch (e) { localStorage.removeItem(GLOSSARY_STORAGE_KEY); }
+  };
+
+  // --- Glossary Actions ---
+  const addGlossaryEntry = (entry: Omit<GlossaryEntry, 'id'>) => {
+    glossaryEntries.value.push({
+      ...entry,
+      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+    });
+  };
+
+  const removeGlossaryEntry = (id: string) => {
+    glossaryEntries.value = glossaryEntries.value.filter(e => e.id !== id);
+  };
+
+  const updateGlossaryEntry = (id: string, updates: Partial<GlossaryEntry>) => {
+    const idx = glossaryEntries.value.findIndex(e => e.id === id);
+    if (idx !== -1) {
+      glossaryEntries.value[idx] = { ...glossaryEntries.value[idx], ...updates };
+    }
+  };
+
+  const clearGlossary = () => {
+    glossaryEntries.value = [];
+  };
+
+  const importGlossary = (entries: GlossaryEntry[]) => {
+    // Merge: skip duplicates by source+target pair
+    const existing = new Set(glossaryEntries.value.map(e => `${e.source}||${e.target}`));
+    let added = 0;
+    for (const entry of entries) {
+      const key = `${entry.source}||${entry.target}`;
+      if (!existing.has(key)) {
+        glossaryEntries.value.push({
+          ...entry,
+          id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
+        });
+        existing.add(key);
+        added++;
+      }
+    }
+    return added;
+  };
+
+  const exportGlossary = () => {
+    return JSON.parse(JSON.stringify(glossaryEntries.value));
+  };
+
+  /** Build glossary text for injection into translation prompts */
+  const buildGlossaryPromptText = (): string => {
+    if (glossaryEntries.value.length === 0) return '';
+    const lines = glossaryEntries.value.map(e => `- "${e.source}" → "${e.target}"`);
+    return lines.join('\n');
   };
 
   const handleCardUpload = async (file: File) => {
@@ -160,6 +217,7 @@ export const useTranslatorStore = defineStore('translator', () => {
           model_name: translationSettings.value.model_name,
         },
         prompts: translationSettings.value.prompts,
+        glossary: buildGlossaryPromptText(),
       });
       set(characterCard.value, path, response.data.translated_text);
       ElMessage.success(`字段 ${fieldName} 翻译成功`);
@@ -278,6 +336,7 @@ export const useTranslatorStore = defineStore('translator', () => {
           model_name: translationSettings.value.model_name,
         },
         prompts: translationSettings.value.prompts,
+        glossary: buildGlossaryPromptText(),
       });
       
       // 更新翻译结果
@@ -443,6 +502,7 @@ export const useTranslatorStore = defineStore('translator', () => {
         "system_prompt": "",
         "post_history_instructions": "",
         "tags": [],
+        "alternate_greetings": [],
         "character_book": {
           "name": "",
           "description": "",
@@ -478,6 +538,10 @@ export const useTranslatorStore = defineStore('translator', () => {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(val));
   }, { deep: true });
 
+  watch(glossaryEntries, (val) => {
+    localStorage.setItem(GLOSSARY_STORAGE_KEY, JSON.stringify(val));
+  }, { deep: true });
+
   // --- Initial Load ---
   loadFromStorage();
 
@@ -486,6 +550,7 @@ export const useTranslatorStore = defineStore('translator', () => {
     characterImageB64,
     isLoading,
     translationSettings,
+    glossaryEntries,
     handleCardUpload,
     updateBaseImage,
     translateField,
@@ -496,5 +561,12 @@ export const useTranslatorStore = defineStore('translator', () => {
     handleJsonUpload,
     createNewCard,
     updateCardField,
+    addGlossaryEntry,
+    removeGlossaryEntry,
+    updateGlossaryEntry,
+    clearGlossary,
+    importGlossary,
+    exportGlossary,
+    buildGlossaryPromptText,
   };
 });

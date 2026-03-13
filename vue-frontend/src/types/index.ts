@@ -43,6 +43,14 @@ export interface TranslationSettings {
   };
 }
 
+export interface GlossaryEntry {
+  id: string;
+  source: string;      // Original term (e.g. "Elara")
+  target: string;      // Translated term (e.g. "艾拉拉")
+  category: 'name' | 'term' | 'other';  // Category for organization
+  note?: string;       // Optional note for context
+}
+
 export interface ErrorInfo {
   type?: string;
   message?: string;

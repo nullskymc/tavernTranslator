@@ -48,43 +48,62 @@
         </div>
       </div>
 
-      <!-- Action list - OpenAI style -->
+      <!-- Action grid -->
       <span class="section-label">{{ $t('sidebar.actions.title') }}</span>
-      <nav class="action-list">
-        <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display:none;" />
-        <input type="file" ref="jsonUploader" @change="handleJsonFileChange" accept="application/json" style="display:none;" />
-        <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display:none;" />
+      <input type="file" ref="fileUploader" @change="handleFileChange" accept="image/png" style="display:none;" />
+      <input type="file" ref="jsonUploader" @change="handleJsonFileChange" accept="application/json" style="display:none;" />
+      <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display:none;" />
 
-        <button class="action-item" @click="triggerFileUpload">
-          <span class="action-icon"><el-icon><Upload /></el-icon></span>
-          <span class="action-label">{{ $t('sidebar.actions.uploadCard') }}</span>
-        </button>
+      <div class="action-grid">
+        <el-tooltip :content="$t('sidebar.actions.uploadCard')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn" @click="triggerFileUpload">
+            <el-icon><Upload /></el-icon>
+          </button>
+        </el-tooltip>
 
-        <button class="action-item" @click="triggerJsonUpload">
-          <span class="action-icon"><el-icon><FolderOpened /></el-icon></span>
-          <span class="action-label">{{ $t('sidebar.actions.uploadJson') }}</span>
-        </button>
+        <el-tooltip :content="$t('sidebar.actions.uploadJson')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn" @click="triggerJsonUpload">
+            <el-icon><FolderOpened /></el-icon>
+          </button>
+        </el-tooltip>
 
-        <button class="action-item" @click="createNewCard">
-          <span class="action-icon"><el-icon><DocumentAdd /></el-icon></span>
-          <span class="action-label">{{ $t('sidebar.actions.newBlank') }}</span>
-        </button>
+        <el-tooltip :content="$t('sidebar.actions.newBlank')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn" @click="createNewCard">
+            <el-icon><DocumentAdd /></el-icon>
+          </button>
+        </el-tooltip>
 
-        <button class="action-item" @click="triggerImageUpload" :disabled="!store.characterCard">
-          <span class="action-icon"><el-icon><Picture /></el-icon></span>
-          <span class="action-label">{{ $t('sidebar.actions.changeImage') }}</span>
-        </button>
+        <el-tooltip :content="$t('sidebar.actions.changeImage')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn" @click="triggerImageUpload" :disabled="!store.characterCard">
+            <el-icon><Picture /></el-icon>
+          </button>
+        </el-tooltip>
 
-        <button class="action-item" @click="settingsDialogVisible = true">
-          <span class="action-icon"><el-icon><Setting /></el-icon></span>
-          <span class="action-label">{{ $t('sidebar.actions.translationSettings') }}</span>
-        </button>
+        <el-tooltip :content="$t('sidebar.actions.translationSettings')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn" @click="settingsDialogVisible = true">
+            <el-icon><Setting /></el-icon>
+          </button>
+        </el-tooltip>
 
-        <button class="action-item action-item--danger" @click="confirmReset" :disabled="!store.characterCard">
-          <span class="action-icon"><el-icon><Delete /></el-icon></span>
-          <span class="action-label">{{ $t('sidebar.actions.clearCard') }}</span>
-        </button>
-      </nav>
+        <el-tooltip :content="$t('sidebar.actions.glossary')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn" @click="glossaryDialogVisible = true">
+            <el-icon><Notebook /></el-icon>
+            <span v-if="store.glossaryEntries.length > 0" class="action-btn-badge">{{ store.glossaryEntries.length > 99 ? '99+' : store.glossaryEntries.length }}</span>
+          </button>
+        </el-tooltip>
+
+        <el-tooltip :content="$t('sidebar.actions.aiAssistant')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn action-btn--ai" @click="openAIChat">
+            <el-icon><ChatDotRound /></el-icon>
+          </button>
+        </el-tooltip>
+
+        <el-tooltip :content="$t('sidebar.actions.clearCard')" placement="top" :show-after="200" :hide-after="0">
+          <button class="action-btn action-btn--danger" @click="confirmReset" :disabled="!store.characterCard">
+            <el-icon><Delete /></el-icon>
+          </button>
+        </el-tooltip>
+      </div>
     </div>
 
     <!-- Bottom controls -->
@@ -100,28 +119,34 @@
 
     <!-- Settings dialog -->
     <TranslationSettingsDialog v-model="settingsDialogVisible" />
+    <!-- Glossary dialog -->
+    <GlossaryDialog v-model="glossaryDialogVisible" />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
+import { useAIChatStore } from '@/stores/aiChat';
 import { useI18n } from 'vue-i18n';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { Upload, Download, Setting, Delete, Picture, FolderOpened, DocumentAdd, Document, Close } from '@element-plus/icons-vue';
+import { Upload, Download, Setting, Delete, Picture, FolderOpened, DocumentAdd, Document, Close, ChatDotRound, Notebook } from '@element-plus/icons-vue';
 import TranslationSettingsDialog from './TranslationSettingsDialog.vue';
+import GlossaryDialog from './GlossaryDialog.vue';
 import ThemeToggle from './ThemeToggle.vue';
 import LanguageSwitcher from './LanguageSwitcher.vue';
 
 const emit = defineEmits(['close']);
 
 const store = useTranslatorStore();
+const aiChatStore = useAIChatStore();
 const { t: $t } = useI18n();
 
 const imageUploader = ref(null);
 const fileUploader = ref(null);
 const jsonUploader = ref(null);
 const settingsDialogVisible = ref(false);
+const glossaryDialogVisible = ref(false);
 
 const triggerImageUpload = () => imageUploader.value?.click();
 const handleImageChange = (event) => {
@@ -169,6 +194,11 @@ const confirmReset = () => {
     type: 'warning',
   }).then(() => store.resetStore()).catch(() => {});
 };
+
+const openAIChat = () => {
+  aiChatStore.sidebarVisible = true;
+  emit('close'); // Close mobile sidebar if open
+};
 </script>
 
 <style scoped>
@@ -176,7 +206,6 @@ const confirmReset = () => {
    Sidebar - OpenAI style
    =========================== */
 .app-sidebar {
-  /* Flexible width: shrinks to ~220px, grows up to 280px based on content */
   width: fit-content;
   min-width: 220px;
   max-width: 280px;
@@ -190,7 +219,6 @@ const confirmReset = () => {
   position: relative;
   flex-shrink: 0;
   z-index: 1;
-  /* overflow: hidden removed — let flex column children clip themselves */
 }
 
 /* Mobile close button */
@@ -309,14 +337,14 @@ const confirmReset = () => {
 }
 
 .export-buttons-container .el-button {
-  flex: 1 1 0;       /* grow equally but allow shrink */
-  min-width: 0;      /* allow content to shrink below intrinsic size */
+  flex: 1 1 0;
+  min-width: 0;
   justify-content: center;
   font-size: 12px;
   height: auto;
   min-height: 30px;
   padding: 4px 8px;
-  white-space: normal;   /* let text wrap on narrow widths */
+  white-space: normal;
   line-height: 1.3;
   word-break: break-word;
 }
@@ -332,81 +360,95 @@ const confirmReset = () => {
   padding: 8px 8px 4px;
 }
 
-/* Action list - OpenAI nav item style */
-.action-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+/* Action grid - 3 columns of circle buttons */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 4px 8px;
+  justify-items: center;
 }
 
-.action-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: var(--apple-border-radius-medium);
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  color: var(--apple-text-color-primary);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 400;
-  text-align: left;
-  transition: background-color var(--apple-transition-duration) var(--apple-transition-easing);
-  line-height: 1.4;
-}
-
-.action-item:hover {
-  background-color: var(--apple-color-gray-5);
-}
-
-.action-item:active {
-  background-color: var(--apple-color-gray-4);
-}
-
-.action-item:disabled {
-  color: var(--apple-text-color-tertiary);
-  cursor: not-allowed;
-}
-
-.action-item:disabled:hover {
-  background: transparent;
-}
-
-.action-item--danger {
-  color: var(--apple-color-danger);
-}
-
-.action-item--danger:hover {
-  background-color: rgba(239, 68, 68, 0.08);
-}
-
-.action-icon {
+.action-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  font-size: 15px;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--apple-border-radius-full);
+  border: 1px solid var(--apple-border-color);
+  background-color: var(--apple-bg-color);
+  cursor: pointer;
   color: var(--apple-text-color-secondary);
+  font-size: 18px;
+  transition: all 0.2s ease;
 }
 
-.action-item--danger .action-icon {
-  color: var(--apple-color-danger);
+.action-btn:hover {
+  background-color: var(--apple-color-gray-5);
+  color: var(--apple-text-color-primary);
+  border-color: var(--apple-border-color-strong);
+  transform: scale(1.1);
+  box-shadow: var(--apple-shadow-small);
 }
 
-.action-item:disabled .action-icon {
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.action-btn:disabled {
   color: var(--apple-text-color-tertiary);
+  background-color: var(--apple-color-gray-6);
+  border-color: var(--apple-border-color-secondary);
+  cursor: not-allowed;
 }
 
-.action-label {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.action-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.action-btn--ai {
+  color: var(--apple-color-primary);
+  border-color: var(--apple-color-primary-alpha);
+}
+
+.action-btn--ai:hover {
+  background-color: var(--apple-color-primary-alpha);
+  color: var(--apple-color-primary);
+  border-color: var(--apple-color-primary);
+}
+
+.action-btn--danger {
+  color: var(--apple-color-danger);
+  border-color: rgba(239, 68, 68, 0.15);
+}
+
+.action-btn--danger:hover {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: var(--apple-color-danger);
+  border-color: var(--apple-color-danger);
+}
+
+/* Badge on circle button (glossary count) */
+.action-btn-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--apple-border-radius-full);
+  background-color: var(--apple-color-primary);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: none;
 }
 
 /* Footer */
@@ -453,9 +495,10 @@ const confirmReset = () => {
     margin: 0 auto;
   }
 
-  .action-item {
-    padding: 10px 12px;
-    font-size: 14px;
+  .action-btn {
+    width: 46px;
+    height: 46px;
+    font-size: 20px;
   }
 }
 
