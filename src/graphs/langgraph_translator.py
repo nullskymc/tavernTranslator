@@ -13,21 +13,34 @@ logger = logging.getLogger(__name__)
 class LangGraphCharacterCardTranslator:
     """基于LangGraph的角色卡翻译器"""
     
-    def __init__(self, model_name: str, base_url: str, api_key: str, prompts: Dict[str, str], custom_logger=None):
+    def __init__(self, model_name: str, base_url: str, api_key: str, prompts: Dict[str, str], glossary: str = '', custom_logger=None):
         self.model_name = model_name
         self.base_url = base_url
         self.api_key = api_key
         self.prompts = prompts
+        self.glossary = glossary
         self.logger = custom_logger if custom_logger else logging.getLogger(__name__)
     
+    def _build_glossary_instruction(self) -> str:
+        """构建词库提示文本，附加到系统提示词后面。"""
+        if not self.glossary or not self.glossary.strip():
+            return ''
+        return (
+            "\n\n【翻译词库 / Translation Glossary】\n"
+            "以下是必须严格遵守的术语对照表，翻译时遇到这些词汇必须使用指定的译文，不得自行翻译：\n"
+            "The following is a mandatory glossary. When encountering these terms, you MUST use the specified translations:\n"
+            f"{self.glossary}"
+        )
+
     def _get_system_prompt(self, field_name: str) -> str:
         """根据字段类型获取相应的系统提示词"""
         if field_name == "description":
-            return self.prompts.get("description_template", "")
+            base_prompt = self.prompts.get("description_template", "")
         elif field_name in ["first_mes", "mes_example", "alternate_greetings"]:
-            return self.prompts.get("dialogue_template", "")
+            base_prompt = self.prompts.get("dialogue_template", "")
         else:
-            return self.prompts.get("base_template", "")
+            base_prompt = self.prompts.get("base_template", "")
+        return base_prompt + self._build_glossary_instruction()
     
     def translate_field(self, field_name: str, text: str) -> str:
         """使用LangGraph翻译单个字段"""
@@ -75,7 +88,7 @@ class LangGraphCharacterCardTranslator:
             self.logger.debug("character_book.content 为空，跳过翻译。")
             return content
         
-        system_prompt = self.prompts.get("base_template", "")
+        system_prompt = self.prompts.get("base_template", "") + self._build_glossary_instruction()
         
         # 初始化翻译图的状态
         initial_state = {
@@ -155,7 +168,7 @@ class LangGraphCharacterCardTranslator:
             self.logger.debug("character_book.content 为空，跳过翻译。")
             return content
         
-        system_prompt = self.prompts.get("base_template", "")
+        system_prompt = self.prompts.get("base_template", "") + self._build_glossary_instruction()
         
         # 初始化翻译图的状态
         initial_state = {

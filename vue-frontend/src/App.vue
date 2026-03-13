@@ -32,7 +32,7 @@
       @switch-view="currentView = $event"
     />
 
-    <!-- 右侧主内容区 -->
+    <!-- 主内容区 -->
     <main class="main-content" :class="{ 'mobile-content': isMobile }">
       <!-- 如果没有加载角色卡，显示欢迎/上传提示 -->
       <div v-if="!store.characterCard" class="welcome-view">
@@ -47,6 +47,34 @@
         </div>
       </div>
     </main>
+
+    <!-- AI Chat 右侧边栏遮罩层 (仅移动端) -->
+    <Transition name="fade">
+      <div 
+        v-if="isMobile && aiChatStore.sidebarVisible" 
+        class="mobile-overlay ai-chat-overlay"
+        style="position:fixed;inset:0;z-index:1001;"
+        @click="aiChatStore.sidebarVisible = false"
+      ></div>
+    </Transition>
+
+    <!-- AI Chat 右侧边栏 -->
+    <AIChatSidebar 
+      v-if="aiChatStore.sidebarVisible"
+      :visible="aiChatStore.sidebarVisible"
+      :class="{ 'mobile-right-sidebar': isMobile }"
+      @close="aiChatStore.sidebarVisible = false"
+    />
+
+    <!-- AI Chat 浮动按钮 -->
+    <button 
+      v-if="!aiChatStore.sidebarVisible"
+      class="ai-chat-fab"
+      :class="{ 'fab-mobile': isMobile }"
+      @click="aiChatStore.toggleSidebar()"
+    >
+      <el-icon :size="22"><ChatDotRound /></el-icon>
+    </button>
   </div>
 </template>
 
@@ -54,15 +82,17 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { useThemeStore } from '@/stores/theme';
+import { useAIChatStore } from '@/stores/aiChat';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
-import { Menu } from '@element-plus/icons-vue';
+import { Menu, ChatDotRound } from '@element-plus/icons-vue';
 
 // 导入核心布局组件
 import AppSidebar from './components/AppSidebar.vue';
 import CharacterEditor from './components/CharacterEditor.vue';
 import CharacterBookEditor from './components/CharacterBookEditor.vue';
 import WelcomeView from './components/WelcomeView.vue'; // 一个新的欢迎组件
+import AIChatSidebar from './components/AIChatSidebar.vue';
 import LanguageSwitcher from './components/LanguageSwitcher.vue';
 import EditorTabs from './components/ui/EditorTabs.vue';
 import EditorLayout from './components/common/EditorLayout.vue';
@@ -70,6 +100,7 @@ import { useResponsive } from './composables/useResponsive';
 
 const store = useTranslatorStore();
 const themeStore = useThemeStore();
+const aiChatStore = useAIChatStore();
 const { t: $t } = useI18n();
 
 // 当前视图状态
@@ -297,6 +328,61 @@ body {
 
 .mobile-content .editor-view-inner {
   padding: 16px;
+}
+
+/* AI Chat floating action button */
+.ai-chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--apple-border-radius-full);
+  border: none;
+  background-color: var(--apple-color-primary);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--apple-shadow-large);
+  z-index: 100;
+  transition: all 0.2s ease;
+}
+
+.ai-chat-fab:hover {
+  background-color: var(--apple-color-primary-dark);
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(16, 163, 127, 0.35);
+}
+
+.ai-chat-fab:active {
+  transform: scale(0.95);
+}
+
+.ai-chat-fab.fab-mobile {
+  bottom: 20px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+}
+
+/* AI Chat overlay */
+.ai-chat-overlay {
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+}
+
+/* Mobile right sidebar */
+.mobile-right-sidebar {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  z-index: 1002;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
 }
 
 /* Responsive */

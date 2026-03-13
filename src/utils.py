@@ -67,7 +67,7 @@ def pretty_print_json(data: Dict[str, Any]) -> None:
     """以美化格式打印JSON数据。"""
     print(json.dumps(data, indent=4, ensure_ascii=False))
 
-def get_translator(settings: Dict[str, str], prompts: Dict[str, str], use_langgraph: bool = True) -> CharacterCardTranslator:
+def get_translator(settings: Dict[str, str], prompts: Dict[str, str], use_langgraph: bool = True, glossary: str = '') -> CharacterCardTranslator:
     """根据提供的设置和提示词初始化并返回翻译器实例。"""
     api_key = settings.get('api_key')
     base_url = settings.get('base_url', "https://api.openai.com/v1")
@@ -78,10 +78,10 @@ def get_translator(settings: Dict[str, str], prompts: Dict[str, str], use_langgr
 
     if use_langgraph:
         logger.info("使用基于LangGraph的翻译器")
-        return LangGraphCharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts)
+        return LangGraphCharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts, glossary=glossary)
     else:
         logger.info("使用传统翻译器")
-        return CharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts)
+        return CharacterCardTranslator(model_name=model_name, base_url=base_url, api_key=api_key, prompts=prompts, glossary=glossary)
 
 def handle_uploaded_file(content: bytes, upload_folder: str, character_data: Dict) -> str:
     """

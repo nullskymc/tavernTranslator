@@ -24,6 +24,8 @@
       "newBlank": "New Blank Card",
       "changeImage": "Change Image",
       "translationSettings": "Translation Settings",
+      "aiAssistant": "AI Assistant",
+      "glossary": "Glossary",
       "clearCard": "Clear Card",
       "theme": "Theme",
       "language": "English"
@@ -125,6 +127,63 @@
       "title": "Warning",
       "confirm": "Confirm",
       "cancel": "Cancel"
+    }
+  },
+  "glossary": {
+    "title": "Translation Glossary",
+    "tip": "Add proper nouns, character names, and terms that need consistent translation. The glossary is automatically injected into translation prompts to ensure uniform translations across all fields.",
+    "addEntry": "Add Entry",
+    "addFirstEntry": "Add First Entry",
+    "source": "Source",
+    "target": "Translation",
+    "category": "Category",
+    "note": "Note",
+    "sourcePlaceholder": "e.g.: Elara",
+    "targetPlaceholder": "e.g.: Elara",
+    "notePlaceholder": "Optional note",
+    "categoryName": "Name",
+    "categoryTerm": "Proper Noun",
+    "categoryOther": "Other",
+    "import": "Import",
+    "export": "Export",
+    "clearAll": "Clear All",
+    "clearConfirm": "Are you sure you want to clear all entries? This action cannot be undone.",
+    "cleared": "Glossary cleared",
+    "importSuccess": "Successfully imported {count} entries",
+    "importFormatError": "Invalid file format. Please use a JSON file exported from this tool.",
+    "exported": "Glossary exported",
+    "empty": "Glossary is empty. Add entries to ensure translation consistency.",
+    "entryCount": "{count} entries total",
+    "close": "Close"
+  },
+  "aiChat": {
+    "title": "AI Assistant",
+    "clearChat": "Clear Chat",
+    "clearConfirm": "Are you sure you want to clear all chat messages? This action cannot be undone.",
+    "inputPlaceholder": "Describe the character you want to create, or ask a question...",
+    "applyToCard": "Apply to Card",
+    "applySelected": "Apply Selected",
+    "applying": "Applying...",
+    "applySuccess": "Applied Successfully!",
+    "alreadyApplied": "Already Applied",
+    "selectFields": "Select fields to apply",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "appliedFields": "Successfully applied {count} fields to the character card",
+    "noJsonFound": "No applicable character card data found",
+    "welcome": {
+      "title": "AI Character Card Assistant",
+      "subtitle": "I can help you create and improve character cards. Describe the character you want, and I'll generate the content."
+    },
+    "quickPrompts": {
+      "createCharacter": "Create New Character",
+      "createCharacterPrompt": "Help me create an interesting character card with a complete description, personality, scenario, and first message.",
+      "improveDescription": "Improve Description",
+      "improveDescriptionPrompt": "Please review my current character card and help me enhance and enrich the character description to make it more vivid and interesting.",
+      "generateDialogue": "Generate Dialogue",
+      "generateDialoguePrompt": "Based on the current character card settings, help me generate sample dialogue that showcases the character's speaking style and personality.",
+      "writeScenario": "Write Scenario",
+      "writeScenarioPrompt": "Help me write an interesting scenario for the current character, including the story background and interaction environment."
     }
   }
 }

@@ -63,6 +63,7 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
     field_name = data.get('field_name')
     settings = data.get('settings')
     prompts = data.get('prompts')  # 新增 prompts 参数
+    glossary = data.get('glossary', '')  # 词库文本
     use_langgraph = data.get('use_langgraph', True)  # 默认使用LangGraph
 
     if not all([text_to_translate, field_name, settings, prompts]):
@@ -72,7 +73,7 @@ async def translate_text_field(data: Dict[str, Any] = Body(...)):
         return {"translated_text": ""}
 
     try:
-        translator = get_translator(settings, prompts, use_langgraph)  # 将 prompts 和 use_langgraph 传递给 get_translator
+        translator = get_translator(settings, prompts, use_langgraph, glossary)  # 将 prompts、use_langgraph 和 glossary 传递给 get_translator
         translated_text = translator.translate_field(field_name, text_to_translate)
         return {"translated_text": translated_text}
     except ValueError as e:
@@ -90,6 +91,7 @@ async def translate_character_book_content(data: Dict[str, Any] = Body(...)):
     content_to_translate = data.get('content')
     settings = data.get('settings')
     prompts = data.get('prompts')
+    glossary = data.get('glossary', '')  # 词库文本
     use_langgraph = data.get('use_langgraph', True)  # 默认使用LangGraph
 
     if not all([content_to_translate, settings, prompts]):
@@ -99,7 +101,7 @@ async def translate_character_book_content(data: Dict[str, Any] = Body(...)):
         return {"translated_content": ""}
 
     try:
-        translator = get_translator(settings, prompts, use_langgraph)
+        translator = get_translator(settings, prompts, use_langgraph, glossary)
         translated_content = translator.translate_character_book_content(content_to_translate)
         return {"translated_content": translated_content}
     except ValueError as e:
@@ -117,6 +119,7 @@ async def batch_translate_fields(data: Dict[str, Any] = Body(...)):
     fields = data.get('fields', [])
     settings = data.get('settings')
     prompts = data.get('prompts')
+    glossary = data.get('glossary', '')  # 词库文本
     use_langgraph = data.get('use_langgraph', True)  # 默认使用LangGraph
     
     if not all([fields, settings, prompts]):
@@ -126,7 +129,7 @@ async def batch_translate_fields(data: Dict[str, Any] = Body(...)):
         return {"results": [], "progress": {"completed": 0, "total": 0}}
     
     try:
-        translator = get_translator(settings, prompts, use_langgraph)
+        translator = get_translator(settings, prompts, use_langgraph, glossary)
         batch_translator = BatchTranslator(translator, max_concurrent=3)  # 降低并发数避免限流
         
         # 转换字段格式以适应批量翻译器
@@ -156,6 +159,113 @@ async def batch_translate_fields(data: Dict[str, Any] = Body(...)):
     except Exception as e:
         logging.error(f"批量翻译过程中发生意外错误：{e}")
         raise HTTPException(status_code=500, detail="批量翻译过程中发生内部错误。")
+
+@router.post("/character/ai-chat")
+async def ai_chat(data: Dict[str, Any] = Body(...)):
+    """
+    AI 辅助角色卡生成对话接口。
+    接收对话历史和当前角色卡上下文，返回 AI 回复以帮助生成/完善角色卡。
+    """
+    messages = data.get('messages', [])
+    settings = data.get('settings')
+    character_card = data.get('character_card')
+
+    if not settings or not settings.get('api_key'):
+        raise HTTPException(status_code=400, detail="请先在设置中提供您的 API Key。")
+
+    if not messages or len(messages) == 0:
+        raise HTTPException(status_code=400, detail="消息列表不能为空。")
+
+    try:
+        from langchain_openai import ChatOpenAI
+        from pydantic import SecretStr
+
+        api_key = settings.get('api_key')
+        base_url = settings.get('base_url', 'https://api.openai.com/v1')
+        model_name = settings.get('model_name', 'gpt-4-1106-preview')
+
+        llm = ChatOpenAI(
+            model=model_name,
+            base_url=base_url,
+            api_key=SecretStr(api_key),
+            max_completion_tokens=8192,
+        )
+
+        # 构建系统提示词
+        system_prompt = """你是一个专业的 SillyTavern 角色卡创建助手。你的任务是帮助用户创建和完善 AI 角色卡。
+
+角色卡包含以下字段：
+- name: 角色名称
+- description: 角色描述（外貌、背景、性格特征等详细设定）
+- personality: 性格特征（简要概括）
+- scenario: 场景设定（故事发生的背景）
+- first_mes: 第一条消息（角色的开场白）
+- alternate_greetings: 备用问候语（角色的备选开场白列表，是一个字符串数组）
+- mes_example: 示例对话（展示角色的说话风格和互动方式）
+- creator_notes: 创作者笔记
+- system_prompt: 系统提示词（给 AI 的角色扮演指令）
+- post_history_instructions: 历史指令（附加在对话历史后的指令）
+- tags: 标签
+
+你应该：
+1. 根据用户的描述，帮助生成角色卡的各个字段内容
+2. 提供创意建议和改进意见
+3. 确保角色设定的一致性和丰富度
+4. 当用户提供模糊的想法时，帮助他们细化和具象化
+5. 可以一次性生成完整的角色卡，也可以逐字段讨论完善
+
+当用户要求生成角色卡内容时，请使用以下 JSON 格式输出（可以只输出需要的字段）：
+```json
+{
+  "name": "角色名",
+  "description": "详细描述",
+  "personality": "性格特征",
+  "scenario": "场景设定",
+  "first_mes": "第一条消息",
+  "alternate_greetings": ["备用问候语1", "备用问候语2"],
+  "mes_example": "示例对话",
+  "creator_notes": "创作者笔记",
+  "system_prompt": "系统提示词",
+  "post_history_instructions": "历史指令",
+  "tags": ["标签1", "标签2"]
+}
+```
+
+在对话中要友好、专业，并根据用户的语言（中文或英文）来回复。"""
+
+        # 如果有当前角色卡数据，添加到系统提示中
+        if character_card and isinstance(character_card, dict):
+            card_data = character_card.get('data', character_card)
+            card_info = json.dumps(card_data, ensure_ascii=False, indent=2)
+            system_prompt += f"\n\n当前角色卡数据：\n```json\n{card_info}\n```\n请基于上述现有数据为用户提供建议和帮助。"
+
+        # 构建 LangChain 消息列表
+        from langchain_core.messages import SystemMessage as LCSystemMessage, HumanMessage, AIMessage
+        
+        lc_messages = [LCSystemMessage(content=system_prompt)]
+        
+        for msg in messages:
+            role = msg.get('role', '')
+            content = msg.get('content', '')
+            if role == 'user':
+                lc_messages.append(HumanMessage(content=content))
+            elif role == 'assistant':
+                lc_messages.append(AIMessage(content=content))
+
+        response = llm.invoke(lc_messages)
+        
+        ai_content = response.content if isinstance(response.content, str) else str(response.content)
+
+        return {"reply": ai_content}
+
+    except Exception as e:
+        logging.error(f"AI 对话过程中发生错误：{e}")
+        error_message = str(e)
+        if "auth" in error_message.lower() or "api key" in error_message.lower():
+            raise HTTPException(status_code=401, detail="API Key 无效或已过期。")
+        elif "rate" in error_message.lower():
+            raise HTTPException(status_code=429, detail="请求过于频繁，请稍后再试。")
+        raise HTTPException(status_code=500, detail=f"AI 对话过程中发生错误：{error_message}")
 
 @router.post("/character/export")
 async def export_character_card(

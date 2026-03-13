@@ -24,6 +24,8 @@
       "newBlank": "新建空白卡",
       "changeImage": "更换图片",
       "translationSettings": "翻译设置",
+      "aiAssistant": "AI 助手",
+      "glossary": "翻译词库",
       "clearCard": "清除卡片",
       "theme": "主题",
       "language": "中文"
@@ -125,6 +127,63 @@
       "title": "警告",
       "confirm": "确定",
       "cancel": "取消"
+    }
+  },
+  "glossary": {
+    "title": "翻译词库",
+    "tip": "在此添加专有名词、人名等需要统一翻译的词条。翻译时会自动将词库注入提示词，确保同一名词在所有字段中翻译一致。",
+    "addEntry": "添加词条",
+    "addFirstEntry": "添加第一个词条",
+    "source": "原文",
+    "target": "译文",
+    "category": "类别",
+    "note": "备注",
+    "sourcePlaceholder": "如: Elara",
+    "targetPlaceholder": "如: 艾拉拉",
+    "notePlaceholder": "可选备注",
+    "categoryName": "人名",
+    "categoryTerm": "专有名词",
+    "categoryOther": "其他",
+    "import": "导入",
+    "export": "导出",
+    "clearAll": "清空",
+    "clearConfirm": "确定要清空所有词条吗？此操作不可撤销。",
+    "cleared": "词库已清空",
+    "importSuccess": "成功导入 {count} 条词条",
+    "importFormatError": "导入文件格式不正确，请使用导出的 JSON 格式文件",
+    "exported": "词库已导出",
+    "empty": "词库为空，添加词条以确保翻译一致性",
+    "entryCount": "共 {count} 条词条",
+    "close": "关闭"
+  },
+  "aiChat": {
+    "title": "AI 助手",
+    "clearChat": "清除对话",
+    "clearConfirm": "确定要清除所有对话记录吗？此操作不可撤销。",
+    "inputPlaceholder": "描述你想创建的角色，或输入问题...",
+    "applyToCard": "应用到角色卡",
+    "applySelected": "应用所选字段",
+    "applying": "正在应用...",
+    "applySuccess": "应用成功！",
+    "alreadyApplied": "已应用",
+    "selectFields": "选择要应用的字段",
+    "selectAll": "全选",
+    "deselectAll": "取消全选",
+    "appliedFields": "已成功应用 {count} 个字段到角色卡",
+    "noJsonFound": "未找到可应用的角色卡数据",
+    "welcome": {
+      "title": "AI 角色卡助手",
+      "subtitle": "我可以帮你创建、完善角色卡。描述你想要的角色，我来帮你生成内容。"
+    },
+    "quickPrompts": {
+      "createCharacter": "创建新角色",
+      "createCharacterPrompt": "帮我创建一个有趣的角色卡，包含完整的描述、性格、场景设定和第一条消息。",
+      "improveDescription": "完善角色描述",
+      "improveDescriptionPrompt": "请查看我当前的角色卡，帮我完善和丰富角色描述，使其更加生动有趣。",
+      "generateDialogue": "生成示例对话",
+      "generateDialoguePrompt": "请根据当前角色卡的设定，帮我生成一段示例对话，展示角色的说话风格和性格特点。",
+      "writeScenario": "编写场景设定",
+      "writeScenarioPrompt": "帮我为当前角色编写一个有趣的场景设定，包括故事背景和互动环境。"
     }
   }
 }

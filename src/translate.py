@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 class CharacterCardTranslator:
     """角色卡翻译器 - 简化版，用于同步API调用。"""
-    def __init__(self, model_name: str, base_url: str, api_key: str, prompts: Dict[str, str], custom_logger=None):
+    def __init__(self, model_name: str, base_url: str, api_key: str, prompts: Dict[str, str], glossary: str = '', custom_logger=None):
         self.llm = ChatOpenAI(
             model=model_name,
             base_url=base_url,
@@ -22,16 +22,30 @@ class CharacterCardTranslator:
             max_completion_tokens=8192,
         )
         self.logger = custom_logger if custom_logger else logging.getLogger(__name__)
+        self.glossary = glossary
         
         # 从传入的 prompts 字典动态创建模板
         self.base_template = self._create_prompt_template(prompts.get("base_template", ""))
         self.description_template = self._create_prompt_template(prompts.get("description_template", ""))
         self.dialogue_template = self._create_prompt_template(prompts.get("dialogue_template", ""))
 
+    def _build_glossary_instruction(self) -> str:
+        """构建词库提示文本，附加到系统提示词后面。"""
+        if not self.glossary or not self.glossary.strip():
+            return ''
+        return (
+            "\n\n【翻译词库 / Translation Glossary】\n"
+            "以下是必须严格遵守的术语对照表，翻译时遇到这些词汇必须使用指定的译文，不得自行翻译：\n"
+            "The following is a mandatory glossary. When encountering these terms, you MUST use the specified translations:\n"
+            f"{self.glossary}"
+        )
+
     def _create_prompt_template(self, system_content: str) -> ChatPromptTemplate:
         """根据系统内容创建聊天提示模板。"""
+        # 将词库指示附加到系统提示内容后面
+        full_system_content = system_content + self._build_glossary_instruction()
         return ChatPromptTemplate.from_messages([
-            SystemMessage(content=system_content),
+            SystemMessage(content=full_system_content),
             HumanMessagePromptTemplate.from_template("{text}")
         ])
 
