@@ -229,12 +229,33 @@ function switchView(view: string) {
   height: 100%;
   display: flex;
   flex-direction: column;
+  animation: fadeSlideUp 0.35s var(--tt-smooth) both;
 }
 
 .editor-form {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+/* Each form item animates in with stagger */
+.editor-form .el-form-item {
+  animation: fadeSlideUp 0.3s var(--tt-smooth) both;
+}
+
+.editor-form .el-col:nth-child(1) .el-form-item { animation-delay: 0s; }
+.editor-form .el-col:nth-child(2) .el-form-item { animation-delay: 0.03s; }
+.editor-form .el-col:nth-child(3) .el-form-item { animation-delay: 0.06s; }
+.editor-form .el-col:nth-child(4) .el-form-item { animation-delay: 0.09s; }
+.editor-form .el-col:nth-child(5) .el-form-item { animation-delay: 0.12s; }
+.editor-form .el-col:nth-child(6) .el-form-item { animation-delay: 0.15s; }
+.editor-form .el-col:nth-child(7) .el-form-item { animation-delay: 0.18s; }
+.editor-form .el-col:nth-child(8) .el-form-item { animation-delay: 0.21s; }
+
+/* Textarea focus glow */
+.editor-form :deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 2px var(--apple-color-primary) inset,
+              0 0 12px var(--apple-color-primary-glow) !important;
 }
 
 /* Alternate greeting row */
@@ -244,6 +265,15 @@ function switchView(view: string) {
   gap: 8px;
   margin-bottom: 10px;
   width: 100%;
+  padding: 8px;
+  border-radius: var(--apple-border-radius-medium);
+  border: 1px solid transparent;
+  transition: all 0.2s var(--tt-smooth);
+}
+
+.greeting-item:hover {
+  border-color: var(--apple-border-color);
+  background-color: var(--apple-bg-color-secondary);
 }
 
 .greeting-item .el-input {
@@ -262,6 +292,7 @@ function switchView(view: string) {
   .greeting-item {
     flex-direction: column;
     align-items: stretch;
+    padding: 6px;
   }
 
   .greeting-actions {
@@ -286,3 +317,4 @@ function switchView(view: string) {
   }
 }
 </style>
+

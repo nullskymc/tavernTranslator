@@ -1,9 +1,15 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
-import axios from 'axios';
-import { ElMessage, ElNotification, ElLoading } from 'element-plus';
+import { ElMessage, ElNotification, ElMessageBox } from 'element-plus';
 import { get, set } from 'lodash-es';
 import type { CharacterCard, TranslationSettings, GlossaryEntry } from '@/types';
+import { useGlossaryStore } from './glossary';
+import {
+  uploadCharacterCard as apiUpload,
+  translateField as apiTranslate,
+  batchTranslate as apiBatchTranslate,
+  exportCardAsImage as apiExportImage,
+} from '@/services/api';
 
 // --- Helper ---
 function base64ToBlob(base64: string, mimeType: string): Blob {
@@ -20,7 +26,6 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
 const CARD_STORAGE_KEY = 'characterCard';
 const SETTINGS_STORAGE_KEY = 'translationSettings';
 const IMAGE_STORAGE_KEY = 'characterImageB64';
-const GLOSSARY_STORAGE_KEY = 'glossaryEntries';
 
 export const defaultPromptsZh = {
   base_template: `你是一个专业的翻译专家。请按照以下要求进行翻译：
@@ -91,7 +96,6 @@ export const useTranslatorStore = defineStore('translator', () => {
   const characterCard = ref<CharacterCard | null>(null);
   const characterImageB64 = ref<string | null>(null);
   const isLoading = ref(false);
-  const glossaryEntries = ref<GlossaryEntry[]>([]);
   const translationSettings = ref<TranslationSettings>({
     api_key: '',
     base_url: 'https://api.openai.com/v1',
@@ -100,93 +104,56 @@ export const useTranslatorStore = defineStore('translator', () => {
     prompts: { ...defaultPromptsZh },
   });
 
+  // --- Glossary Store (委托) ---
+  const glossaryStore = useGlossaryStore();
+
+  // 向外暴露 glossaryEntries 以兼容旧组件引用
+  const glossaryEntries = glossaryStore.entries;
+
   // --- Actions ---
   const loadFromStorage = () => {
     const savedCard = localStorage.getItem(CARD_STORAGE_KEY);
-    if (savedCard) try { characterCard.value = JSON.parse(savedCard); } catch (e) { localStorage.removeItem(CARD_STORAGE_KEY); }
+    if (savedCard) try { characterCard.value = JSON.parse(savedCard); } catch { localStorage.removeItem(CARD_STORAGE_KEY); }
 
     const savedImg = localStorage.getItem(IMAGE_STORAGE_KEY);
     if (savedImg) characterImageB64.value = savedImg;
 
     const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (savedSettings) try { 
+    if (savedSettings) try {
       const parsedSettings = JSON.parse(savedSettings);
       Object.assign(translationSettings.value, parsedSettings);
       if (!parsedSettings.prompts) {
         translationSettings.value.prompts = parsedSettings.prompt_language === 'en' ? { ...defaultPromptsEn } : { ...defaultPromptsZh };
       }
-    } catch (e) { 
-      localStorage.removeItem(SETTINGS_STORAGE_KEY); 
-    }
-
-    const savedGlossary = localStorage.getItem(GLOSSARY_STORAGE_KEY);
-    if (savedGlossary) try { glossaryEntries.value = JSON.parse(savedGlossary); } catch (e) { localStorage.removeItem(GLOSSARY_STORAGE_KEY); }
-  };
-
-  // --- Glossary Actions ---
-  const addGlossaryEntry = (entry: Omit<GlossaryEntry, 'id'>) => {
-    glossaryEntries.value.push({
-      ...entry,
-      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
-    });
-  };
-
-  const removeGlossaryEntry = (id: string) => {
-    glossaryEntries.value = glossaryEntries.value.filter(e => e.id !== id);
-  };
-
-  const updateGlossaryEntry = (id: string, updates: Partial<GlossaryEntry>) => {
-    const idx = glossaryEntries.value.findIndex(e => e.id === id);
-    if (idx !== -1) {
-      glossaryEntries.value[idx] = { ...glossaryEntries.value[idx], ...updates };
+    } catch {
+      localStorage.removeItem(SETTINGS_STORAGE_KEY);
     }
   };
 
-  const clearGlossary = () => {
-    glossaryEntries.value = [];
-  };
+  // --- Glossary 委托方法（保持向后兼容） ---
+  const addGlossaryEntry = (entry: Omit<GlossaryEntry, 'id'>) => glossaryStore.addEntry(entry);
+  const removeGlossaryEntry = (id: string) => glossaryStore.removeEntry(id);
+  const updateGlossaryEntry = (id: string, updates: Partial<GlossaryEntry>) => glossaryStore.updateEntry(id, updates);
+  const clearGlossary = () => glossaryStore.clear();
+  const importGlossary = (entries: GlossaryEntry[]) => glossaryStore.importEntries(entries);
+  const exportGlossary = () => glossaryStore.exportEntries();
+  const buildGlossaryPromptText = () => glossaryStore.buildPromptText();
 
-  const importGlossary = (entries: GlossaryEntry[]) => {
-    // Merge: skip duplicates by source+target pair
-    const existing = new Set(glossaryEntries.value.map(e => `${e.source}||${e.target}`));
-    let added = 0;
-    for (const entry of entries) {
-      const key = `${entry.source}||${entry.target}`;
-      if (!existing.has(key)) {
-        glossaryEntries.value.push({
-          ...entry,
-          id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2),
-        });
-        existing.add(key);
-        added++;
-      }
-    }
-    return added;
-  };
-
-  const exportGlossary = () => {
-    return JSON.parse(JSON.stringify(glossaryEntries.value));
-  };
-
-  /** Build glossary text for injection into translation prompts */
-  const buildGlossaryPromptText = (): string => {
-    if (glossaryEntries.value.length === 0) return '';
-    const lines = glossaryEntries.value.map(e => `- "${e.source}" → "${e.target}"`);
-    return lines.join('\n');
-  };
+  const _getSettingsPayload = () => ({
+    api_key: translationSettings.value.api_key,
+    base_url: translationSettings.value.base_url,
+    model_name: translationSettings.value.model_name,
+  });
 
   const handleCardUpload = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
     isLoading.value = true;
     try {
-      const response = await axios.post('/api/v1/character/upload', formData);
-      characterCard.value = response.data.character_data;
-      characterImageB64.value = response.data.image_b64;
+      const data = await apiUpload(file);
+      characterCard.value = data.character_data as unknown as CharacterCard;
+      characterImageB64.value = data.image_b64;
       ElMessage.success('角色卡解析成功！');
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || '解析角色卡失败';
-      ElNotification.error({ title: '上传失败', message: errorMessage });
+      ElNotification.error({ title: '上传失败', message: error.message || '解析角色卡失败' });
     } finally {
       isLoading.value = false;
     }
@@ -205,25 +172,20 @@ export const useTranslatorStore = defineStore('translator', () => {
       ElMessage.warning('请先在设置中提供您的 API Key');
       return;
     }
-    const fieldName = path.split('.').pop();
+    const fieldName = path.split('.').pop()!;
     isLoading.value = true;
     try {
-      const response = await axios.post('/api/v1/character/translate', {
+      const data = await apiTranslate({
         text: textToTranslate,
         field_name: fieldName,
-        settings: {
-          api_key: translationSettings.value.api_key,
-          base_url: translationSettings.value.base_url,
-          model_name: translationSettings.value.model_name,
-        },
+        settings: _getSettingsPayload(),
         prompts: translationSettings.value.prompts,
         glossary: buildGlossaryPromptText(),
       });
-      set(characterCard.value, path, response.data.translated_text);
+      set(characterCard.value, path, data.translated_text);
       ElMessage.success(`字段 ${fieldName} 翻译成功`);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || '翻译服务出错';
-      ElNotification.error({ title: '翻译失败', message: errorMessage });
+      ElNotification.error({ title: '翻译失败', message: error.message || '翻译服务出错' });
     } finally {
       isLoading.value = false;
     }
@@ -237,151 +199,96 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
 
     // 收集所有需要翻译的字段
-    const fieldsToTranslate = [];
-    
-    // 收集角色卡主要字段 (与手动翻译按钮对应的字段相同)
-    // 注意：name 字段通常不需要翻译，所以排除它
+    const fieldsToTranslate: { field_name: string; text: string }[] = [];
+
     const mainFields = [
-      'data.description',
-      'data.personality',
-      'data.scenario',
-      'data.first_mes',
-      'data.mes_example',
-      'data.creator_notes'
+      'data.description', 'data.personality', 'data.scenario',
+      'data.first_mes', 'data.mes_example', 'data.creator_notes',
     ];
-    
-    // 添加主要字段
+
     for (const field of mainFields) {
       const text = get(characterCard.value, field);
       if (text && typeof text === 'string' && text.trim()) {
-        fieldsToTranslate.push({
-          field_name: field.split('.').pop() || field,
-          text: text
-        });
+        fieldsToTranslate.push({ field_name: field.split('.').pop() || field, text });
       }
     }
-    
-    // 添加alternate_greetings字段
-    const greetings = get(characterCard.value, 'data.alternate_greetings', []);
+
+    const greetings = get(characterCard.value, 'data.alternate_greetings', []) as string[];
     if (Array.isArray(greetings)) {
       for (let i = 0; i < greetings.length; i++) {
-        const greeting = greetings[i];
+        const greeting = greetings[i] as string;
         if (greeting && typeof greeting === 'string' && greeting.trim()) {
-          fieldsToTranslate.push({
-            field_name: `alternate_greetings[${i}]`,
-            text: greeting
-          });
+          fieldsToTranslate.push({ field_name: `alternate_greetings[${i}]`, text: greeting });
         }
       }
     }
-    
-    // 添加character_book字段
+
     const characterBook = get(characterCard.value, 'data.character_book');
     if (characterBook && typeof characterBook === 'object') {
-      // character_book的description字段
       const bookDescription = get(characterBook, 'description');
       if (bookDescription && typeof bookDescription === 'string' && bookDescription.trim()) {
-        fieldsToTranslate.push({
-          field_name: 'character_book.description',
-          text: bookDescription
-        });
+        fieldsToTranslate.push({ field_name: 'character_book.description', text: bookDescription });
       }
-      
-      // 添加lore条目内容
       const lore = get(characterBook, 'lore', []);
       if (Array.isArray(lore)) {
         for (let i = 0; i < lore.length; i++) {
           const loreItem = lore[i];
-          if (loreItem && typeof loreItem === 'object' && loreItem.content) {
-            const loreContent = loreItem.content;
-            if (loreContent && typeof loreContent === 'string' && loreContent.trim()) {
-              fieldsToTranslate.push({
-                field_name: `character_book.lore[${i}].content`,
-                text: loreContent
-              });
-            }
+          if (loreItem?.content && typeof loreItem.content === 'string' && loreItem.content.trim()) {
+            fieldsToTranslate.push({ field_name: `character_book.lore[${i}].content`, text: loreItem.content });
           }
         }
       }
     }
-    
+
     if (fieldsToTranslate.length === 0) {
       ElMessage.info('没有需要翻译的字段');
       return;
     }
-    
-    // 设置批量翻译状态，锁定编辑框
+
     isLoading.value = true;
-    
-    // 显示进度信息
-    let completedCount = 0;
-    const totalFields = fieldsToTranslate.length;
-    
-    // 创建一个不会遮挡界面的进度通知
+
     const notification = ElNotification({
       title: '批量翻译进行中',
-      message: `正在翻译字段 (0/${totalFields})...`,
-      duration: 0, // 不自动关闭
+      message: `正在翻译字段 (0/${fieldsToTranslate.length})...`,
+      duration: 0,
       dangerouslyUseHTMLString: true,
-      // 确保通知始终可见
       showClose: false,
     });
-    
+
     try {
-      const response = await axios.post('/api/v1/character/batch-translate', {
+      const data = await apiBatchTranslate({
         fields: fieldsToTranslate,
-        settings: {
-          api_key: translationSettings.value.api_key,
-          base_url: translationSettings.value.base_url,
-          model_name: translationSettings.value.model_name,
-        },
+        settings: _getSettingsPayload(),
         prompts: translationSettings.value.prompts,
         glossary: buildGlossaryPromptText(),
       });
-      
-      // 更新翻译结果
-      const results = response.data.results;
+
       let successCount = 0;
-      
-      for (const result of results) {
+      let completedCount = 0;
+
+      for (const result of data.results) {
         if (result.success) {
-          // 构造字段路径
-          let path = '';
-          if (result.field_name.startsWith('alternate_greetings[')) {
-            path = `data.${result.field_name}`;
-          } else if (result.field_name.startsWith('character_book.')) {
-            path = `data.${result.field_name}`;
-          } else {
-            path = `data.${result.field_name}`;
-          }
-          
+          const path = `data.${result.field_name}`;
           set(characterCard.value, path, result.translated_text);
           successCount++;
         }
-        
-        // 更新进度
         completedCount++;
-        notification.message = `正在翻译字段 (${completedCount}/${totalFields})...`;
       }
-      
-      // 关闭进度通知并显示成功消息
+
       notification.close();
       ElNotification.success({
         title: '批量翻译完成',
         message: `成功翻译 ${successCount}/${fieldsToTranslate.length} 个字段`,
-        duration: 3000
+        duration: 3000,
       });
     } catch (error: any) {
-      // 关闭进度通知并显示错误消息
       notification.close();
-      const errorMessage = error.response?.data?.detail || '批量翻译服务出错';
-      ElNotification.error({ 
-        title: '批量翻译失败', 
-        message: errorMessage,
-        duration: 0 // 错误消息不自动关闭
+      ElNotification.error({
+        title: '批量翻译失败',
+        message: error.message || '批量翻译服务出错',
+        duration: 0,
       });
     } finally {
-      // 解锁编辑框
       isLoading.value = false;
     }
   };
@@ -393,16 +300,12 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
     isLoading.value = true;
     try {
-      const formData = new FormData();
-      formData.append('json_data', JSON.stringify(characterCard.value));
       const imageBlob = base64ToBlob(characterImageB64.value, 'image/png');
-      formData.append('image_file', imageBlob, 'character_base.png');
-
-      const response = await axios.post('/api/v1/character/export', formData, {
-        responseType: 'blob',
+      const blob = await apiExportImage({
+        json_data: JSON.stringify(characterCard.value),
+        image_blob: imageBlob,
       });
 
-      const blob = new Blob([response.data], { type: 'image/png' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -413,13 +316,12 @@ export const useTranslatorStore = defineStore('translator', () => {
       window.URL.revokeObjectURL(url);
       ElMessage.success('角色卡已成功导出为图片！');
     } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || '无法生成角色卡图片';
-      ElNotification.error({ title: '导出失败', message: errorMessage });
+      ElNotification.error({ title: '导出失败', message: error.message || '无法生成角色卡图片' });
     } finally {
       isLoading.value = false;
     }
   };
-  
+
   const resetStore = () => {
     characterCard.value = null;
     characterImageB64.value = null;
@@ -445,13 +347,12 @@ export const useTranslatorStore = defineStore('translator', () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       ElMessage.success('角色卡已成功导出为 JSON！');
-    } catch (error: any) {
+    } catch {
       ElNotification.error({ title: '导出失败', message: '导出 JSON 文件失败' });
     }
   };
 
   const handleJsonUpload = async (file: File) => {
-    // 显示确认对话框
     try {
       await ElMessageBox.confirm(
         '上传 JSON 文件将替换当前的角色卡数据。您确定要继续吗？',
@@ -463,7 +364,6 @@ export const useTranslatorStore = defineStore('translator', () => {
         }
       );
     } catch {
-      // 用户取消操作
       return;
     }
 
@@ -474,7 +374,7 @@ export const useTranslatorStore = defineStore('translator', () => {
         characterCard.value = jsonData;
         characterImageB64.value = null;
         ElMessage.success('JSON 文件解析成功！');
-      } catch (error: any) {
+      } catch {
         ElMessage.error('解析 JSON 文件失败，请确保文件格式正确。');
       }
     };
@@ -491,34 +391,34 @@ export const useTranslatorStore = defineStore('translator', () => {
 
   const createNewCard = () => {
     characterCard.value = {
-      "data": {
-        "name": "新角色",
-        "description": "",
-        "personality": "",
-        "scenario": "",
-        "first_mes": "",
-        "mes_example": "",
-        "creator_notes": "",
-        "system_prompt": "",
-        "post_history_instructions": "",
-        "tags": [],
-        "alternate_greetings": [],
-        "character_book": {
-          "name": "",
-          "description": "",
-          "scan_depth": 0,
-          "token_budget": 0,
-          "recursive_scanning": false,
-          "extensions": {},
-          "lore": []
+      data: {
+        name: '新角色',
+        description: '',
+        personality: '',
+        scenario: '',
+        first_mes: '',
+        mes_example: '',
+        creator_notes: '',
+        system_prompt: '',
+        post_history_instructions: '',
+        tags: [],
+        alternate_greetings: [],
+        character_book: {
+          name: '',
+          description: '',
+          scan_depth: 0,
+          token_budget: 0,
+          recursive_scanning: false,
+          extensions: {},
+          lore: [],
         },
-        "extensions": {},
-        "spec": "chara_card_v2",
-        "spec_version": "2.0"
+        extensions: {},
+        spec: 'chara_card_v2',
+        spec_version: '2.0',
       },
-      "last_update": Date.now(),
-      "last_update_human": new Date().toLocaleString()
-    };
+      last_update: Date.now(),
+      last_update_human: new Date().toLocaleString(),
+    } as CharacterCard;
     characterImageB64.value = null;
     ElMessage.success('已创建新的空白角色卡！');
   };
@@ -536,10 +436,6 @@ export const useTranslatorStore = defineStore('translator', () => {
 
   watch(translationSettings, (val) => {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(val));
-  }, { deep: true });
-
-  watch(glossaryEntries, (val) => {
-    localStorage.setItem(GLOSSARY_STORAGE_KEY, JSON.stringify(val));
   }, { deep: true });
 
   // --- Initial Load ---

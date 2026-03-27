@@ -1,118 +1,104 @@
-/* OpenAI-inspired design tokens */
+/* ============================================
+   Apple-inspired Design Tokens
+   Premium spatial system & visual language
+   ============================================ */
 :root {
-  /* Primary - OpenAI green accent */
-  --apple-color-primary: #10a37f;
-  --apple-color-primary-light: #1ac999;
-  --apple-color-primary-dark: #0d8a6a;
-  --apple-color-primary-alpha: rgba(16, 163, 127, 0.12);
+  /* Colors */
+  --apple-color-primary: #0ea47a;
+  --apple-color-primary-dark: #0b8a66;
+  --apple-color-primary-alpha: rgba(14, 164, 122, 0.10);
+  --apple-color-primary-glow: rgba(14, 164, 122, 0.25);
 
-  /* Status colors */
-  --apple-color-success: #10a37f;
-  --apple-color-success-light: #1ac999;
-  --apple-color-success-dark: #0d8a6a;
-
-  --apple-color-warning: #f5a623;
-  --apple-color-warning-light: #f7b84e;
-  --apple-color-warning-dark: #d4891b;
+  --apple-color-accent: #d4a853;
+  --apple-color-accent-alpha: rgba(212, 168, 83, 0.12);
 
   --apple-color-danger: #ef4444;
-  --apple-color-danger-light: #f87171;
-  --apple-color-danger-dark: #dc2626;
+  --apple-color-warning: #f59e0b;
 
-  /* Neutral grays - OpenAI palette */
-  --apple-color-gray-1: #6b7280;
-  --apple-color-gray-2: #9ca3af;
-  --apple-color-gray-3: #d1d5db;
-  --apple-color-gray-4: #e5e7eb;
+  /* Grays */
+  --apple-color-gray-1: #374151;
+  --apple-color-gray-2: #6b7280;
+  --apple-color-gray-3: #9ca3af;
+  --apple-color-gray-4: #d1d5db;
   --apple-color-gray-5: #f3f4f6;
   --apple-color-gray-6: #f9fafb;
 
-  /* Backgrounds - clean white */
+  /* Backgrounds */
   --apple-bg-color: #ffffff;
-  --apple-bg-color-secondary: #f7f7f8;
-  --apple-bg-color-tertiary: #ffffff;
-  --apple-bg-sidebar: #f7f7f8;
+  --apple-bg-color-secondary: #f8f9fb;
+  --apple-bg-sidebar: #f3f4f6;
+  --apple-bg-elevated: #ffffff;
 
-  /* Text colors */
-  --apple-text-color-primary: #0d0d0d;
+  /* Text */
+  --apple-text-color-primary: #111827;
   --apple-text-color-secondary: #6b7280;
   --apple-text-color-tertiary: #9ca3af;
-  --apple-text-color-inverse: #ffffff;
-  --apple-text-color-muted: #9ca3af;
 
   /* Borders */
   --apple-border-color: #e5e7eb;
   --apple-border-color-secondary: #f3f4f6;
   --apple-border-color-strong: #d1d5db;
 
-  /* Shadows - very subtle */
-  --apple-shadow-small: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --apple-shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --apple-shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --apple-shadow-dialog: 0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 20px rgba(0, 0, 0, 0.06);
-
-  /* Border radius */
-  --apple-border-radius-small: 4px;
-  --apple-border-radius-medium: 8px;
-  --apple-border-radius-large: 12px;
-  --apple-border-radius-xl: 16px;
+  /* Radius */
+  --apple-border-radius-small: 6px;
+  --apple-border-radius-medium: 10px;
+  --apple-border-radius-large: 14px;
+  --apple-border-radius-xl: 18px;
   --apple-border-radius-full: 9999px;
 
-  /* Transitions */
-  --apple-transition-duration: 0.15s;
+  /* Shadows */
+  --apple-shadow-small: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --apple-shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --apple-shadow-large: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+  --apple-shadow-dialog: 0 25px 60px -12px rgba(0, 0, 0, 0.15);
+  --apple-shadow-glow: 0 0 20px rgba(14, 164, 122, 0.15);
+
+  /* Transition */
+  --apple-transition-duration: 0.2s;
   --apple-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --apple-transition-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Gradients */
+  --apple-gradient-shimmer: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
 }
 
-/* Dark theme - OpenAI dark mode */
+/* ============================================
+   Dark Theme Overrides
+   ============================================ */
 .dark-theme {
-  /* Primary */
-  --apple-color-primary: #19c37d;
-  --apple-color-primary-light: #2dd68f;
-  --apple-color-primary-dark: #15a86b;
-  --apple-color-primary-alpha: rgba(25, 195, 125, 0.15);
+  --apple-color-primary: #34d399;
+  --apple-color-primary-dark: #6ee7b7;
+  --apple-color-primary-alpha: rgba(52, 211, 153, 0.12);
+  --apple-color-primary-glow: rgba(52, 211, 153, 0.20);
 
-  /* Status */
-  --apple-color-success: #19c37d;
-  --apple-color-success-light: #2dd68f;
-  --apple-color-success-dark: #15a86b;
+  --apple-color-accent: #f0c060;
+  --apple-color-accent-alpha: rgba(240, 192, 96, 0.15);
 
-  --apple-color-warning: #f59e0b;
-  --apple-color-warning-light: #fbbf24;
-  --apple-color-warning-dark: #d97706;
+  --apple-color-gray-1: #e2e8f0;
+  --apple-color-gray-2: #94a3b8;
+  --apple-color-gray-3: #64748b;
+  --apple-color-gray-4: #475569;
+  --apple-color-gray-5: #1e2332;
+  --apple-color-gray-6: #1a1f2e;
 
-  --apple-color-danger: #f87171;
-  --apple-color-danger-light: #fca5a5;
-  --apple-color-danger-dark: #ef4444;
+  --apple-bg-color: #1a1f2e;
+  --apple-bg-color-secondary: #111622;
+  --apple-bg-sidebar: #151a28;
+  --apple-bg-elevated: #222738;
 
-  /* Neutral grays - OpenAI dark */
-  --apple-color-gray-1: #8e8ea0;
-  --apple-color-gray-2: #6b6b7d;
-  --apple-color-gray-3: #4a4a5a;
-  --apple-color-gray-4: #353541;
-  --apple-color-gray-5: #2d2d3a;
-  --apple-color-gray-6: #202123;
+  --apple-text-color-primary: #f1f5f9;
+  --apple-text-color-secondary: #94a3b8;
+  --apple-text-color-tertiary: #64748b;
 
-  /* Backgrounds */
-  --apple-bg-color: #343541;
-  --apple-bg-color-secondary: #202123;
-  --apple-bg-color-tertiary: #444654;
-  --apple-bg-sidebar: #202123;
-
-  /* Text */
-  --apple-text-color-primary: #ececf1;
-  --apple-text-color-secondary: #8e8ea0;
-  --apple-text-color-tertiary: #6b6b7d;
-  --apple-text-color-inverse: #0d0d0d;
-  --apple-text-color-muted: #6b6b7d;
-
-  /* Borders */
   --apple-border-color: rgba(255, 255, 255, 0.08);
-  --apple-border-color-secondary: rgba(255, 255, 255, 0.05);
-  --apple-border-color-strong: rgba(255, 255, 255, 0.12);
+  --apple-border-color-secondary: rgba(255, 255, 255, 0.04);
+  --apple-border-color-strong: rgba(255, 255, 255, 0.14);
 
-  /* Shadows */
-  --apple-shadow-small: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --apple-shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --apple-shadow-large: 0 10px 20px rgba(0, 0, 0, 0.5);
-  --apple-shadow-dialog: 0 20px 60px rgba(0, 0, 0, 0.6);
+  --apple-shadow-small: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --apple-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --apple-shadow-large: 0 10px 25px rgba(0, 0, 0, 0.5);
+  --apple-shadow-dialog: 0 25px 60px rgba(0, 0, 0, 0.7);
+  --apple-shadow-glow: 0 0 25px rgba(52, 211, 153, 0.12);
+
+  --apple-gradient-shimmer: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
 }

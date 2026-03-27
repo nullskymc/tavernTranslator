@@ -203,15 +203,17 @@ const openAIChat = () => {
 
 <style scoped>
 /* ===========================
-   Sidebar - OpenAI style
+   Sidebar — Premium Glass
    =========================== */
 .app-sidebar {
   width: fit-content;
   min-width: 220px;
   max-width: 280px;
   height: 100vh;
-  background-color: var(--apple-bg-sidebar);
-  border-right: 1px solid var(--apple-border-color);
+  background: var(--tt-glass-bg);
+  backdrop-filter: blur(var(--tt-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tt-glass-blur));
+  border-right: 1px solid var(--tt-glass-border);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -235,7 +237,7 @@ const openAIChat = () => {
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: background-color var(--apple-transition-duration) var(--apple-transition-easing);
+  transition: all 0.2s var(--tt-smooth);
   color: var(--apple-text-color-secondary);
   font-size: 14px;
 }
@@ -243,6 +245,7 @@ const openAIChat = () => {
 .mobile-close-btn:hover {
   background-color: var(--apple-color-gray-4);
   color: var(--apple-text-color-primary);
+  transform: scale(1.1);
 }
 
 /* Header */
@@ -256,18 +259,24 @@ const openAIChat = () => {
 }
 
 .logo {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--apple-border-radius-medium);
   flex-shrink: 0;
+  box-shadow: var(--apple-shadow-small);
+  transition: transform 0.3s var(--apple-transition-spring);
+}
+
+.logo:hover {
+  transform: rotate(-5deg) scale(1.08);
 }
 
 .sidebar-header h2 {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
   color: var(--apple-text-color-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -299,6 +308,28 @@ const openAIChat = () => {
   overflow: hidden;
   background-color: var(--apple-color-gray-5);
   border: 1px solid var(--apple-border-color);
+  position: relative;
+  transition: transform 0.3s var(--tt-smooth);
+}
+
+.image-preview-wrapper:hover {
+  transform: scale(1.02);
+}
+
+/* Image overlay gradient on hover */
+.image-preview-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.25) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.image-preview-wrapper:hover::after {
+  opacity: 1;
 }
 
 .image-preview {
@@ -306,6 +337,11 @@ const openAIChat = () => {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.4s var(--tt-smooth);
+}
+
+.image-preview-wrapper:hover .image-preview {
+  transform: scale(1.04);
 }
 
 .image-placeholder {
@@ -360,7 +396,7 @@ const openAIChat = () => {
   padding: 8px 8px 4px;
 }
 
-/* Action grid - 3 columns of circle buttons */
+/* Action grid — 3 columns of animated circle buttons */
 .action-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -382,19 +418,20 @@ const openAIChat = () => {
   cursor: pointer;
   color: var(--apple-text-color-secondary);
   font-size: 18px;
-  transition: all 0.2s ease;
+  transition: all 0.25s var(--tt-smooth);
 }
 
 .action-btn:hover {
-  background-color: var(--apple-color-gray-5);
   color: var(--apple-text-color-primary);
   border-color: var(--apple-border-color-strong);
-  transform: scale(1.1);
-  box-shadow: var(--apple-shadow-small);
+  transform: scale(1.12) translateY(-2px);
+  box-shadow: var(--apple-shadow-medium);
+  background: var(--apple-color-gray-5);
 }
 
 .action-btn:active {
   transform: scale(0.95);
+  transition-duration: 0.1s;
 }
 
 .action-btn:disabled {
@@ -415,9 +452,10 @@ const openAIChat = () => {
 }
 
 .action-btn--ai:hover {
-  background-color: var(--apple-color-primary-alpha);
+  background: var(--apple-color-primary-alpha);
   color: var(--apple-color-primary);
   border-color: var(--apple-color-primary);
+  box-shadow: var(--apple-shadow-glow);
 }
 
 .action-btn--danger {
@@ -429,9 +467,10 @@ const openAIChat = () => {
   background-color: rgba(239, 68, 68, 0.08);
   color: var(--apple-color-danger);
   border-color: var(--apple-color-danger);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.12);
 }
 
-/* Badge on circle button (glossary count) */
+/* Badge */
 .action-btn-badge {
   position: absolute;
   top: -4px;
@@ -443,12 +482,13 @@ const openAIChat = () => {
   height: 16px;
   padding: 0 4px;
   border-radius: var(--apple-border-radius-full);
-  background-color: var(--apple-color-primary);
+  background: var(--tt-gradient-primary);
   color: #fff;
   font-size: 9px;
   font-weight: 600;
   line-height: 1;
   pointer-events: none;
+  box-shadow: 0 2px 6px rgba(14, 164, 122, 0.3);
 }
 
 /* Footer */
@@ -477,7 +517,7 @@ const openAIChat = () => {
 }
 
 .github-link:hover {
-  color: var(--apple-text-color-secondary);
+  color: var(--apple-color-primary);
 }
 
 /* Mobile */

@@ -4,6 +4,11 @@
 @import './mobile.css';
 
 /* ============================================
+   Google Fonts
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ============================================
    Base reset & typography
    ============================================ */
 *, *::before, *::after {
@@ -11,9 +16,8 @@
 }
 
 body {
-  font-family: 'Söhne', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
-    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   margin: 0;
   padding: 0;
   background-color: var(--apple-bg-color-secondary);
@@ -22,7 +26,7 @@ body {
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s ease, color 0.25s ease;
   overflow-x: hidden;
 }
 
@@ -32,11 +36,11 @@ body {
 }
 
 /* ============================================
-   Scrollbars - minimal OpenAI style
+   Scrollbars — minimal & elegant
    ============================================ */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -88,29 +92,117 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Button overrides
+   Global animations
+   ============================================ */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--apple-color-primary-glow); }
+  50% { box-shadow: 0 0 16px 4px var(--apple-color-primary-glow); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.fade-slide-up {
+  animation: fadeSlideUp 0.4s var(--tt-smooth) both;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Skeleton loading shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--apple-color-gray-5) 25%,
+    var(--apple-color-gray-6) 50%,
+    var(--apple-color-gray-5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--apple-border-radius-medium);
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+
+/* ============================================
+   Vue transition classes
+   ============================================ */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* ============================================
+   Element Plus — Button overrides
    ============================================ */
 .el-button {
   font-family: inherit;
   font-weight: 500;
   font-size: 13px;
   border-radius: var(--apple-border-radius-medium);
-  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+  transition: all 0.2s var(--tt-smooth);
   letter-spacing: 0.01em;
 }
 
 .el-button--primary {
-  background-color: var(--apple-color-primary);
+  background: var(--tt-gradient-primary);
   border-color: var(--apple-color-primary);
   color: #ffffff;
+  box-shadow: 0 2px 8px rgba(14, 164, 122, 0.2);
 }
 
 .el-button--primary:hover,
 .el-button--primary:focus {
-  background-color: var(--apple-color-primary-dark);
+  background: var(--tt-gradient-primary);
   border-color: var(--apple-color-primary-dark);
   color: #ffffff;
   opacity: 1;
+  box-shadow: 0 4px 14px rgba(14, 164, 122, 0.3);
+  transform: translateY(-1px);
+}
+
+.el-button--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(14, 164, 122, 0.2);
 }
 
 .el-button--default {
@@ -123,15 +215,16 @@ a:hover {
   background-color: var(--el-fill-color-light);
   border-color: var(--el-border-color-dark);
   color: var(--el-text-color-primary);
+  transform: translateY(-1px);
 }
 
 /* ============================================
-   Element Plus - Input overrides
+   Element Plus — Input overrides
    ============================================ */
 .el-input__wrapper {
   border-radius: var(--apple-border-radius-medium);
   box-shadow: 0 0 0 1px var(--el-border-color) inset;
-  transition: box-shadow var(--apple-transition-duration) var(--apple-transition-easing);
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
   background-color: var(--el-bg-color);
 }
 
@@ -140,7 +233,7 @@ a:hover {
 }
 
 .el-input__wrapper.is-focus {
-  box-shadow: 0 0 0 1.5px var(--apple-color-primary) inset !important;
+  box-shadow: 0 0 0 2px var(--apple-color-primary) inset !important;
 }
 
 .el-input__inner {
@@ -161,7 +254,7 @@ a:hover {
   background-color: var(--el-bg-color);
   color: var(--el-text-color-primary);
   line-height: 1.65;
-  transition: box-shadow var(--apple-transition-duration) var(--apple-transition-easing);
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
   resize: vertical;
 }
 
@@ -170,7 +263,7 @@ a:hover {
 }
 
 .el-textarea__inner:focus {
-  box-shadow: 0 0 0 1.5px var(--apple-color-primary) inset !important;
+  box-shadow: 0 0 0 2px var(--apple-color-primary) inset !important;
   outline: none;
 }
 
@@ -179,10 +272,10 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Form overrides
+   Element Plus — Form overrides
    ============================================ */
 .el-form-item {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .el-form-item__label {
@@ -196,19 +289,20 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Card overrides
+   Element Plus — Card overrides (glassmorphism)
    ============================================ */
 .el-card {
   border-radius: var(--apple-border-radius-large);
   border: 1px solid var(--el-border-color);
   background-color: var(--el-bg-color);
   box-shadow: var(--apple-shadow-small);
-  transition: box-shadow var(--apple-transition-duration) var(--apple-transition-easing);
+  transition: all 0.25s var(--tt-smooth);
   margin-bottom: 16px;
 }
 
 .el-card:hover {
   box-shadow: var(--apple-shadow-medium);
+  transform: translateY(-1px);
 }
 
 .el-card__header {
@@ -225,12 +319,14 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Dialog overrides
+   Element Plus — Dialog overrides
    ============================================ */
 .el-dialog {
   border-radius: var(--apple-border-radius-xl);
-  background-color: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
+  background: var(--tt-glass-bg);
+  backdrop-filter: blur(var(--tt-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tt-glass-blur));
+  border: 1px solid var(--tt-glass-border);
   box-shadow: var(--apple-shadow-dialog);
   overflow: hidden;
 }
@@ -243,9 +339,9 @@ a:hover {
 
 .el-dialog__title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--el-text-color-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .el-dialog__body {
@@ -274,7 +370,7 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Tag overrides
+   Element Plus — Tag overrides
    ============================================ */
 .el-tag {
   border-radius: var(--apple-border-radius-small);
@@ -286,7 +382,7 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Collapse overrides
+   Element Plus — Collapse overrides
    ============================================ */
 .el-collapse {
   border: 1px solid var(--el-border-color);
@@ -312,7 +408,7 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Alert overrides
+   Element Plus — Alert overrides
    ============================================ */
 .el-alert {
   border-radius: var(--apple-border-radius-medium);
@@ -322,7 +418,7 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Radio overrides
+   Element Plus — Radio overrides
    ============================================ */
 .el-radio-group {
   gap: 8px;
@@ -339,7 +435,7 @@ a:hover {
 }
 
 /* ============================================
-   Element Plus - Message/Notification
+   Element Plus — Message/Notification
    ============================================ */
 .el-message {
   border-radius: var(--apple-border-radius-large);
@@ -347,6 +443,15 @@ a:hover {
   box-shadow: var(--apple-shadow-large);
   font-size: 13px;
   font-family: inherit;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.el-notification {
+  border-radius: var(--apple-border-radius-large);
+  box-shadow: var(--apple-shadow-large);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* ============================================
@@ -358,28 +463,21 @@ a:hover {
   padding: 0;
 }
 
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
+/* Gradient text utility */
+.gradient-text {
+  background: var(--tt-gradient-hero);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.fa-spin {
-  animation: spin 1s linear infinite;
+/* Glass card utility */
+.glass-card {
+  background: var(--tt-glass-bg);
+  backdrop-filter: blur(var(--tt-glass-blur));
+  -webkit-backdrop-filter: blur(var(--tt-glass-blur));
+  border: 1px solid var(--tt-glass-border);
+  border-radius: var(--apple-border-radius-large);
 }
 
 /* ============================================

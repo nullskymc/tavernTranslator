@@ -1,11 +1,15 @@
+"""
+文件名迁移脚本
+将 UPLOAD_FOLDER 中的文件名从旧格式迁移到新格式（基于角色名称）
+"""
 import os
 import re
 import hashlib
 import logging
-from extract_text import extract_embedded_text
+
+from .extract_text import extract_embedded_text
 
 # --- 配置 ---
-# UPLOAD_FOLDER 是相对于此脚本位置（src/）确定的
 UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), '../.uploads'))
 
 # --- 日志设置 ---
@@ -15,14 +19,13 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+
 def sanitize_filename(name: str) -> str:
     """清理字符串以使其成为有效的文件名。"""
-    # 用下划线替换空格
     safe_name = re.sub(r'\s+', '_', name)
-    # 删除无效的文件名字符
     sanitized = re.sub(r'[\\/*?:"<>|]', '', safe_name)
-    # 去除开头和结尾的垃圾字符
     return sanitized.strip('._ ') or "未命名"
+
 
 def migrate_filenames():
     """将 UPLOAD_FOLDER 中的文件名从旧格式迁移到新格式。"""
@@ -41,11 +44,11 @@ def migrate_filenames():
 
     for filename in files_to_process:
         old_path = os.path.join(UPLOAD_FOLDER, filename)
-        
+
         try:
             with open(old_path, 'rb') as f:
                 content = f.read()
-            
+
             character_data = extract_embedded_text(content)
 
             if not character_data or "data" not in character_data or "name" not in character_data["data"]:
@@ -63,9 +66,7 @@ def migrate_filenames():
                 skipped_count += 1
                 continue
 
-            # 处理潜在的名称冲突
             if os.path.exists(new_path):
-                # 为安全起见，计算哈希值以确定是否为同一文件
                 existing_hash = hashlib.sha256(open(new_path, 'rb').read()).hexdigest()
                 current_hash = hashlib.sha256(content).hexdigest()
 
@@ -75,7 +76,6 @@ def migrate_filenames():
                     skipped_count += 1
                     continue
                 else:
-                    # 如果哈希值不同，则创建一个唯一的名称
                     unique_suffix = current_hash[:7]
                     new_filename = f"{sanitized_name}_{unique_suffix}.png"
                     new_path = os.path.join(UPLOAD_FOLDER, new_filename)
@@ -94,6 +94,7 @@ def migrate_filenames():
     logging.info(f"成功重命名：{renamed_count}")
     logging.info(f"跳过或失败：{skipped_count}")
     logging.info("迁移过程结束。")
+
 
 if __name__ == "__main__":
     migrate_filenames()
