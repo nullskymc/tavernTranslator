@@ -1,3 +1,15 @@
+## Codex Skill
+
+如果你想用 Codex 的 skill 方式使用这个项目，请切换到 `tt/skill` 分支，并把下面两项复制到 Codex 的 skills 目录：
+
+```bash
+mkdir -p "$HOME/.codex/skills/tavern-translator"
+cp /Volumes/app/DevelopProject/tavernTranslator/SKILL.md "$HOME/.codex/skills/tavern-translator/"
+cp -R /Volumes/app/DevelopProject/tavernTranslator/references "$HOME/.codex/skills/tavern-translator/"
+```
+
+开一个新的 Codex 会话后，skill 就会自动可用。
+
 # Tavern Translator
 
 一个用于在中文和英文之间互译 SillyTavern 角色卡的工具，支持从 PNG 文件中提取文本并输出翻译后的角色卡。
@@ -90,18 +102,6 @@ cd tavernTranslator
 -   **API Key**: API 访问密钥。
 
 支持任何兼容 OpenAI API 的服务。
-
-## Codex Skill
-
-如果你想用 Codex 的 skill 方式使用这个项目，请切换到 `tt/skill` 分支，并把下面两项复制到 Codex 的 skills 目录：
-
-```bash
-mkdir -p "$HOME/.codex/skills/tavern-translator"
-cp /Volumes/app/DevelopProject/tavernTranslator/SKILL.md "$HOME/.codex/skills/tavern-translator/"
-cp -R /Volumes/app/DevelopProject/tavernTranslator/references "$HOME/.codex/skills/tavern-translator/"
-```
-
-开一个新的 Codex 会话后，skill 就会自动可用。
 
 ## License
 
