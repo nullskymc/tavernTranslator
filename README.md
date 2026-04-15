@@ -4,8 +4,8 @@
 
 ```bash
 mkdir -p "$HOME/.codex/skills/tavern-translator"
-cp /Volumes/app/DevelopProject/tavernTranslator/SKILL.md "$HOME/.codex/skills/tavern-translator/"
-cp -R /Volumes/app/DevelopProject/tavernTranslator/references "$HOME/.codex/skills/tavern-translator/"
+cp ./SKILL.md "$HOME/.codex/skills/tavern-translator/"
+cp -R ./references "$HOME/.codex/skills/tavern-translator/"
 ```
 
 开一个新的 agent 会话后，skill 就会自动可用。
