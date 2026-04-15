@@ -1,6 +1,6 @@
-## Codex Skill
+## Agent Skill
 
-如果你想用 Codex 的 skill 方式使用这个项目，请切换到 `tt/skill` 分支，并把下面两项复制到 Codex 的 skills 目录：
+如果你想用 agent 的 skill 方式使用这个项目，请切换到 `tt/skill` 分支，并把下面两项复制到 agent 的 skills 目录：
 
 ```bash
 mkdir -p "$HOME/.codex/skills/tavern-translator"
@@ -8,7 +8,7 @@ cp /Volumes/app/DevelopProject/tavernTranslator/SKILL.md "$HOME/.codex/skills/ta
 cp -R /Volumes/app/DevelopProject/tavernTranslator/references "$HOME/.codex/skills/tavern-translator/"
 ```
 
-开一个新的 Codex 会话后，skill 就会自动可用。
+开一个新的 agent 会话后，skill 就会自动可用。
 
 # Tavern Translator
 
