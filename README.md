@@ -1,8 +1,12 @@
 ## Agent Skill
 
-如果你想用 agent 的 skill 方式使用这个项目，请切换到 `tt/skill` 分支，并把下面两项复制到 agent 的 skills 目录：
+如果你想用 agent 的 skill 方式使用这个项目，请先 clone 仓库，然后切换到 `tt/skill` 分支，再把下面两项复制到 agent 的 skills 目录：
 
 ```bash
+git clone https://github.com/nullskymc/tavernTranslator.git
+cd tavernTranslator
+git checkout tt/skill
+
 mkdir -p "$HOME/.codex/skills/tavern-translator"
 cp ./SKILL.md "$HOME/.codex/skills/tavern-translator/"
 cp -R ./references "$HOME/.codex/skills/tavern-translator/"
