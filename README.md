@@ -1,96 +1,38 @@
-# Tavern Translator
+# Tavern Translator Skill
 
-一个用于在中文和英文之间互译 SillyTavern 角色卡的工具，支持从 PNG 文件中提取文本并输出翻译后的角色卡。
+This repository is now maintained as a Codex skill package for translating SillyTavern character cards.
 
-[English Readme](docs/README.en.md)
+## What Changed
 
-## 在线体验
+- The old web app, backend server, Docker setup, and frontend were removed.
+- The repository now centers on:
+  - `SKILL.md` for Codex skill behavior
+  - `references/` for PNG processing, translation rules, and file naming
 
-<https://translator.nullskymc.site/>
+## How To Install In Codex
 
-如遇到问题，欢迎加入 qq 群1043662159反馈。
-## 功能特点
-
-- **智能提取**: 支持从 PNG 文件中提取嵌入的角色卡数据。
-- **双向翻译**: 自动在中英文之间翻译角色描述、对话内容和性格设定。
-- **自定义配置**: 支持自定义 LLM API 配置。
-- **文件导出**: 支持导出翻译后的 JSON 文件和图片文件。
-
-## 安装与部署
-
-### Docker 部署 (推荐)
-
-使用 Docker 是最简单的部署方式：
+Copy the skill into your local Codex skills directory:
 
 ```bash
-git clone https://github.com/nullskymc/tavernTranslator.git
-cd tavernTranslator
-docker-compose up -d
-
-# 访问 http://localhost:8080 使用应用
+mkdir -p "$HOME/.codex/skills/tavern-translator"
+cp /Volumes/app/DevelopProject/tavernTranslator/SKILL.md "$HOME/.codex/skills/tavern-translator/"
+cp -R /Volumes/app/DevelopProject/tavernTranslator/references "$HOME/.codex/skills/tavern-translator/"
 ```
 
-### 脚本部署
+Then start a new Codex session. The skill will be available automatically.
 
-使用我们提供的一键部署脚本，可以自动完成环境安装、前端构建和后端启动：
+## How To Use
 
-```bash
-git clone https://github.com/nullskymc/tavernTranslator.git
-cd tavernTranslator
+In a new session, ask Codex to:
 
-# 完整部署并启动服务
-./deploy.sh
+- translate a SillyTavern character card to Chinese
+- extract embedded JSON from a PNG card
+- rewrite a translated card back into PNG
+- apply glossary rules consistently
 
-# 访问 http://localhost:8080 使用应用
-```
+## Skill Files
 
-### 手动安装
-
-1.  **创建虚拟环境:**
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # Linux/Mac
-    # .venv\Scripts\activate  # Windows
-    ```
-
-2.  **安装后端依赖:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-3.  **安装并构建前端:**
-    ```bash
-    cd vue-frontend
-    npm install
-    npm run build
-    cd ..
-    ```
-
-4.  **启动服务:**
-    ```bash
-    python src/app.py
-    ```
-
-## 使用方法
-
-1.  **启动应用**: 使用上述任一方法启动应用。
-2.  **访问应用**: 在浏览器中打开 `http://localhost:8080`。
-3.  **操作界面**:
-    *   上传 PNG 格式的角色卡文件。
-    *   在设置中配置你的翻译 API。
-    *   点击“翻译”按钮。
-    *   等待翻译完成，然后下载生成的 JSON 或图片文件。
-
-## API 配置
-
-你需要配置以下信息：
-
--   **Model Name**: 使用的语言模型名称。
--   **API Base URL**: API 服务器地址。
--   **API Key**: API 访问密钥。
-
-支持任何兼容 OpenAI API 的服务。
-
-## License
-
-MIT License
+- `SKILL.md` defines when the skill should trigger and how the workflow should proceed.
+- `references/png-processing.md` documents PNG card extraction and rewrite rules.
+- `references/translation-rules.md` documents field mapping and translation constraints.
+- `references/file-naming.md` documents output naming and duplicate handling.
