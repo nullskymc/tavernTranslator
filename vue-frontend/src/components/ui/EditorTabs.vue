@@ -3,7 +3,7 @@
     class="editor-tabs"
     ref="containerEl"
     role="tablist"
-    aria-label="Editor view switch"
+    :aria-label="$t('common.editorTabsAria')"
   >
     <!-- Sliding underline indicator -->
     <div
@@ -31,6 +31,8 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+const { t: $t } = useI18n();
 import { ref, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 
 interface TabItem {

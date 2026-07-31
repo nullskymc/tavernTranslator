@@ -12,14 +12,15 @@
 
     <!-- 移动端头部 -->
     <header v-if="isMobile" class="mobile-header">
-      <el-button 
-        @click="sidebarVisible = !sidebarVisible" 
+      <button
         class="mobile-menu-btn"
-        :icon="Menu"
-        circle
-      />
+        :aria-label="$t('common.toggleMenu')"
+        @click="sidebarVisible = !sidebarVisible"
+      >
+        <AppIcon name="menu" :size="20" />
+      </button>
       <div class="mobile-title">
-        <img src="/img/index.png" alt="Logo" class="mobile-logo" />
+        <img src="/img/index.png" :alt="$t('common.logoAlt')" class="mobile-logo" />
         <span>{{ $t('app.title') }}</span>
       </div>
     </header>
@@ -73,8 +74,24 @@
       :class="{ 'fab-mobile': isMobile }"
       @click="aiChatStore.toggleSidebar()"
     >
-      <el-icon :size="22"><ChatDotRound /></el-icon>
+      <AppIcon name="chat" :size="22" />
     </button>
+
+    <!-- 全局通知容器 -->
+    <AppToast />
+    <!-- 全局确认对话框（useConfirm 单例） -->
+    <ConfirmDialog
+      v-if="confirmState.open"
+      :open="confirmState.open"
+      :title="confirmState.title"
+      :message="confirmState.message"
+      :confirm-text="confirmState.confirmText"
+      :cancel-text="confirmState.cancelText"
+      :type="confirmState.type"
+      @confirm="settle(true)"
+      @cancel="settle(false)"
+      @close="settle(false)"
+    />
   </div>
 </template>
 
@@ -83,9 +100,9 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { useThemeStore } from '@/stores/theme';
 import { useAIChatStore } from '@/stores/aiChat';
-import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
-import { Menu, ChatDotRound } from '@element-plus/icons-vue';
+import { useToast } from '@/components/ui/useToast';
+import { useConfirm } from '@/components/ui/useConfirm';
 
 // 导入核心布局组件
 import AppSidebar from './components/AppSidebar.vue';
@@ -93,15 +110,19 @@ import CharacterEditor from './components/CharacterEditor.vue';
 import CharacterBookEditor from './components/CharacterBookEditor.vue';
 import WelcomeView from './components/WelcomeView.vue'; // 一个新的欢迎组件
 import AIChatSidebar from './components/AIChatSidebar.vue';
-import LanguageSwitcher from './components/LanguageSwitcher.vue';
 import EditorTabs from './components/ui/EditorTabs.vue';
 import EditorLayout from './components/common/EditorLayout.vue';
+import AppIcon from './components/ui/AppIcon.vue';
+import AppToast from './components/ui/AppToast.vue';
+import ConfirmDialog from './components/ui/ConfirmDialog.vue';
 import { useResponsive } from './composables/useResponsive';
 
 const store = useTranslatorStore();
 const themeStore = useThemeStore();
 const aiChatStore = useAIChatStore();
 const { t: $t } = useI18n();
+const toast = useToast();
+const { state: confirmState, settle } = useConfirm();
 
 // 当前视图状态
 const currentView = ref('character'); // 默认为角色编辑视图
@@ -128,7 +149,7 @@ const createCharacterBook = () => {
       "extensions": {},
       "entries": []
     });
-    ElMessage.success($t('characterBook.characterBookCreated'));
+    toast.success($t('characterBook.characterBookCreated'));
   }
 };
 
@@ -277,6 +298,23 @@ body {
 
 .mobile-menu-btn {
   flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--apple-border-radius-medium);
+  border: 1px solid var(--apple-border-color);
+  background-color: var(--apple-bg-color);
+  color: var(--apple-text-color-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--apple-transition-duration) var(--apple-transition-easing);
+}
+
+.mobile-menu-btn:hover {
+  background-color: var(--apple-color-gray-5);
+  color: var(--apple-text-color-primary);
+  border-color: var(--apple-border-color-strong);
 }
 
 .mobile-title {

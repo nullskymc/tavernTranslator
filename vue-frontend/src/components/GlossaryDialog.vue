@@ -1,34 +1,39 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
+  <AppDialog
+    :open="dialogVisible"
     :title="$t('glossary.title')"
     :width="isMobile ? '95%' : '750px'"
-    :close-on-click-modal="false"
-    append-to-body
+    :close-on-backdrop="false"
+    :close-on-escape="false"
     class="glossary-dialog"
+    @close="dialogVisible = false"
   >
     <!-- Toolbar -->
     <div class="glossary-toolbar">
-      <el-button type="primary" size="small" :icon="Plus" @click="addNewEntry">
+      <AppButton variant="primary" size="sm" @click="addNewEntry">
+        <AppIcon name="plus" :size="14" />
         {{ $t('glossary.addEntry') }}
-      </el-button>
+      </AppButton>
       <div class="toolbar-right">
-        <el-button size="small" :icon="Upload" @click="triggerImport">
+        <AppButton size="sm" @click="triggerImport">
+          <AppIcon name="upload" :size="14" />
           {{ $t('glossary.import') }}
-        </el-button>
-        <el-button size="small" :icon="Download" @click="handleExport" :disabled="entries.length === 0">
+        </AppButton>
+        <AppButton size="sm" @click="handleExport" :disabled="entries.length === 0">
+          <AppIcon name="download" :size="14" />
           {{ $t('glossary.export') }}
-        </el-button>
-        <el-button size="small" type="danger" plain :icon="Delete" @click="handleClear" :disabled="entries.length === 0">
+        </AppButton>
+        <AppButton size="sm" variant="danger" plain @click="handleClear" :disabled="entries.length === 0">
+          <AppIcon name="delete" :size="14" />
           {{ $t('glossary.clearAll') }}
-        </el-button>
+        </AppButton>
       </div>
       <input type="file" ref="importInput" @change="handleImport" accept="application/json" style="display:none;" />
     </div>
 
     <!-- Info tip -->
     <div class="glossary-tip">
-      <el-icon><InfoFilled /></el-icon>
+      <AppIcon name="info" :size="14" />
       <span>{{ $t('glossary.tip') }}</span>
     </div>
 
@@ -46,56 +51,48 @@
         v-for="entry in entries"
         :key="entry.id"
       >
-        <el-input
+        <AppInput
           v-model="entry.source"
-          size="small"
           class="col-source"
           :placeholder="$t('glossary.sourcePlaceholder')"
-          @change="handleEntryChange(entry)"
         />
-        <el-input
+        <AppInput
           v-model="entry.target"
-          size="small"
           class="col-target"
           :placeholder="$t('glossary.targetPlaceholder')"
-          @change="handleEntryChange(entry)"
         />
-        <el-select
+        <AppSelect
           v-model="entry.category"
-          size="small"
           class="col-category"
-          @change="handleEntryChange(entry)"
-        >
-          <el-option :label="$t('glossary.categoryName')" value="name" />
-          <el-option :label="$t('glossary.categoryTerm')" value="term" />
-          <el-option :label="$t('glossary.categoryOther')" value="other" />
-        </el-select>
-        <el-input
+          :options="categoryOptions"
+        />
+        <AppInput
           v-model="entry.note"
-          size="small"
           class="col-note"
           :placeholder="$t('glossary.notePlaceholder')"
-          @change="handleEntryChange(entry)"
         />
-        <el-button
-          class="col-actions"
-          :icon="Delete"
-          size="small"
-          type="danger"
+        <AppButton
+          class="col-actions btn-icon-danger"
+          variant="danger"
           plain
-          circle
+          size="sm"
+          :aria-label="$t('glossary.delete')"
           @click="removeEntry(entry.id)"
-        />
+        >
+          <AppIcon name="delete" :size="14" />
+        </AppButton>
       </div>
     </div>
 
     <!-- Empty state -->
     <div class="glossary-empty" v-else>
-      <el-empty :description="$t('glossary.empty')" :image-size="80">
-        <el-button type="primary" size="small" @click="addNewEntry">
+      <div class="glossary-empty-inner">
+        <AppIcon name="notebook" :size="56" />
+        <p>{{ $t('glossary.empty') }}</p>
+        <AppButton variant="primary" size="sm" @click="addNewEntry">
           {{ $t('glossary.addFirstEntry') }}
-        </el-button>
-      </el-empty>
+        </AppButton>
+      </div>
     </div>
 
     <!-- Entry count -->
@@ -104,23 +101,30 @@
     </div>
 
     <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="dialogVisible = false">{{ $t('glossary.close') }}</el-button>
-      </span>
+      <div class="dialog-footer">
+        <AppButton @click="dialogVisible = false">{{ $t('glossary.close') }}</AppButton>
+      </div>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { useConfirm } from '@/components/ui/useConfirm';
+import { useToast } from '@/components/ui/useToast';
+import AppDialog from './ui/AppDialog.vue';
+import AppButton from './ui/AppButton.vue';
+import AppInput from './ui/AppInput.vue';
+import AppSelect from './ui/AppSelect.vue';
+import AppIcon from './ui/AppIcon.vue';
 import { useI18n } from 'vue-i18n';
-import { Plus, Delete, Upload, Download, InfoFilled } from '@element-plus/icons-vue';
 import type { GlossaryEntry } from '@/types';
 
 const { t: $t } = useI18n();
 const store = useTranslatorStore();
+const { confirm } = useConfirm();
+const toast = useToast();
 
 const props = defineProps({
   modelValue: Boolean,
@@ -156,6 +160,13 @@ watch(dialogVisible, (val) => {
 // Direct reference to store entries for reactivity
 const entries = computed(() => store.glossaryEntries);
 
+// 词条分类选项（与 store 的 category 取值保持一致）
+const categoryOptions = computed(() => [
+  { label: $t('glossary.categoryName'), value: 'name' },
+  { label: $t('glossary.categoryTerm'), value: 'term' },
+  { label: $t('glossary.categoryOther'), value: 'other' },
+]);
+
 const addNewEntry = () => {
   store.addGlossaryEntry({
     source: '',
@@ -169,31 +180,17 @@ const removeEntry = (id: string) => {
   store.removeGlossaryEntry(id);
 };
 
-const handleEntryChange = (entry: GlossaryEntry) => {
-  store.updateGlossaryEntry(entry.id, {
-    source: entry.source,
-    target: entry.target,
-    category: entry.category,
-    note: entry.note,
-  });
-};
-
 const handleClear = async () => {
-  try {
-    await ElMessageBox.confirm(
-      $t('glossary.clearConfirm'),
-      $t('messages.confirm.title'),
-      {
-        confirmButtonText: $t('messages.confirm.confirm'),
-        cancelButtonText: $t('messages.confirm.cancel'),
-        type: 'warning',
-      }
-    );
-    store.clearGlossary();
-    ElMessage.success($t('glossary.cleared'));
-  } catch {
-    // cancelled
-  }
+  const ok = await confirm({
+    title: $t('messages.confirm.title'),
+    message: $t('glossary.clearConfirm'),
+    confirmText: $t('messages.confirm.confirm'),
+    cancelText: $t('messages.confirm.cancel'),
+    type: 'danger',
+  });
+  if (!ok) return;
+  store.clearGlossary();
+  toast.success($t('glossary.cleared'));
 };
 
 const triggerImport = () => {
@@ -215,7 +212,7 @@ const handleImport = (event: Event) => {
       } else if (data.entries && Array.isArray(data.entries)) {
         entriesToImport = data.entries;
       } else {
-        ElMessage.error($t('glossary.importFormatError'));
+        toast.error($t('glossary.importFormatError'));
         return;
       }
 
@@ -231,9 +228,9 @@ const handleImport = (event: Event) => {
       }));
 
       const added = store.importGlossary(entriesToImport);
-      ElMessage.success($t('glossary.importSuccess', { count: added }));
+      toast.success($t('glossary.importSuccess', { count: added }));
     } catch {
-      ElMessage.error($t('glossary.importFormatError'));
+      toast.error($t('glossary.importFormatError'));
     }
   };
   reader.readAsText(file);
@@ -254,7 +251,7 @@ const handleExport = () => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-  ElMessage.success($t('glossary.exported'));
+  toast.success($t('glossary.exported'));
 };
 </script>
 
@@ -280,23 +277,23 @@ const handleExport = () => {
   gap: 6px;
   padding: 8px 12px;
   margin-bottom: 12px;
-  background-color: var(--el-color-info-light-9);
+  background-color: var(--apple-color-gray-5);
   border-radius: 6px;
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--apple-text-color-secondary);
   line-height: 1.5;
 }
 
-.glossary-tip .el-icon {
+.glossary-tip :deep(svg) {
   margin-top: 2px;
   flex-shrink: 0;
-  color: var(--el-color-info);
+  color: var(--apple-color-gray-2);
 }
 
 .glossary-entries {
   max-height: 400px;
   overflow-y: auto;
-  border: 1px solid var(--el-border-color-light);
+  border: 1px solid var(--apple-border-color-secondary);
   border-radius: 6px;
 }
 
@@ -305,13 +302,13 @@ const handleExport = () => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: var(--el-fill-color-light);
-  border-bottom: 1px solid var(--el-border-color-light);
+  background-color: var(--apple-bg-color-secondary);
+  border-bottom: 1px solid var(--apple-border-color-secondary);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--el-text-color-secondary);
+  color: var(--apple-text-color-secondary);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -322,7 +319,7 @@ const handleExport = () => {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  border-bottom: 1px solid var(--el-border-color-extra-light);
+  border-bottom: 1px solid var(--apple-border-color-secondary);
   transition: background-color 0.15s;
 }
 
@@ -331,7 +328,7 @@ const handleExport = () => {
 }
 
 .entry-row:hover {
-  background-color: var(--el-fill-color-lighter);
+  background-color: var(--apple-bg-color-secondary);
 }
 
 .col-source {
@@ -358,44 +355,40 @@ const handleExport = () => {
   flex-shrink: 0;
 }
 
+/* 图标删除按钮 */
+.btn-icon-danger {
+  padding: 5px;
+  border-radius: 50%;
+}
+
 .glossary-empty {
   padding: 20px 0;
+}
+
+.glossary-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--apple-text-color-tertiary);
+}
+
+.glossary-empty-inner p {
+  margin: 0;
+  font-size: 13px;
 }
 
 .glossary-footer-info {
   margin-top: 10px;
   text-align: right;
   font-size: 12px;
-  color: var(--el-text-color-secondary);
+  color: var(--apple-text-color-secondary);
 }
 
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-}
-
-/* Dialog style overrides to match TranslationSettingsDialog */
-:deep(.el-dialog__header) {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  margin-right: 0;
-}
-
-:deep(.el-dialog__title) {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--el-text-color-primary);
-}
-
-:deep(.el-dialog__body) {
-  padding: 20px 24px;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 12px 24px 20px;
-  border-top: 1px solid var(--el-border-color-light);
 }
 
 /* Mobile responsive */

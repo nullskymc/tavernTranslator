@@ -3,13 +3,14 @@
  * 封装所有后端 API 调用，提供类型安全的接口
  */
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
+import i18n from '@/i18n';
 
 // ------------------------------------------------------------------
 // Axios 实例
 // ------------------------------------------------------------------
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: '/api/v1',
+  baseURL: '/api/v2',
   timeout: 120_000, // 翻译可能耗时较长
   headers: {
     'Content-Type': 'application/json',
@@ -20,7 +21,7 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ detail?: string }>) => {
-    const detail = error.response?.data?.detail || error.message || '未知错误';
+    const detail = error.response?.data?.detail || error.message || i18n.global.t('notifications.unknownError');
     return Promise.reject(new ApiError(detail, error.response?.status));
   }
 );
@@ -68,10 +69,6 @@ export interface BatchResultItem {
   attempts: number;
 }
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
 // ------------------------------------------------------------------
 // 上传 API
@@ -99,12 +96,10 @@ export async function translateField(params: {
   settings: TranslationSettings;
   prompts: Prompts;
   glossary?: string;
-  use_langgraph?: boolean;
 }) {
   const response = await apiClient.post('/character/translate', {
     ...params,
     glossary: params.glossary ?? '',
-    use_langgraph: params.use_langgraph ?? true,
   });
   return response.data as { translated_text: string };
 }
@@ -114,12 +109,10 @@ export async function translateCharacterBook(params: {
   settings: TranslationSettings;
   prompts: Prompts;
   glossary?: string;
-  use_langgraph?: boolean;
 }) {
   const response = await apiClient.post('/character/translate-character-book', {
     ...params,
     glossary: params.glossary ?? '',
-    use_langgraph: params.use_langgraph ?? true,
   });
   return response.data as { translated_content: string };
 }
@@ -129,30 +122,15 @@ export async function batchTranslate(params: {
   settings: TranslationSettings;
   prompts: Prompts;
   glossary?: string;
-  use_langgraph?: boolean;
 }) {
   const response = await apiClient.post('/character/batch-translate', {
     ...params,
     glossary: params.glossary ?? '',
-    use_langgraph: params.use_langgraph ?? true,
   });
   return response.data as {
     results: BatchResultItem[];
     progress: { completed: number; total: number };
   };
-}
-
-// ------------------------------------------------------------------
-// AI Chat API
-// ------------------------------------------------------------------
-
-export async function aiChat(params: {
-  messages: ChatMessage[];
-  settings: TranslationSettings;
-  character_card?: Record<string, any> | null;
-}) {
-  const response = await apiClient.post('/character/ai-chat', params);
-  return response.data as { reply: string };
 }
 
 // ------------------------------------------------------------------

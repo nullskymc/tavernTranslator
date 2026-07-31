@@ -1,6 +1,6 @@
 # Tavern Translator
 
-A tool for translating SillyTavern character cards between Chinese and English, supporting text extraction from PNG files and outputting the translated character card.
+A tool for translating SillyTavern character cards between Chinese, English, and Japanese, supporting text extraction from PNG files and exporting translated character cards.
 
 [中文说明](https://github.com/nullskymc/tavernTranslator/blob/main/README.md)
 
@@ -10,85 +10,63 @@ A tool for translating SillyTavern character cards between Chinese and English, 
 
 ## Features
 
-- **Smart Extraction**: Supports extracting embedded character card data from PNG files.
-- **Bidirectional Translation**: Automatically translates character descriptions, dialogue, and personality settings between Chinese and English.
-- **Custom Configuration**: Supports custom LLM API configurations.
-- **File Export**: Supports exporting translated JSON and image files.
+- **Smart Extraction**: Extracts embedded character card data from PNG files (pure in-memory processing, no local file storage).
+- **Multilingual Translation**: Translates character descriptions, dialogue, and personality settings between Chinese, English, and Japanese.
+- **Internationalized UI**: Supports Chinese, English, and Japanese interfaces and remembers the selected language.
+- **Custom Configuration**: Supports any OpenAI-compatible LLM API (base URL, model name, per-request API key).
+- **AI Assistant**: Streaming assistant that returns schema-validated character card fields that can be applied to the card directly.
+- **File Export**: Exports translated JSON and PNG image files.
 
-## Installation and Deployment
+## Tech Stack
 
-### Docker Deployment (Recommended)
+- **Frontend**: Vue 3 + Vite + Pinia + vue-i18n (lightweight native UI components, no Element Plus)
+- **Backend**: TypeScript API (Vercel AI SDK + Zod + OpenAI-compatible provider)
+- **Deployment**: Vercel Functions / local Node.js (no Docker or Python required)
 
-Using Docker is the simplest way to deploy:
+## Installation
 
-```bash
-git clone https://github.com/nullskymc/tavernTranslator.git
-cd tavernTranslator
-docker-compose up -d
-
-# Access the application at http://localhost:8080
-```
-
-### Script Deployment
-
-Use our one-click deployment script to automatically handle environment setup, frontend building, and backend startup:
+### Local Development
 
 ```bash
-git clone https://github.com/nullskymc/tavernTranslator.git
-cd tavernTranslator
-
-# Full deployment and service start
-./deploy.sh
-
-# Access the application at http://localhost:8080
+npm run install:all
+npm run dev
 ```
 
-### Manual Installation
+- Frontend: http://localhost:3000
+- API: http://localhost:3001/api/v2/health
 
-1.  **Create a virtual environment:**
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # Linux/Mac
-    # .venv\Scripts\activate  # Windows
-    ```
+### Commands
 
-2.  **Install backend dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+npm run dev         # start API + frontend dev servers
+npm run build       # production build (outputs to vue-frontend/dist)
+npm run typecheck   # TypeScript checks for API + frontend
+npm test            # API unit tests (mock provider + PNG codec regression)
+```
 
-3.  **Install and build the frontend:**
-    ```bash
-    cd vue-frontend
-    npm install
-    npm run build
-    cd ..
-    ```
+### Vercel Deployment
 
-4.  **Start the service:**
-    ```bash
-    python src/app.py
-    ```
+1. Push the repository to GitHub and import it in Vercel.
+2. The `vercel.json` at the repo root handles the build command, output directory, and `/api/v2/*` rewrites automatically.
+3. No environment variables are required — API keys are provided per request from the browser.
 
 ## How to Use
 
-1.  **Start the application**: Use any of the methods above to start the application.
-2.  **Access the application**: Open `http://localhost:8080` in your browser.
-3.  **Use the interface**:
-    *   Upload a character card file in PNG format.
-    *   Configure your translation API in the settings.
-    *   Click the "Translate" button.
-    *   Wait for the translation to complete, then download the generated JSON or image file.
+1. Upload a PNG character card (or import a JSON card).
+2. Configure your translation API in the settings (provider base URL, model name, API key).
+3. Translate individual fields, the character book, or a batch.
+4. Use the AI assistant to generate or improve card fields, then apply selected fields to the card.
+5. Export the result as JSON or as a PNG image with embedded data.
 
 ## API Configuration
 
-You will need to configure the following:
+- **Model Name**: The language model to use.
+- **API Base URL**: The API server address (any OpenAI-compatible service).
+- **API Key**: Your API access key, sent per request.
 
--   **Model Name**: The name of the language model to use.
--   **API Base URL**: The API server address.
--   **API Key**: Your API access key.
+## Privacy (BYOK)
 
-Supports any service compatible with the OpenAI API.
+API keys are sent with each request directly to the model service you configure. The server never writes keys to logs, databases, or persistent files, and does not host them. Keys are kept in your browser's local storage for convenience; avoid using this on untrusted devices.
 
 ## License
 

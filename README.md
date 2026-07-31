@@ -1,112 +1,74 @@
-## Agent Skill
-
-如果你想用 agent 的 skill 方式使用这个项目，请先 clone 仓库，然后切换到 `tt/skill` 分支，再把下面两项复制到 agent 的 skills 目录：
-
-```bash
-git clone https://github.com/nullskymc/tavernTranslator.git
-cd tavernTranslator
-git checkout tt/skill
-
-mkdir -p "$HOME/.codex/skills/tavern-translator"
-cp ./SKILL.md "$HOME/.codex/skills/tavern-translator/"
-cp -R ./references "$HOME/.codex/skills/tavern-translator/"
-```
-
-开一个新的 agent 会话后，skill 就会自动可用。
-
 # Tavern Translator
 
-一个用于在中文和英文之间互译 SillyTavern 角色卡的工具，支持从 PNG 文件中提取文本并输出翻译后的角色卡。
+SillyTavern 角色卡翻译工具 — 支持单字段翻译、批量翻译、AI 助手和 PNG 角色卡导入导出。
 
-[English Readme](docs/README.en.md)
+## 技术栈
 
-## 在线体验
+- **前端**: Vue 3 + Vite + Pinia + vue-i18n（原生轻量 UI 组件，无 Element Plus）
+- **后端**: TypeScript API（Vercel AI SDK + Zod + OpenAI-compatible provider）
+- **部署**: Vercel Functions / 本地 Node.js（无 Docker / Python 依赖）
 
-<https://translator.nullskymc.site/>
-
-如遇到问题，欢迎加入 qq 群1043662159反馈。
-## 功能特点
-
-- **智能提取**: 支持从 PNG 文件中提取嵌入的角色卡数据。
-- **双向翻译**: 自动在中英文之间翻译角色描述、对话内容和性格设定。
-- **自定义配置**: 支持自定义 LLM API 配置。
-- **文件导出**: 支持导出翻译后的 JSON 文件和图片文件。
-
-## 安装与部署
-
-### Docker 部署 (推荐)
-
-使用 Docker 是最简单的部署方式：
+## 快速开始
 
 ```bash
-git clone https://github.com/nullskymc/tavernTranslator.git
-cd tavernTranslator
-docker-compose up -d
+# 安装依赖
+npm run install:all
 
-# 访问 http://localhost:8080 使用应用
+# 启动开发环境（API + 前端）
+npm run dev
 ```
 
-### 脚本部署
+- 前端: http://localhost:3000
+- API: http://localhost:3001/api/v2/health
 
-使用我们提供的一键部署脚本，可以自动完成环境安装、前端构建和后端启动：
+## 常用命令
 
 ```bash
-git clone https://github.com/nullskymc/tavernTranslator.git
-cd tavernTranslator
-
-# 完整部署并启动服务
-./deploy.sh
-
-# 访问 http://localhost:8080 使用应用
+npm run dev         # 同时启动 API 与前端开发服务器
+npm run build       # 前端生产构建（输出到 vue-frontend/dist）
+npm run typecheck   # API + 前端 TypeScript 检查
+npm test            # API 单元测试（mock provider / PNG 编解码回归）
 ```
 
-### 手动安装
+## 项目结构
 
-1.  **创建虚拟环境:**
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # Linux/Mac
-    # .venv\Scripts\activate  # Windows
-    ```
+```
+api/                    # TypeScript API 服务
+├── lib/                # 核心逻辑（schemas, provider, translation, chat, PNG codec）
+├── v2/                 # HTTP 端点处理（routes.ts 集中路由表）
+├── test/               # Vitest 单元测试与 PNG fixture 构造
+└── server.ts           # 本地开发服务器（纯 Node HTTP，无框架）
 
-2.  **安装后端依赖:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+vue-frontend/           # Vue 3 前端
+├── src/components/ui/  # 自建轻量基础组件
+├── src/services/       # API 调用层（api.ts + chat.ts SSE 流式）
+├── src/stores/         # Pinia 状态管理
+└── src/i18n/           # 中/英/日 国际化
+```
 
-3.  **安装并构建前端:**
-    ```bash
-    cd vue-frontend
-    npm install
-    npm run build
-    cd ..
-    ```
+## API 端点
 
-4.  **启动服务:**
-    ```bash
-    python src/app.py
-    ```
+每条端点同时支持两种路径：`/api/v2/*`（短路径）与 `/api/v2/character/*`（与旧 v1 路径语义一致，前端默认使用）。
 
-## 使用方法
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/api/v2/translate`（`/character/translate`） | POST | 单字段翻译 |
+| `/api/v2/translate-character-book`（`/character/translate-character-book`） | POST | 角色书内容翻译 |
+| `/api/v2/batch-translate`（`/character/batch-translate`） | POST | 批量翻译 |
+| `/api/v2/chat`（`/character/ai-chat`） | POST | AI 助手（流式 SSE） |
+| `/api/v2/chat/sync`（`/character/ai-chat/sync`） | POST | AI 助手（非流式降级） |
+| `/api/v2/upload`（`/character/upload`） | POST | PNG 角色卡上传提取 |
+| `/api/v2/export`（`/character/export`） | POST | PNG 角色卡嵌入导出 |
+| `/api/v2/health` | GET | 健康检查 |
 
-1.  **启动应用**: 使用上述任一方法启动应用。
-2.  **访问应用**: 在浏览器中打开 `http://localhost:8080`。
-3.  **操作界面**:
-    *   上传 PNG 格式的角色卡文件。
-    *   在设置中配置你的翻译 API。
-    *   点击“翻译”按钮。
-    *   等待翻译完成，然后下载生成的 JSON 或图片文件。
+AI 助手流式端点事件类型：`text-delta`（增量文本）、`fields`（服务端校验后的可应用字段）、`finish`（结束）、`error`（错误）。可应用字段由服务端从回复中提取并经过 schema 校验，前端不再解析 Markdown 代码围栏中的 JSON。
 
-## API 配置
+## BYOK 隐私说明
 
-你需要配置以下信息：
+API Key 仅在当前请求中传递到您配置的模型服务；服务端不写入日志、数据库或持久化文件，也不托管密钥。密钥会保存在浏览器本地存储中以便下次使用，建议不要在不信任的设备上使用。
 
--   **Model Name**: 使用的语言模型名称。
--   **API Base URL**: API 服务器地址。
--   **API Key**: API 访问密钥。
+## 环境变量
 
-支持任何兼容 OpenAI API 的服务。
-
-## License
-
-MIT License
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `API_PORT` | API 服务端口 | `3001` |

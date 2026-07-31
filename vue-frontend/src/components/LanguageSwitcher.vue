@@ -1,23 +1,46 @@
 <template>
-  <el-tooltip :content="currentLanguage === 'zh' ? 'Switch to English' : '切换为中文'" placement="top">
-    <button class="control-btn" @click="toggleLanguage" :aria-label="currentLanguage === 'zh' ? 'Switch to English' : 'Switch to Chinese'">
-      <span class="lang-label">{{ currentLanguage === 'zh' ? 'ZH' : 'EN' }}</span>
-    </button>
-  </el-tooltip>
+  <button
+    class="control-btn"
+    :title="switchToTitle"
+    :aria-label="switchToTitle"
+    @click="cycleLanguage"
+  >
+    <span class="lang-label">{{ currentLabel }}</span>
+  </button>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { supportedLocales, setLocale, type LocaleCode } from '@/i18n';
 
-const { locale } = useI18n();
-const currentLanguage = ref(locale.value);
+const { t: $t, locale } = useI18n();
+const currentLanguage = ref<LocaleCode>(locale.value as LocaleCode);
 
-const toggleLanguage = () => {
-  const newLang = currentLanguage.value === 'zh' ? 'en' : 'zh';
-  locale.value = newLang;
-  localStorage.setItem('locale', newLang);
-  currentLanguage.value = newLang;
+// 循环顺序：中文 → 英文 → 日文 → 中文
+const ORDER: LocaleCode[] = [...supportedLocales];
+
+// 按钮上显示当前语言的缩写（紧凑布局）
+const LABELS: Record<LocaleCode, string> = {
+  zh: '中',
+  en: 'EN',
+  ja: '日',
+};
+
+const currentLabel = computed(() => LABELS[currentLanguage.value]);
+
+/** 目标语言在当前界面语言下的名称（用于 tooltip / aria-label） */
+const switchToTitle = computed(() => {
+  const idx = ORDER.indexOf(currentLanguage.value);
+  const next = ORDER[(idx + 1) % ORDER.length];
+  return $t('language.switchTo', { language: $t(`language.${next}`) });
+});
+
+const cycleLanguage = () => {
+  const idx = ORDER.indexOf(currentLanguage.value);
+  const next = ORDER[(idx + 1) % ORDER.length];
+  setLocale(next);
+  currentLanguage.value = next;
 };
 </script>
 

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd vue-frontend && npm install && npm run build",
+  "outputDirectory": "vue-frontend/dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/v2/(.*)", "destination": "/api/v2/$1" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}

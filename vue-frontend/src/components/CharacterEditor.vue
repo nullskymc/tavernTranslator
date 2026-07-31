@@ -1,145 +1,154 @@
-
 <template>
   <div v-if="store.characterCard" class="character-editor">
     <EditorLayout>
-    <template #tabs>
+      <template #tabs>
         <EditorTabs
           :tabs="[
             { label: $t('sidebar.viewSwitch.character'), value: 'character' },
             { label: $t('sidebar.viewSwitch.characterBook'), value: 'character-book' },
           ]"
-      :model-value="localView"
+          :model-value="localView"
           @update:modelValue="switchView"
         />
       </template>
-      
+
       <template #actions>
-        <el-button 
-          type="primary" 
-          @click="batchTranslate" 
+        <AppButton
+          variant="primary"
+          size="sm"
           :loading="isBatchTranslating"
-          size="small"
+          @click="batchTranslate"
         >
           {{ $t('editor.batchTranslate') }}
-        </el-button>
+        </AppButton>
       </template>
 
       <!-- 表单内容 -->
-      <el-form label-position="top" class="editor-form">
-        <el-row :gutter="20">
-          <el-col :span="isMobile ? 24 : 12">
-            <el-form-item :label="`${$t('editor.name')} (Name)`">
-              <el-input v-model="name" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="isMobile ? 24 : 12">
-            <el-form-item :label="`${$t('editor.tags')} (Tags)`">
-              <el-input v-model="tags" :placeholder="$t('editor.tagsPlaceholder')" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item>
-              <template #label>
+      <div class="editor-form">
+        <div class="form-grid">
+          <div class="form-col">
+            <div class="form-field">
+              <label class="form-field__label">{{ $t('editor.name') }} (Name)</label>
+              <AppInput v-model="name" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col">
+            <div class="form-field">
+              <label class="form-field__label">{{ $t('editor.tags') }} (Tags)</label>
+              <AppInput v-model="tags" :placeholder="$t('editor.tagsPlaceholder')" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col form-col--full">
+            <div class="form-field">
+              <div class="form-field__label">
                 <FormLabelWithTranslate
                   :label="`${$t('editor.description')} (Description)`"
                   :button-text="$t('editor.translate')"
                   :loading="store.isLoading"
                   @translate="store.translateField('data.description')"
                 />
-              </template>
-              <el-input v-model="description" type="textarea" :rows="8" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item>
-              <template #label>
+              </div>
+              <AppInput v-model="description" type="textarea" :rows="8" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col form-col--full">
+            <div class="form-field">
+              <div class="form-field__label">
                 <FormLabelWithTranslate
                   :label="`${$t('editor.personality')} (Personality)`"
                   :button-text="$t('editor.translate')"
                   :loading="store.isLoading"
                   @translate="store.translateField('data.personality')"
                 />
-              </template>
-              <el-input v-model="personality" type="textarea" :rows="5" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item>
-              <template #label>
+              </div>
+              <AppInput v-model="personality" type="textarea" :rows="5" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col form-col--full">
+            <div class="form-field">
+              <div class="form-field__label">
                 <FormLabelWithTranslate
                   :label="`${$t('editor.scenario')} (Scenario)`"
                   :button-text="$t('editor.translate')"
                   :loading="store.isLoading"
                   @translate="store.translateField('data.scenario')"
                 />
-              </template>
-              <el-input v-model="scenario" type="textarea" :rows="5" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item>
-              <template #label>
+              </div>
+              <AppInput v-model="scenario" type="textarea" :rows="5" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col form-col--full">
+            <div class="form-field">
+              <div class="form-field__label">
                 <FormLabelWithTranslate
                   :label="`${$t('editor.firstMessage')} (First Message)`"
                   :button-text="$t('editor.translate')"
                   :loading="store.isLoading"
                   @translate="store.translateField('data.first_mes')"
                 />
-              </template>
-              <el-input v-model="first_mes" type="textarea" :rows="6" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item>
-              <template #label>
+              </div>
+              <AppInput v-model="first_mes" type="textarea" :rows="6" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col form-col--full">
+            <div class="form-field">
+              <div class="form-field__label">
                 <FormLabelWithTranslate
                   :label="`${$t('editor.exampleMessages')} (Message Example)`"
                   :button-text="$t('editor.translate')"
                   :loading="store.isLoading"
                   @translate="store.translateField('data.mes_example')"
                 />
-              </template>
-              <el-input v-model="mes_example" type="textarea" :rows="12" :placeholder="$t('editor.messageExamplePlaceholder')" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item>
-              <template #label>
+              </div>
+              <AppInput v-model="mes_example" type="textarea" :rows="12" :placeholder="$t('editor.messageExamplePlaceholder')" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col form-col--full">
+            <div class="form-field">
+              <div class="form-field__label">
                 <FormLabelWithTranslate
                   :label="`${$t('editor.creatorNotes')} (Creator Notes)`"
                   :button-text="$t('editor.translate')"
                   :loading="store.isLoading"
                   @translate="store.translateField('data.creator_notes')"
                 />
-              </template>
-              <el-input v-model="creator_notes" type="textarea" :rows="6" :disabled="store.isLoading" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item>
-              <template #label>
+              </div>
+              <AppInput v-model="creator_notes" type="textarea" :rows="6" :disabled="store.isLoading" />
+            </div>
+          </div>
+          <div class="form-col form-col--full">
+            <div class="form-field">
+              <div class="form-field__label">
                 <span>{{ $t('editor.alternateGreetings') }} (Alternate Greetings)</span>
-              </template>
+              </div>
               <div v-for="(greeting, index) in alternate_greetings" :key="index" class="greeting-item">
-                <el-input v-model="alternate_greetings[index]" type="textarea" :rows="2" :disabled="store.isLoading" />
+                <AppInput v-model="alternate_greetings[index]" type="textarea" :rows="2" :disabled="store.isLoading" />
                 <div class="greeting-actions">
-                  <el-button 
-                    class="translate-btn" 
-                    type="primary" 
-                    text 
-                    @click="store.translateField(`data.alternate_greetings[${index}]`)" 
+                  <AppButton
+                    class="btn-link"
+                    variant="text"
+                    size="sm"
                     :loading="store.isLoading"
+                    @click="store.translateField(`data.alternate_greetings[${index}]`)"
                   >
                     {{ $t('editor.translate') }}
-                  </el-button>
-                  <el-button type="danger" text @click="removeGreeting(index)" :disabled="store.isLoading">{{ $t('editor.removeGreeting') }}</el-button>
+                  </AppButton>
+                  <AppButton
+                    class="btn-link btn-link--danger"
+                    variant="text"
+                    size="sm"
+                    :disabled="store.isLoading"
+                    @click="removeGreeting(index)"
+                  >
+                    {{ $t('editor.removeGreeting') }}
+                  </AppButton>
                 </div>
               </div>
-              <el-button @click="addGreeting" type="primary" plain :disabled="store.isLoading">{{ $t('editor.addGreeting') }}</el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+              <AppButton variant="primary" plain :disabled="store.isLoading" @click="addGreeting">{{ $t('editor.addGreeting') }}</AppButton>
+            </div>
+          </div>
+        </div>
+      </div>
     </EditorLayout>
   </div>
 </template>
@@ -147,11 +156,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
-import { get } from 'lodash-es';
+import { getCardField } from '@/utils/card-path';
+import AppButton from './ui/AppButton.vue';
+import AppInput from './ui/AppInput.vue';
 import EditorTabs from './ui/EditorTabs.vue';
 import FormLabelWithTranslate from './ui/FormLabelWithTranslate.vue';
 import EditorLayout from './common/EditorLayout.vue';
-import { useResponsive } from '@/composables/useResponsive';
 
 const props = defineProps({
   currentView: {
@@ -163,8 +173,6 @@ const props = defineProps({
 const store = useTranslatorStore();
 const isBatchTranslating = ref(false);
 
-// 移动端检测（复用）
-const { isMobile } = useResponsive();
 
 // 本地视图状态用于触发标签滑动动画
 const localView = ref(props.currentView);
@@ -175,7 +183,7 @@ watch(() => props.currentView, (val: string) => {
 });
 
 const useVModel = <T = string>(path: string, defaultValue?: T) => computed<T>({
-  get: () => get(store.characterCard as any, path, (defaultValue as any) ?? ('' as any)) as T,
+  get: () => (getCardField(store.characterCard, path) ?? (defaultValue as any) ?? ('' as any)) as T,
   set: (value: T) => store.updateCardField(path, value as any),
 });
 
@@ -188,8 +196,8 @@ const mes_example = useVModel('data.mes_example');
 const creator_notes = useVModel('data.creator_notes');
 const alternate_greetings = useVModel<string[]>('data.alternate_greetings', []);
 const tags = computed({
-  get: () => (get(store.characterCard, 'data.tags', []) || []).join(', '),
-  set: (value) => store.updateCardField('data.tags', value.split(',').map(t => t.trim()).filter(Boolean))
+  get: () => (getCardField(store.characterCard, 'data.tags') ?? []).join(', '),
+  set: (value) => store.updateCardField('data.tags', value.split(',').map((t: string) => t.trim()).filter(Boolean))
 });
 
 const addGreeting = () => {
@@ -204,8 +212,6 @@ const removeGreeting = (index: number) => {
   store.updateCardField('data.alternate_greetings', greetings);
 };
 
-// 删除旧的直接切换方法，改为延迟切换以展示动画
-
 // 批量翻译功能
 const batchTranslate = async () => {
   isBatchTranslating.value = true;
@@ -215,13 +221,13 @@ const batchTranslate = async () => {
     isBatchTranslating.value = false;
   }
 };
+
 // 视图切换：下划线 tab 无需动画延迟，直接切换
 function switchView(view: string) {
   if (localView.value === view) return;
   localView.value = view;
   window.dispatchEvent(new CustomEvent('view-change', { detail: { view } }));
 }
-
 </script>
 
 <style scoped>
@@ -238,24 +244,45 @@ function switchView(view: string) {
   overflow-x: hidden;
 }
 
-/* Each form item animates in with stagger */
-.editor-form .el-form-item {
+/* 两列网格表单布局 */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+
+.form-col--full {
+  grid-column: 1 / -1;
+}
+
+/* Each form field animates in with stagger */
+.editor-form .form-field {
   animation: fadeSlideUp 0.3s var(--tt-smooth) both;
 }
 
-.editor-form .el-col:nth-child(1) .el-form-item { animation-delay: 0s; }
-.editor-form .el-col:nth-child(2) .el-form-item { animation-delay: 0.03s; }
-.editor-form .el-col:nth-child(3) .el-form-item { animation-delay: 0.06s; }
-.editor-form .el-col:nth-child(4) .el-form-item { animation-delay: 0.09s; }
-.editor-form .el-col:nth-child(5) .el-form-item { animation-delay: 0.12s; }
-.editor-form .el-col:nth-child(6) .el-form-item { animation-delay: 0.15s; }
-.editor-form .el-col:nth-child(7) .el-form-item { animation-delay: 0.18s; }
-.editor-form .el-col:nth-child(8) .el-form-item { animation-delay: 0.21s; }
+.editor-form .form-col:nth-child(1) .form-field { animation-delay: 0s; }
+.editor-form .form-col:nth-child(2) .form-field { animation-delay: 0.03s; }
+.editor-form .form-col:nth-child(3) .form-field { animation-delay: 0.06s; }
+.editor-form .form-col:nth-child(4) .form-field { animation-delay: 0.09s; }
+.editor-form .form-col:nth-child(5) .form-field { animation-delay: 0.12s; }
+.editor-form .form-col:nth-child(6) .form-field { animation-delay: 0.15s; }
+.editor-form .form-col:nth-child(7) .form-field { animation-delay: 0.18s; }
+.editor-form .form-col:nth-child(8) .form-field { animation-delay: 0.21s; }
 
-/* Textarea focus glow */
-.editor-form :deep(.el-textarea__inner:focus) {
-  box-shadow: 0 0 0 2px var(--apple-color-primary) inset,
-              0 0 12px var(--apple-color-primary-glow) !important;
+/* 表单标签：小写微型标签风格（与原生设计一致） */
+.form-field {
+  margin-bottom: 20px;
+}
+
+.form-field__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--apple-text-color-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding-bottom: 6px;
+  line-height: 1.5;
 }
 
 /* Alternate greeting row */
@@ -276,8 +303,9 @@ function switchView(view: string) {
   background-color: var(--apple-bg-color-secondary);
 }
 
-.greeting-item .el-input {
-  flex-grow: 1;
+.greeting-item .app-input-wrapper {
+  flex: 1;
+  min-width: 0;
 }
 
 .greeting-actions {
@@ -287,8 +315,24 @@ function switchView(view: string) {
   flex-shrink: 0;
 }
 
+/* 文本链接式按钮（翻译 / 删除） */
+.btn-link {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 6px;
+  color: var(--apple-color-primary);
+}
+
+.btn-link--danger {
+  color: var(--apple-color-danger);
+}
+
 /* Mobile */
 @media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
   .greeting-item {
     flex-direction: column;
     align-items: stretch;
@@ -303,18 +347,13 @@ function switchView(view: string) {
 }
 
 @media (max-width: 480px) {
-  .editor-form .el-form-item {
+  .editor-form .form-field {
     margin-bottom: 16px;
   }
 
-  .editor-form .el-col {
-    padding: 0 2px;
-  }
-
-  .greeting-actions .el-button {
+  .greeting-actions .app-btn {
     font-size: 12px;
     padding: 4px 8px;
   }
 }
 </style>
-

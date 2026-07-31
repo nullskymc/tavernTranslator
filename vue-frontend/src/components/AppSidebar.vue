@@ -2,12 +2,12 @@
   <div class="app-sidebar">
     <!-- Mobile close button -->
     <div class="mobile-close-btn" @click="$emit('close')">
-      <el-icon><Close /></el-icon>
+      <AppIcon name="close" :size="14" />
     </div>
 
     <!-- Header -->
     <div class="sidebar-header">
-      <img src="/img/index.png" alt="Logo" class="logo" />
+      <img src="/img/index.png" :alt="$t('common.logoAlt')" class="logo" />
       <h2>{{ $t('sidebar.title') }}</h2>
     </div>
 
@@ -18,7 +18,7 @@
         <div class="image-preview-wrapper">
           <img v-if="store.characterImageB64" :src="store.characterImageB64" :alt="$t('sidebar.image.preview')" class="image-preview" />
           <div v-else class="image-placeholder">
-            <el-icon><Picture /></el-icon>
+            <AppIcon name="image" :size="28" />
             <span>{{ $t('sidebar.image.placeholder') }}</span>
           </div>
         </div>
@@ -27,24 +27,24 @@
       <!-- Export buttons -->
       <div class="actions-section">
         <div class="export-buttons-container">
-          <el-button
-            type="primary"
-            @click="store.exportCardAsImage()"
-            :icon="Download"
+          <AppButton
+            variant="primary"
+            size="sm"
             :disabled="!store.characterCard"
             :loading="store.isLoading"
-            size="small"
+            @click="store.exportCardAsImage()"
           >
+            <AppIcon name="download" :size="14" />
             {{ $t('sidebar.export.image') }}
-          </el-button>
-          <el-button
-            @click="store.exportCardAsJson()"
-            :icon="Document"
+          </AppButton>
+          <AppButton
+            size="sm"
             :disabled="!store.characterCard"
-            size="small"
+            @click="store.exportCardAsJson()"
           >
+            <AppIcon name="doc" :size="14" />
             {{ $t('sidebar.export.json') }}
-          </el-button>
+          </AppButton>
         </div>
       </div>
 
@@ -55,54 +55,72 @@
       <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display:none;" />
 
       <div class="action-grid">
-        <el-tooltip :content="$t('sidebar.actions.uploadCard')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn" @click="triggerFileUpload">
-            <el-icon><Upload /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn"
+          :title="$t('sidebar.actions.uploadCard')"
+          @click="triggerFileUpload"
+        >
+          <AppIcon name="upload" :size="18" />
+        </button>
 
-        <el-tooltip :content="$t('sidebar.actions.uploadJson')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn" @click="triggerJsonUpload">
-            <el-icon><FolderOpened /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn"
+          :title="$t('sidebar.actions.uploadJson')"
+          @click="triggerJsonUpload"
+        >
+          <AppIcon name="folder" :size="18" />
+        </button>
 
-        <el-tooltip :content="$t('sidebar.actions.newBlank')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn" @click="createNewCard">
-            <el-icon><DocumentAdd /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn"
+          :title="$t('sidebar.actions.newBlank')"
+          @click="createNewCard"
+        >
+          <AppIcon name="doc-add" :size="18" />
+        </button>
 
-        <el-tooltip :content="$t('sidebar.actions.changeImage')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn" @click="triggerImageUpload" :disabled="!store.characterCard">
-            <el-icon><Picture /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn"
+          :title="$t('sidebar.actions.changeImage')"
+          @click="triggerImageUpload"
+          :disabled="!store.characterCard"
+        >
+          <AppIcon name="image" :size="18" />
+        </button>
 
-        <el-tooltip :content="$t('sidebar.actions.translationSettings')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn" @click="settingsDialogVisible = true">
-            <el-icon><Setting /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn"
+          :title="$t('sidebar.actions.translationSettings')"
+          @click="settingsDialogVisible = true"
+        >
+          <AppIcon name="settings" :size="18" />
+        </button>
 
-        <el-tooltip :content="$t('sidebar.actions.glossary')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn" @click="glossaryDialogVisible = true">
-            <el-icon><Notebook /></el-icon>
-            <span v-if="store.glossaryEntries.length > 0" class="action-btn-badge">{{ store.glossaryEntries.length > 99 ? '99+' : store.glossaryEntries.length }}</span>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn"
+          :title="$t('sidebar.actions.glossary')"
+          @click="glossaryDialogVisible = true"
+        >
+          <AppIcon name="notebook" :size="18" />
+          <span v-if="store.glossaryEntries.length > 0" class="action-btn-badge">{{ store.glossaryEntries.length > 99 ? '99+' : store.glossaryEntries.length }}</span>
+        </button>
 
-        <el-tooltip :content="$t('sidebar.actions.aiAssistant')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn action-btn--ai" @click="openAIChat">
-            <el-icon><ChatDotRound /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn action-btn--ai"
+          :title="$t('sidebar.actions.aiAssistant')"
+          @click="openAIChat"
+        >
+          <AppIcon name="chat" :size="18" />
+        </button>
 
-        <el-tooltip :content="$t('sidebar.actions.clearCard')" placement="top" :show-after="200" :hide-after="0">
-          <button class="action-btn action-btn--danger" @click="confirmReset" :disabled="!store.characterCard">
-            <el-icon><Delete /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="action-btn action-btn--danger"
+          :title="$t('sidebar.actions.clearCard')"
+          @click="confirmReset"
+          :disabled="!store.characterCard"
+        >
+          <AppIcon name="delete" :size="18" />
+        </button>
       </div>
     </div>
 
@@ -129,8 +147,10 @@ import { ref } from 'vue';
 import { useTranslatorStore } from '@/stores/translator';
 import { useAIChatStore } from '@/stores/aiChat';
 import { useI18n } from 'vue-i18n';
-import { ElMessageBox, ElMessage } from 'element-plus';
-import { Upload, Download, Setting, Delete, Picture, FolderOpened, DocumentAdd, Document, Close, ChatDotRound, Notebook } from '@element-plus/icons-vue';
+import { useConfirm } from './ui/useConfirm';
+import { useToast } from './ui/useToast';
+import AppIcon from './ui/AppIcon.vue';
+import AppButton from './ui/AppButton.vue';
 import TranslationSettingsDialog from './TranslationSettingsDialog.vue';
 import GlossaryDialog from './GlossaryDialog.vue';
 import ThemeToggle from './ThemeToggle.vue';
@@ -141,6 +161,8 @@ const emit = defineEmits(['close']);
 const store = useTranslatorStore();
 const aiChatStore = useAIChatStore();
 const { t: $t } = useI18n();
+const { confirm } = useConfirm();
+const toast = useToast();
 
 const imageUploader = ref(null);
 const fileUploader = ref(null);
@@ -156,7 +178,7 @@ const handleImageChange = (event) => {
     reader.onload = (e) => store.updateBaseImage(e.target.result);
     reader.readAsDataURL(file);
   } else {
-    ElMessage.error($t('messages.error.invalidPng'));
+    toast.error($t('messages.error.invalidPng'));
   }
   event.target.value = '';
 };
@@ -174,25 +196,30 @@ const handleJsonFileChange = (event) => {
   if (file && file.type === 'application/json') {
     store.handleJsonUpload(file);
   } else {
-    ElMessage.error($t('messages.error.invalidJson'));
+    toast.error($t('messages.error.invalidJson'));
   }
   event.target.value = '';
 };
 
-const createNewCard = () => {
-  ElMessageBox.confirm($t('sidebar.confirm.newBlank'), $t('messages.confirm.title'), {
-    confirmButtonText: $t('messages.confirm.confirm'),
-    cancelButtonText: $t('messages.confirm.cancel'),
-    type: 'warning',
-  }).then(() => store.createNewCard()).catch(() => {});
+const createNewCard = async () => {
+  const ok = await confirm({
+    title: $t('messages.confirm.title'),
+    message: $t('sidebar.confirm.newBlank'),
+    confirmText: $t('messages.confirm.confirm'),
+    cancelText: $t('messages.confirm.cancel'),
+  });
+  if (ok) store.createNewCard();
 };
 
-const confirmReset = () => {
-  ElMessageBox.confirm($t('sidebar.confirm.clearCard'), $t('messages.confirm.title'), {
-    confirmButtonText: $t('messages.confirm.confirm'),
-    cancelButtonText: $t('messages.confirm.cancel'),
-    type: 'warning',
-  }).then(() => store.resetStore()).catch(() => {});
+const confirmReset = async () => {
+  const ok = await confirm({
+    title: $t('messages.confirm.title'),
+    message: $t('sidebar.confirm.clearCard'),
+    confirmText: $t('messages.confirm.confirm'),
+    cancelText: $t('messages.confirm.cancel'),
+    type: 'danger',
+  });
+  if (ok) store.resetStore();
 };
 
 const openAIChat = () => {
@@ -259,50 +286,37 @@ const openAIChat = () => {
 }
 
 .logo {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--apple-border-radius-medium);
-  flex-shrink: 0;
-  box-shadow: var(--apple-shadow-small);
-  transition: transform 0.3s var(--apple-transition-spring);
-}
-
-.logo:hover {
-  transform: rotate(-5deg) scale(1.08);
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  object-fit: cover;
 }
 
 .sidebar-header h2 {
-  font-size: 14px;
-  font-weight: 700;
   margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--apple-text-color-primary);
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* Content scroll area */
+/* Scrollable content */
 .sidebar-content {
-  flex-grow: 1;
+  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 12px 8px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.sidebar-content::-webkit-scrollbar {
-  display: none;
-}
-
-/* Image section */
+/* Character image */
 .character-image-section {
-  margin-bottom: 12px;
+  padding: 0 8px;
 }
 
 .image-preview-wrapper {
-  width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: var(--apple-border-radius-large);
   overflow: hidden;
@@ -356,8 +370,7 @@ const openAIChat = () => {
   font-size: 11px;
 }
 
-.image-placeholder .el-icon {
-  font-size: 28px;
+.image-placeholder :deep(svg) {
   color: var(--apple-color-gray-3);
 }
 
@@ -372,7 +385,7 @@ const openAIChat = () => {
   width: 100%;
 }
 
-.export-buttons-container .el-button {
+.export-buttons-container .app-btn {
   flex: 1 1 0;
   min-width: 0;
   justify-content: center;

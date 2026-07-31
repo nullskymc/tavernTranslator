@@ -1,0 +1,269 @@
+{
+  "app": {
+    "title": "TavernTranslator",
+    "loading": "お待ちください…",
+    "mobile": {
+      "menu": "メニュー"
+    }
+  },
+  "language": {
+    "en": "英語",
+    "zh": "中国語",
+    "ja": "日本語",
+    "switchTo": "{language}に切り替え"
+  },
+  "theme": {
+    "switchToLight": "ライトモードに切り替え",
+    "switchToDark": "ダークモードに切り替え"
+  },
+  "sidebar": {
+    "title": "TavernTranslator",
+    "image": {
+      "preview": "キャラクタープレビュー",
+      "placeholder": "画像なし",
+      "noImage": "画像なし"
+    },
+    "export": {
+      "image": "画像として書き出す",
+      "json": "JSONとして書き出す"
+    },
+    "actions": {
+      "title": "操作",
+      "uploadCard": "カードをアップロード",
+      "uploadJson": "JSONをアップロード",
+      "newBlank": "空のカードを新規作成",
+      "changeImage": "画像を変更",
+      "translationSettings": "翻訳設定",
+      "aiAssistant": "AIアシスタント",
+      "glossary": "翻訳用語集",
+      "clearCard": "カードを消去",
+      "theme": "テーマ",
+      "language": "日本語"
+    },
+    "viewSwitch": {
+      "title": "表示切り替え",
+      "character": "キャラクター",
+      "characterBook": "キャラクターブック"
+    },
+    "confirm": {
+      "newBlank": "空のキャラクターカードを新規作成します。現在のデータは失われます。続行しますか？",
+      "clearCard": "現在読み込まれているキャラクターカードのデータを消去します。この操作は元に戻せません。続行しますか？"
+    },
+    "footer": {
+      "github": "GitHub"
+    }
+  },
+  "editor": {
+    "name": "名前",
+    "newCharacter": "新しいキャラクター",
+    "description": "説明",
+    "personality": "性格",
+    "scenario": "シナリオ",
+    "firstMessage": "最初のメッセージ",
+    "exampleMessages": "会話例",
+    "creatorNotes": "作成者メモ",
+    "alternateGreetings": "別の挨拶",
+    "translate": "翻訳",
+    "batchTranslate": "一括翻訳",
+    "tags": "タグ",
+    "tagsPlaceholder": "カンマでタグを区切ってください",
+    "messageExamplePlaceholder": "会話例を入力してください…",
+    "removeGreeting": "削除",
+    "addGreeting": "挨拶を追加"
+  },
+  "characterBook": {
+    "title": "キャラクターブック",
+    "name": "名前",
+    "description": "説明",
+    "scanDepth": "スキャン深度",
+    "tokenBudget": "トークン予算",
+    "recursiveScanning": "再帰スキャン",
+    "entries": "エントリー",
+    "addEntry": "エントリーを追加",
+    "removeEntry": "エントリーを削除",
+    "entry": "エントリー",
+    "entryName": "エントリー名",
+    "entryKeys": "キーワード",
+    "entrySecondaryKeys": "追加キーワード",
+    "entryContent": "内容",
+    "entryEnabled": "有効",
+    "entryCaseSensitive": "大文字と小文字を区別",
+    "entryPriority": "優先度",
+    "contentPlaceholder": "内容を入力してください…",
+    "noCharacterBook": "現在のキャラクターカードにキャラクターブックはありません",
+    "createCharacterBookTip": "キャラクターブックを作成して、キャラクターに関する情報や設定を管理できます",
+    "createCharacterBook": "キャラクターブックを作成",
+    "characterBookCreated": "キャラクターブックを作成しました"
+  },
+  "settings": {
+    "title": "翻訳設定",
+    "provider": "プロバイダー",
+    "api": "APIキー",
+    "apiPlaceholder": "APIキーを入力してください",
+    "baseUrl": "ベースURL",
+    "baseUrlPlaceholder": "例: https://api.openai.com/v1",
+    "model": "モデル名",
+    "modelPlaceholder": "例: gpt-4-1106-preview",
+    "save": "設定を保存",
+    "saveSuccess": "設定を保存しました",
+    "cancel": "キャンセル",
+    "promptLanguage": "翻訳用プロンプトの言語",
+    "promptLanguageZh": "中国語",
+    "promptLanguageEn": "英語",
+    "promptLanguageJa": "日本語",
+    "prompts": {
+      "base_template": "基本プロンプト",
+      "description_template": "説明用プロンプト",
+      "dialogue_template": "会話用プロンプト",
+      "placeholder": "プロンプトを入力してください"
+    },
+    "apiKeyNotice": "APIキーはブラウザ内にのみ保存され、各リクエストで設定したモデルサービスへ直接送信されます。サーバー側では保存されません。"
+  },
+  "welcome": {
+    "title": "Tavern Translatorへようこそ",
+    "subtitle": "キャラクターカード作成・翻訳ツール",
+    "features": {
+      "onlineEdit": "オンライン編集",
+      "localStorage": "ローカル保存",
+      "oneClickTranslate": "ワンクリック翻訳",
+      "imageExport": "画像書き出し"
+    },
+    "instructions": "SillyTavernのキャラクターカード専用の翻訳エディターです。英語・中国語・日本語のキャラクターカードを編集・翻訳できます。左側の{uploadButton}ボタンをクリックするか、{pngCode}形式のキャラクターカードをこの画面にドラッグ＆ドロップして始めてください。役に立った場合は、ぜひ{githubLink}してください。",
+    "instructionsGithubLinkText": "開発者にスターを贈って",
+    "uploadHint": "PNG キャラクターカードをクリックまたはドラッグしてアップロード",
+    "uploadFormats": "SillyTavern V2 形式の PNG キャラクターカードに対応"
+  },
+  "messages": {
+    "error": {
+      "invalidPng": "有効なPNGファイルを選択してください",
+      "invalidJson": "有効なJSONファイルを選択してください"
+    },
+    "confirm": {
+      "title": "警告",
+      "confirm": "確認",
+      "cancel": "キャンセル"
+    }
+  },
+  "notifications": {
+    "uploadSuccess": "キャラクターカードを解析しました！",
+    "unknownError": "不明なエラー",
+    "uploadFailed": "アップロードに失敗しました",
+    "cardParseFailed": "キャラクターカードを解析できませんでした",
+    "imageUpdated": "ベース画像を更新しました",
+    "apiKeyRequired": "先に設定でAPIキーを入力してください",
+    "fieldTranslated": "フィールド「{field}」を翻訳しました",
+    "translationFailed": "翻訳に失敗しました",
+    "translationServiceError": "翻訳サービスでエラーが発生しました",
+    "noFieldsToTranslate": "翻訳する項目がありません",
+    "batchTranslating": "一括翻訳中",
+    "translatingFields": "項目を翻訳中 (0/{count})…",
+    "batchTranslateCompleted": "一括翻訳が完了しました",
+    "fieldsTranslated": "{success}/{total}項目を正常に翻訳しました",
+    "batchTranslateFailed": "一括翻訳に失敗しました",
+    "batchTranslationServiceError": "一括翻訳サービスでエラーが発生しました",
+    "missingCardImage": "書き出すキャラクターカードデータまたはベース画像がありません",
+    "imageExportSuccess": "キャラクターカードを画像として書き出しました！",
+    "exportFailed": "書き出しに失敗しました",
+    "imageExportError": "キャラクターカード画像を生成できませんでした",
+    "cardCleared": "現在のキャラクターカードデータを消去しました",
+    "missingCard": "書き出すキャラクターカードデータがありません",
+    "jsonExportSuccess": "キャラクターカードをJSONとして書き出しました！",
+    "jsonExportFailed": "JSONファイルを書き出せませんでした",
+    "uploadJsonConfirm": "JSONファイルをアップロードすると、現在のキャラクターカードデータが置き換えられます。続行しますか？",
+    "confirmUpload": "アップロードを確認",
+    "jsonParseSuccess": "JSONファイルを解析しました！",
+    "jsonParseFailed": "JSONファイルを解析できませんでした。ファイル形式を確認してください。",
+    "jsonReadFailed": "JSONファイルを読み込めませんでした。",
+    "blankCardCreated": "空のキャラクターカードを新規作成しました！",
+    "characterBookContentEmpty": "内容が空のため、翻訳は不要です",
+    "characterBookContentTranslated": "内容を翻訳しました",
+    "translationErrorWithMessage": "翻訳に失敗しました: {message}"
+  },
+  "glossary": {
+    "title": "翻訳用語集",
+    "tip": "固有名詞、キャラクター名、表記を統一したい用語を追加してください。用語集は翻訳プロンプトに自動で追加され、すべての項目で訳語を統一します。",
+    "addEntry": "エントリーを追加",
+    "addFirstEntry": "最初のエントリーを追加",
+    "source": "原文",
+    "target": "訳語",
+    "category": "カテゴリー",
+    "note": "メモ",
+    "sourcePlaceholder": "例: Elara",
+    "targetPlaceholder": "例: エララ",
+    "notePlaceholder": "任意のメモ",
+    "categoryName": "名前",
+    "categoryTerm": "固有名詞",
+    "categoryOther": "その他",
+    "import": "インポート",
+    "export": "エクスポート",
+    "clearAll": "すべて削除",
+    "clearConfirm": "すべてのエントリーを削除しますか？この操作は元に戻せません。",
+    "cleared": "用語集を削除しました",
+    "importSuccess": "{count}件のエントリーをインポートしました",
+    "importFormatError": "ファイル形式が正しくありません。このツールから書き出したJSONファイルを使用してください。",
+    "exported": "用語集を書き出しました",
+    "empty": "用語集は空です。翻訳の一貫性を保つためにエントリーを追加してください。",
+    "entryCount": "合計{count}件",
+    "close": "閉じる",
+    "delete": "エントリを削除"
+  },
+  "aiChat": {
+    "title": "AIアシスタント",
+    "serviceError": "AIチャットサービスでエラーが発生しました",
+    "fields": {
+      "name": "名前",
+      "description": "説明",
+      "personality": "性格",
+      "scenario": "シナリオ",
+      "firstMessage": "最初のメッセージ",
+      "exampleMessages": "会話例",
+      "creatorNotes": "作成者メモ",
+      "systemPrompt": "システムプロンプト",
+      "postHistoryInstructions": "履歴後の指示",
+      "tags": "タグ",
+      "alternateGreetings": "別の挨拶"
+    },
+    "alternateGreetingsCount": "別の挨拶 {count}件",
+    "clearChat": "チャットを消去",
+    "clearConfirm": "すべてのチャットメッセージを消去しますか？この操作は元に戻せません。",
+    "inputPlaceholder": "作成したいキャラクターを説明するか、質問を入力してください…",
+    "applyToCard": "カードに適用",
+    "applySelected": "選択項目を適用",
+    "applying": "適用中…",
+    "applySuccess": "適用しました！",
+    "alreadyApplied": "適用済み",
+    "selectFields": "適用する項目を選択",
+    "selectAll": "すべて選択",
+    "deselectAll": "すべて選択解除",
+    "appliedFields": "キャラクターカードに{count}項目を適用しました",
+    "noJsonFound": "適用可能なキャラクターカードデータが見つかりません",
+    "welcome": {
+      "title": "AIキャラクターカードアシスタント",
+      "subtitle": "キャラクターカードの作成や改善をお手伝いします。作りたいキャラクターを説明すると、内容を生成します。"
+    },
+    "quickPrompts": {
+      "createCharacter": "新しいキャラクターを作成",
+      "createCharacterPrompt": "説明、性格、シナリオ、最初のメッセージを含む、面白いキャラクターカードを作成してください。",
+      "improveDescription": "説明を改善",
+      "improveDescriptionPrompt": "現在のキャラクターカードを確認し、キャラクターの説明をより生き生きと面白くするために改善してください。",
+      "generateDialogue": "会話を生成",
+      "generateDialoguePrompt": "現在のキャラクターカードの設定をもとに、キャラクターの話し方や性格が伝わる会話例を作成してください。",
+      "writeScenario": "シナリオを書く",
+      "writeScenarioPrompt": "現在のキャラクターのために、物語の背景と交流環境を含む面白いシナリオを書いてください。"
+    },
+    "chatCleared": "チャット履歴をクリアしました",
+    "streamReadError": "レスポンスストリームを読み取れませんでした"
+  },
+  "common": {
+    "close": "閉じる",
+    "dialog": "ダイアログ",
+    "notifications": "通知",
+    "selectPlaceholder": "選択してください",
+    "scriptError": "スクリプトエラー",
+    "networkError": "ネットワーク接続に問題があります。ネットワークを確認して再試行してください。",
+    "unhandledError": "不明なエラーが発生しました",
+    "toggleMenu": "メニューを切り替え",
+    "logoAlt": "ロゴ",
+    "editorTabsAria": "エディタービューを切り替え"
+  }
+}

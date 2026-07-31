@@ -3,17 +3,20 @@
     <!-- Header -->
     <div class="chat-header">
       <div class="chat-header-left">
-        <el-icon class="chat-icon"><ChatDotRound /></el-icon>
+        <AppIcon class="chat-icon" name="chat" :size="18" />
         <h3>{{ $t('aiChat.title') }}</h3>
       </div>
       <div class="chat-header-actions">
-        <el-tooltip :content="$t('aiChat.clearChat')" placement="bottom">
-          <button class="header-btn" @click="handleClear" :disabled="chatStore.messages.length === 0">
-            <el-icon><Delete /></el-icon>
-          </button>
-        </el-tooltip>
+        <button
+          class="header-btn"
+          :title="$t('aiChat.clearChat')"
+          @click="handleClear"
+          :disabled="chatStore.messages.length === 0"
+        >
+          <AppIcon name="delete" :size="14" />
+        </button>
         <button class="header-btn close-btn" @click="$emit('close')">
-          <el-icon><Close /></el-icon>
+          <AppIcon name="close" :size="14" />
         </button>
       </div>
     </div>
@@ -23,7 +26,7 @@
       <!-- Welcome message when empty -->
       <div v-if="chatStore.messages.length === 0" class="chat-welcome">
         <div class="welcome-icon">
-          <el-icon :size="32"><MagicStick /></el-icon>
+          <AppIcon name="magic" :size="32" />
         </div>
         <h4>{{ $t('aiChat.welcome.title') }}</h4>
         <p>{{ $t('aiChat.welcome.subtitle') }}</p>
@@ -34,7 +37,7 @@
             class="quick-prompt-btn"
             @click="sendQuickPrompt(prompt.text)"
           >
-            <el-icon><prompt.icon /></el-icon>
+            <AppIcon :name="prompt.icon" :size="16" />
             <span>{{ prompt.label }}</span>
           </button>
         </div>
@@ -48,15 +51,15 @@
         :class="`chat-message--${message.role}`"
       >
         <div class="message-avatar">
-          <el-icon v-if="message.role === 'user'"><User /></el-icon>
-          <el-icon v-else><MagicStick /></el-icon>
+          <AppIcon v-if="message.role === 'user'" name="user" :size="14" />
+          <AppIcon v-else name="magic" :size="14" />
         </div>
         <div class="message-body">
           <div class="message-content" v-html="renderMarkdown(message.content)"></div>
 
           <!-- ===== Enhanced Apply-to-Card Panel ===== -->
           <div
-            v-if="message.role === 'assistant' && hasJsonContent(message.content)"
+            v-if="message.role === 'assistant' && hasFields(message)"
             class="apply-panel"
             :class="{ 'apply-panel--expanded': expandedPanelId === message.id }"
           >
@@ -67,18 +70,18 @@
               @click="expandPanel(message)"
             >
               <span class="apply-trigger-icon">
-                <el-icon><DocumentChecked /></el-icon>
+                <AppIcon name="doc-check" :size="14" />
               </span>
               <span class="apply-trigger-text">{{ $t('aiChat.applyToCard') }}</span>
               <span class="apply-trigger-arrow">
-                <el-icon><ArrowDown /></el-icon>
+                <AppIcon name="arrow-down" :size="14" />
               </span>
             </button>
 
             <!-- Already applied badge -->
             <div v-if="appliedMessageIds.has(message.id) && expandedPanelId !== message.id" class="applied-badge">
               <span class="applied-badge-icon">
-                <el-icon><CircleCheckFilled /></el-icon>
+                <AppIcon name="check-circle" :size="14" />
               </span>
               <span>{{ $t('aiChat.alreadyApplied') }}</span>
             </div>
@@ -89,7 +92,7 @@
                 <div class="apply-fields-header">
                   <span class="apply-fields-title">{{ $t('aiChat.selectFields') }}</span>
                   <button class="apply-fields-close" @click="collapsePanel">
-                    <el-icon><ArrowUp /></el-icon>
+                    <AppIcon name="arrow-up" :size="14" />
                   </button>
                 </div>
 
@@ -119,7 +122,7 @@
                     <!-- Per-field status icon -->
                     <Transition name="field-check">
                       <span v-if="appliedFieldKeys.has(field.key)" class="apply-field-check">
-                        <el-icon><CircleCheckFilled /></el-icon>
+                        <AppIcon name="check-circle" :size="14" />
                       </span>
                     </Transition>
                   </label>
@@ -152,7 +155,7 @@
                     @click="handleAnimatedApply(message)"
                   >
                     <span v-if="!isApplying" class="apply-confirm-content">
-                      <el-icon><Check /></el-icon>
+                      <AppIcon name="check" :size="14" />
                       {{ $t('aiChat.applySelected') }} ({{ selectedFieldKeys.size }})
                     </span>
                     <span v-else class="apply-confirm-content">
@@ -170,7 +173,7 @@
       <!-- Loading indicator -->
       <div v-if="chatStore.isLoading" class="chat-message chat-message--assistant">
         <div class="message-avatar">
-          <el-icon><MagicStick /></el-icon>
+          <AppIcon name="magic" :size="14" />
         </div>
         <div class="message-body">
           <div class="message-content loading-dots">
@@ -183,12 +186,13 @@
     <!-- Input area -->
     <div class="chat-input-area">
       <div class="input-wrapper">
-        <el-input
+        <AppInput
           v-model="inputText"
           type="textarea"
           :placeholder="$t('aiChat.inputPlaceholder')"
           :rows="1"
-          :autosize="{ minRows: 1, maxRows: 4 }"
+          :autosize="true"
+          :max-rows="4"
           :disabled="chatStore.isLoading"
           @keydown="handleKeydown"
           ref="inputRef"
@@ -198,7 +202,7 @@
           :disabled="!inputText.trim() || chatStore.isLoading"
           @click="handleSend"
         >
-          <el-icon><Promotion /></el-icon>
+          <AppIcon name="send" :size="14" />
         </button>
       </div>
     </div>
@@ -237,24 +241,9 @@
 import { ref, reactive, nextTick, watch, computed } from 'vue';
 import { useAIChatStore, type ApplyFieldInfo, type ChatMessage } from '@/stores/aiChat';
 import { useI18n } from 'vue-i18n';
-import { ElMessageBox } from 'element-plus';
-import {
-  ChatDotRound,
-  Close,
-  Delete,
-  MagicStick,
-  User,
-  Promotion,
-  DocumentChecked,
-  Edit,
-  Star,
-  ChatLineSquare,
-  Notebook,
-  ArrowDown,
-  ArrowUp,
-  Check,
-  CircleCheckFilled,
-} from '@element-plus/icons-vue';
+import { useConfirm } from './ui/useConfirm';
+import AppIcon from './ui/AppIcon.vue';
+import AppInput from './ui/AppInput.vue';
 
 const props = defineProps<{
   visible: boolean;
@@ -263,6 +252,7 @@ const props = defineProps<{
 const emit = defineEmits(['close']);
 const chatStore = useAIChatStore();
 const { t: $t } = useI18n();
+const { confirm } = useConfirm();
 
 const inputText = ref('');
 const messagesContainer = ref<HTMLElement | null>(null);
@@ -291,22 +281,22 @@ const isAllSelected = computed(() => {
 // Quick prompt suggestions
 const quickPrompts = computed(() => [
   {
-    icon: Star,
+    icon: 'star',
     label: $t('aiChat.quickPrompts.createCharacter'),
     text: $t('aiChat.quickPrompts.createCharacterPrompt'),
   },
   {
-    icon: Edit,
+    icon: 'edit',
     label: $t('aiChat.quickPrompts.improveDescription'),
     text: $t('aiChat.quickPrompts.improveDescriptionPrompt'),
   },
   {
-    icon: ChatLineSquare,
+    icon: 'chat-square',
     label: $t('aiChat.quickPrompts.generateDialogue'),
     text: $t('aiChat.quickPrompts.generateDialoguePrompt'),
   },
   {
-    icon: Notebook,
+    icon: 'notebook',
     label: $t('aiChat.quickPrompts.writeScenario'),
     text: $t('aiChat.quickPrompts.writeScenarioPrompt'),
   },
@@ -314,10 +304,9 @@ const quickPrompts = computed(() => [
 
 // --- Panel expand / collapse ---
 const expandPanel = (message: ChatMessage) => {
-  const json = chatStore.extractJsonFromResponse(message.content);
-  if (!json) return;
+  if (!message.fields || Object.keys(message.fields).length === 0) return;
 
-  const fields = chatStore.getApplyFieldsInfo(json);
+  const fields = chatStore.getApplyFieldsInfo(message.fields);
   currentFields.value = fields;
   selectedFieldKeys.clear();
   appliedFieldKeys.clear();
@@ -403,7 +392,7 @@ const particleStyle = (i: number) => {
     '--size': `${size}px`,
     '--duration': `${duration}s`,
     '--delay': `${delay}s`,
-    '--hue': hue,
+    '--hue': `${hue}`,
     backgroundColor: `hsl(${hue}, 80%, 60%)`,
   } as Record<string, string>;
 };
@@ -429,23 +418,20 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
-const handleClear = () => {
-  ElMessageBox.confirm(
-    $t('aiChat.clearConfirm'),
-    $t('messages.confirm.title'),
-    {
-      confirmButtonText: $t('messages.confirm.confirm'),
-      cancelButtonText: $t('messages.confirm.cancel'),
-      type: 'warning',
-    }
-  ).then(() => {
-    chatStore.clearMessages();
-    appliedMessageIds.clear();
-  }).catch(() => {});
+const handleClear = async () => {
+  const ok = await confirm({
+    title: $t('messages.confirm.title'),
+    message: $t('aiChat.clearConfirm'),
+    confirmText: $t('messages.confirm.confirm'),
+    cancelText: $t('messages.confirm.cancel'),
+  });
+  if (!ok) return;
+  chatStore.clearMessages();
+  appliedMessageIds.clear();
 };
 
-const hasJsonContent = (content: string): boolean => {
-  return chatStore.extractJsonFromResponse(content) !== null;
+const hasFields = (message: ChatMessage): boolean => {
+  return !!message.fields && Object.keys(message.fields).length > 0;
 };
 
 const scrollToBottom = () => {
@@ -633,7 +619,7 @@ watch(() => props.visible, (val) => {
   border-color: var(--apple-color-primary);
   background-color: var(--apple-color-primary-alpha);
 }
-.quick-prompt-btn .el-icon {
+.quick-prompt-btn :deep(svg) {
   color: var(--apple-color-primary);
   font-size: 16px;
   flex-shrink: 0;
@@ -1254,14 +1240,18 @@ watch(() => props.visible, (val) => {
 .input-wrapper:focus-within {
   border-color: var(--apple-color-primary);
 }
-.input-wrapper :deep(.el-textarea__inner) {
+.input-wrapper :deep(.app-input-wrapper) {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-wrapper :deep(.app-input) {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 6px 0;
   font-size: 13px;
   line-height: 1.5;
-  resize: none;
   color: var(--apple-text-color-primary);
 }
 .send-btn {

@@ -3,25 +3,15 @@
 /* 移动端触摸优化 */
 @media (hover: none) and (pointer: coarse) {
   /* 增大可点击区域 */
-  .el-button {
+  .app-btn {
     min-height: 44px;
     min-width: 44px;
   }
   
   /* 优化输入框触摸体验 */
-  .el-input__inner {
+  .app-input {
     padding: 12px;
     font-size: 16px; /* 防止iOS缩放 */
-  }
-  
-  .el-textarea__inner {
-    padding: 12px;
-    font-size: 16px;
-  }
-  
-  /* 优化滚动区域 */
-  .el-scrollbar__wrap {
-    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -48,8 +38,7 @@
 /* 移动端特定的手势优化 */
 @media (max-width: 768px) {
   /* 防止误触放大 */
-  .el-input__inner,
-  .el-textarea__inner {
+  .app-input {
     touch-action: manipulation;
   }
   
@@ -62,57 +51,30 @@
   }
   
   /* 移动端按钮间距 */
-  .el-button + .el-button {
+  .app-btn + .app-btn {
     margin-left: 8px;
   }
   
   /* 优化表单布局 */
-  .el-form-item {
+  .form-field {
     margin-bottom: 20px;
   }
   
-  .el-form-item__label {
+  .form-field__label {
     line-height: 1.4;
     word-break: break-word;
   }
   
   /* 移动端对话框优化 */
-  .el-dialog {
-    margin: 20px !important;
-    width: calc(100% - 40px) !important;
-    max-width: none !important;
-  }
-  
-  .el-dialog__header {
-    padding: 16px 20px;
-  }
-  
-  .el-dialog__body {
-    padding: 20px;
-  }
-  
-  .el-dialog__footer {
-    padding: 12px 20px 20px;
+  .app-dialog {
+    max-width: calc(100% - 40px) !important;
   }
 }
 
 /* 小屏设备优化 */
 @media (max-width: 480px) {
-  .el-dialog {
-    margin: 10px !important;
-    width: calc(100% - 20px) !important;
-  }
-  
-  .el-dialog__header {
-    padding: 12px 16px;
-  }
-  
-  .el-dialog__body {
-    padding: 16px;
-  }
-  
-  .el-dialog__footer {
-    padding: 8px 16px 16px;
+  .app-dialog {
+    max-width: calc(100% - 20px) !important;
   }
   
   /* 优化按钮布局 */
@@ -122,7 +84,7 @@
     justify-content: flex-end;
   }
   
-  .dialog-footer .el-button {
+  .dialog-footer .app-btn {
     flex: 1;
     max-width: 100px;
   }
@@ -186,16 +148,10 @@
 
 /* 移动端防止水平滚动 */
 @media (max-width: 768px) {
-  .el-form,
-  .el-form-item,
-  .el-input,
-  .el-textarea {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  .el-textarea__inner,
-  .el-input__inner {
+  .editor-form,
+  .book-form,
+  .form-field,
+  .app-input {
     max-width: 100%;
     overflow-x: hidden;
   }

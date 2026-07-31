@@ -1,0 +1,18 @@
+{
+  "name": "tavern-translator",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "cd api && npm run dev",
+    "dev:web": "cd vue-frontend && npm run dev",
+    "build": "cd vue-frontend && npm run build",
+    "typecheck": "cd api && npm run typecheck && cd ../vue-frontend && npm run typecheck",
+    "test": "cd api && npm run test",
+    "install:all": "cd api && npm install && cd ../vue-frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

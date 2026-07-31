@@ -6,6 +6,16 @@
       "menu": "Menu"
     }
   },
+  "language": {
+    "en": "English",
+    "zh": "Chinese",
+    "ja": "Japanese",
+    "switchTo": "Switch to {language}"
+  },
+  "theme": {
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode"
+  },
   "sidebar": {
     "title": "TavernTranslator",
     "image": {
@@ -45,6 +55,7 @@
   },
   "editor": {
     "name": "Name",
+    "newCharacter": "New Character",
     "description": "Description",
     "personality": "Personality",
     "scenario": "Scenario",
@@ -99,12 +110,14 @@
     "promptLanguage": "Target Language Prompt Template",
     "promptLanguageZh": "Chinese",
     "promptLanguageEn": "English",
+    "promptLanguageJa": "Japanese",
     "prompts": {
       "base_template": "Base Prompt",
       "description_template": "Description Prompt",
       "dialogue_template": "Dialogue Prompt",
       "placeholder": "Enter your prompt here"
-    }
+    },
+    "apiKeyNotice": "Your API key is stored only in your browser and sent directly to the model service you configure with each request. The server never stores it."
   },
   "welcome": {
     "title": "Welcome to Tavern Translator",
@@ -116,7 +129,9 @@
       "imageExport": "Image Export"
     },
     "instructions": "This is a translation editor tool designed specifically for SillyTavern character cards, which can help you translate character cards between English and Chinese. To get started, click the {uploadButton} button in the left sidebar, or drag and drop your {pngCode} format character card file to this window. If you feel this project is helpful to you, please consider {githubLink}.",
-    "instructionsGithubLinkText": "starring the developer"
+    "instructionsGithubLinkText": "starring the developer",
+    "uploadHint": "Click or drag a PNG character card here to upload",
+    "uploadFormats": "Supports SillyTavern V2 format PNG character cards"
   },
   "messages": {
     "error": {
@@ -128,6 +143,41 @@
       "confirm": "Confirm",
       "cancel": "Cancel"
     }
+  },
+  "notifications": {
+    "uploadSuccess": "Character card parsed successfully!",
+    "unknownError": "Unknown error",
+    "uploadFailed": "Upload failed",
+    "cardParseFailed": "Failed to parse character card",
+    "imageUpdated": "Base image updated",
+    "apiKeyRequired": "Please provide your API Key in settings first",
+    "fieldTranslated": "Field {field} translated successfully",
+    "translationFailed": "Translation failed",
+    "translationServiceError": "Translation service error",
+    "noFieldsToTranslate": "There are no fields to translate",
+    "batchTranslating": "Batch translation in progress",
+    "translatingFields": "Translating fields (0/{count})...",
+    "batchTranslateCompleted": "Batch translation complete",
+    "fieldsTranslated": "Successfully translated {success}/{total} fields",
+    "batchTranslateFailed": "Batch translation failed",
+    "batchTranslationServiceError": "Batch translation service error",
+    "missingCardImage": "No character card data or base image is available for export",
+    "imageExportSuccess": "Character card exported as an image successfully!",
+    "exportFailed": "Export failed",
+    "imageExportError": "Unable to generate the character card image",
+    "cardCleared": "Current character card data cleared",
+    "missingCard": "No character card data is available for export",
+    "jsonExportSuccess": "Character card exported as JSON successfully!",
+    "jsonExportFailed": "Failed to export the JSON file",
+    "uploadJsonConfirm": "Uploading a JSON file will replace the current character card data. Do you want to continue?",
+    "confirmUpload": "Confirm Upload",
+    "jsonParseSuccess": "JSON file parsed successfully!",
+    "jsonParseFailed": "Failed to parse the JSON file. Please check the file format.",
+    "jsonReadFailed": "Failed to read the JSON file.",
+    "blankCardCreated": "New blank character card created!",
+    "characterBookContentEmpty": "Content is empty; no translation is needed",
+    "characterBookContentTranslated": "Content translated successfully",
+    "translationErrorWithMessage": "Translation failed: {message}"
   },
   "glossary": {
     "title": "Translation Glossary",
@@ -154,10 +204,26 @@
     "exported": "Glossary exported",
     "empty": "Glossary is empty. Add entries to ensure translation consistency.",
     "entryCount": "{count} entries total",
-    "close": "Close"
+    "close": "Close",
+    "delete": "Delete entry"
   },
   "aiChat": {
     "title": "AI Assistant",
+    "serviceError": "AI chat service error",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "personality": "Personality",
+      "scenario": "Scenario",
+      "firstMessage": "First Message",
+      "exampleMessages": "Example Messages",
+      "creatorNotes": "Creator Notes",
+      "systemPrompt": "System Prompt",
+      "postHistoryInstructions": "Post History Instructions",
+      "tags": "Tags",
+      "alternateGreetings": "Alternate Greetings"
+    },
+    "alternateGreetingsCount": "{count} alternate greetings",
     "clearChat": "Clear Chat",
     "clearConfirm": "Are you sure you want to clear all chat messages? This action cannot be undone.",
     "inputPlaceholder": "Describe the character you want to create, or ask a question...",
@@ -184,6 +250,20 @@
       "generateDialoguePrompt": "Based on the current character card settings, help me generate sample dialogue that showcases the character's speaking style and personality.",
       "writeScenario": "Write Scenario",
       "writeScenarioPrompt": "Help me write an interesting scenario for the current character, including the story background and interaction environment."
-    }
+    },
+    "chatCleared": "Chat history cleared",
+    "streamReadError": "Unable to read the response stream"
+  },
+  "common": {
+    "close": "Close",
+    "dialog": "Dialog",
+    "notifications": "Notifications",
+    "selectPlaceholder": "Select…",
+    "scriptError": "Script error",
+    "networkError": "Network connection error. Please check your network and retry.",
+    "unhandledError": "An unknown error occurred",
+    "toggleMenu": "Toggle menu",
+    "logoAlt": "Logo",
+    "editorTabsAria": "Switch editor view"
   }
 }

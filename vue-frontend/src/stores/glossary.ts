@@ -13,11 +13,20 @@ export const useGlossaryStore = defineStore('glossary', () => {
   const entries = ref<GlossaryEntry[]>([]);
 
   // --- Actions ---
+  /** 兼容旧数据：补齐可选字段默认值 */
+  const normalizeEntry = (e: Partial<GlossaryEntry>): GlossaryEntry => ({
+    id: e.id ?? _generateId(),
+    source: e.source ?? '',
+    target: e.target ?? '',
+    category: e.category ?? 'term',
+    note: e.note ?? '',
+  });
+
   const loadFromStorage = () => {
     const saved = localStorage.getItem(GLOSSARY_STORAGE_KEY);
     if (saved) {
       try {
-        entries.value = JSON.parse(saved);
+        entries.value = (JSON.parse(saved) as GlossaryEntry[]).map(normalizeEntry);
       } catch {
         localStorage.removeItem(GLOSSARY_STORAGE_KEY);
       }
@@ -56,7 +65,7 @@ export const useGlossaryStore = defineStore('glossary', () => {
     for (const entry of newEntries) {
       const key = `${entry.source}||${entry.target}`;
       if (!existing.has(key)) {
-        entries.value.push({ ...entry, id: _generateId() });
+        entries.value.push({ ...normalizeEntry(entry), id: _generateId() });
         existing.add(key);
         added++;
       }

@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
-import { ElMessage, ElNotification, ElMessageBox } from 'element-plus';
-import { get, set } from 'lodash-es';
+import { useToast } from '@/components/ui/useToast';
+import { useConfirm } from '@/components/ui/useConfirm';
+import { getCardField, setCardField } from '@/utils/card-path';
 import type { CharacterCard, TranslationSettings, GlossaryEntry } from '@/types';
 import { useGlossaryStore } from './glossary';
+import i18n from '@/i18n';
 import {
   uploadCharacterCard as apiUpload,
   translateField as apiTranslate,
@@ -91,11 +93,54 @@ export const defaultPromptsEn = {
 9. Do not translate or replace any links; keep the original links.`,
 };
 
+
+
+export const defaultPromptsJa = {
+  base_template: `あなたはプロの翻訳者です。翻訳の際は以下の要件に従ってください：
+1. 特殊な書式（数字、記号、絵文字など）を維持する
+2. 訳文が自然で読みやすいものにする
+3. 原文の感情や語気を保つ
+4. 小説的な翻訳スタイルを採用する
+5. 原文の意味を正確に理解する
+6. 内容テキストのみを翻訳する
+7. 翻訳結果のみを出力する
+8. キャラクター名などの識別情報を保持する
+9. リンクは翻訳・置換せず、元のリンクを保持する`,
+  description_template: `あなたはプロのキャラクター設定翻訳者です。キャラクター説明を翻訳する際は以下の要件に従ってください：
+1. 角括弧[]内の書式マーカーを維持する
+2. プラス記号+で連結された属性リストを保持する
+3. キャラクターの特徴を正確に伝える
+4. 説明の詳細を完全に保持する
+5. 説明テキストのみを翻訳する
+6. キャラクター名や{{char}}などのプレースホルダーを保持する
+7. 訳文が自然で読みやすいものにする
+8. リンクは翻訳・置換せず、元のリンクを保持する`,
+  dialogue_template: `あなたはプロの会話翻訳者です。会話を翻訳する際は以下の要件に従ってください：
+1. 会話が自然に流れるようにする
+2. 原文の感情と語気を伝える
+3. 会話のマーカーや書式を保持する
+4. 日常的な表現を採用する
+5. キャラクターの性格特徴を保つ
+6. キャラクター名やプレースホルダーを保持する
+7. 心理描写を正確に翻訳する
+8. 会話の一貫性を保つ
+9. リンクは翻訳・置換せず、元のリンクを保持する`,
+};
+
+/** 按提示词语言返回对应默认提示词（zh/en/ja，未知值回退中文） */
+export const getDefaultPrompts = (lang: string | undefined) => {
+  if (lang === 'en') return { ...defaultPromptsEn }
+  if (lang === 'ja') return { ...defaultPromptsJa }
+  return { ...defaultPromptsZh }
+}
+
 export const useTranslatorStore = defineStore('translator', () => {
   // --- State ---
   const characterCard = ref<CharacterCard | null>(null);
   const characterImageB64 = ref<string | null>(null);
   const isLoading = ref(false);
+  const toast = useToast();
+  const { confirm } = useConfirm();
   const translationSettings = ref<TranslationSettings>({
     api_key: '',
     base_url: 'https://api.openai.com/v1',
@@ -123,7 +168,7 @@ export const useTranslatorStore = defineStore('translator', () => {
       const parsedSettings = JSON.parse(savedSettings);
       Object.assign(translationSettings.value, parsedSettings);
       if (!parsedSettings.prompts) {
-        translationSettings.value.prompts = parsedSettings.prompt_language === 'en' ? { ...defaultPromptsEn } : { ...defaultPromptsZh };
+        translationSettings.value.prompts = getDefaultPrompts(parsedSettings.prompt_language);
       }
     } catch {
       localStorage.removeItem(SETTINGS_STORAGE_KEY);
@@ -151,9 +196,9 @@ export const useTranslatorStore = defineStore('translator', () => {
       const data = await apiUpload(file);
       characterCard.value = data.character_data as unknown as CharacterCard;
       characterImageB64.value = data.image_b64;
-      ElMessage.success('角色卡解析成功！');
+      toast.success(i18n.global.t('notifications.uploadSuccess'));
     } catch (error: any) {
-      ElNotification.error({ title: '上传失败', message: error.message || '解析角色卡失败' });
+      toast.error(`${i18n.global.t('notifications.uploadFailed')}：${error.message || i18n.global.t('notifications.cardParseFailed')}`);
     } finally {
       isLoading.value = false;
     }
@@ -161,15 +206,15 @@ export const useTranslatorStore = defineStore('translator', () => {
 
   const updateBaseImage = (base64String: string) => {
     characterImageB64.value = base64String;
-    ElMessage.success('基础图片已更新');
+    toast.success(i18n.global.t('notifications.imageUpdated'));
   };
 
   const translateField = async (path: string) => {
     if (!characterCard.value) return;
-    const textToTranslate = get(characterCard.value, path);
+    const textToTranslate = getCardField(characterCard.value, path);
     if (!textToTranslate || typeof textToTranslate !== 'string' || !textToTranslate.trim()) return;
     if (!translationSettings.value.api_key) {
-      ElMessage.warning('请先在设置中提供您的 API Key');
+      toast.warning(i18n.global.t('notifications.apiKeyRequired'));
       return;
     }
     const fieldName = path.split('.').pop()!;
@@ -182,10 +227,10 @@ export const useTranslatorStore = defineStore('translator', () => {
         prompts: translationSettings.value.prompts,
         glossary: buildGlossaryPromptText(),
       });
-      set(characterCard.value, path, data.translated_text);
-      ElMessage.success(`字段 ${fieldName} 翻译成功`);
+      setCardField(characterCard.value, path, data.translated_text);
+      toast.success(i18n.global.t('notifications.fieldTranslated', { field: fieldName }));
     } catch (error: any) {
-      ElNotification.error({ title: '翻译失败', message: error.message || '翻译服务出错' });
+      toast.error(`${i18n.global.t('notifications.translationFailed')}：${error.message || i18n.global.t('notifications.translationServiceError')}`);
     } finally {
       isLoading.value = false;
     }
@@ -194,7 +239,7 @@ export const useTranslatorStore = defineStore('translator', () => {
   const batchTranslate = async () => {
     if (!characterCard.value) return;
     if (!translationSettings.value.api_key) {
-      ElMessage.warning('请先在设置中提供您的 API Key');
+      toast.warning(i18n.global.t('notifications.apiKeyRequired'));
       return;
     }
 
@@ -207,13 +252,13 @@ export const useTranslatorStore = defineStore('translator', () => {
     ];
 
     for (const field of mainFields) {
-      const text = get(characterCard.value, field);
+      const text = getCardField(characterCard.value, field);
       if (text && typeof text === 'string' && text.trim()) {
         fieldsToTranslate.push({ field_name: field.split('.').pop() || field, text });
       }
     }
 
-    const greetings = get(characterCard.value, 'data.alternate_greetings', []) as string[];
+    const greetings = getCardField(characterCard.value, 'data.alternate_greetings') ?? [] as string[];
     if (Array.isArray(greetings)) {
       for (let i = 0; i < greetings.length; i++) {
         const greeting = greetings[i] as string;
@@ -223,13 +268,13 @@ export const useTranslatorStore = defineStore('translator', () => {
       }
     }
 
-    const characterBook = get(characterCard.value, 'data.character_book');
+    const characterBook = getCardField(characterCard.value, 'data.character_book');
     if (characterBook && typeof characterBook === 'object') {
-      const bookDescription = get(characterBook, 'description');
+      const bookDescription = getCardField(characterBook, 'description');
       if (bookDescription && typeof bookDescription === 'string' && bookDescription.trim()) {
         fieldsToTranslate.push({ field_name: 'character_book.description', text: bookDescription });
       }
-      const lore = get(characterBook, 'lore', []);
+      const lore = getCardField(characterBook, 'lore') ?? [];
       if (Array.isArray(lore)) {
         for (let i = 0; i < lore.length; i++) {
           const loreItem = lore[i];
@@ -241,19 +286,16 @@ export const useTranslatorStore = defineStore('translator', () => {
     }
 
     if (fieldsToTranslate.length === 0) {
-      ElMessage.info('没有需要翻译的字段');
+      toast.info(i18n.global.t('notifications.noFieldsToTranslate'));
       return;
     }
 
     isLoading.value = true;
 
-    const notification = ElNotification({
-      title: '批量翻译进行中',
-      message: `正在翻译字段 (0/${fieldsToTranslate.length})...`,
-      duration: 0,
-      dangerouslyUseHTMLString: true,
-      showClose: false,
-    });
+    const notificationId = toast.info(
+      `${i18n.global.t('notifications.batchTranslating')}：${i18n.global.t('notifications.translatingFields', { count: fieldsToTranslate.length })}`,
+      0
+    );
 
     try {
       const data = await apiBatchTranslate({
@@ -269,25 +311,17 @@ export const useTranslatorStore = defineStore('translator', () => {
       for (const result of data.results) {
         if (result.success) {
           const path = `data.${result.field_name}`;
-          set(characterCard.value, path, result.translated_text);
+          setCardField(characterCard.value, path, result.translated_text);
           successCount++;
         }
         completedCount++;
       }
 
-      notification.close();
-      ElNotification.success({
-        title: '批量翻译完成',
-        message: `成功翻译 ${successCount}/${fieldsToTranslate.length} 个字段`,
-        duration: 3000,
-      });
+      toast.close(notificationId);
+      toast.success(`${i18n.global.t('notifications.batchTranslateCompleted')}：${i18n.global.t('notifications.fieldsTranslated', { success: successCount, total: fieldsToTranslate.length })}`);
     } catch (error: any) {
-      notification.close();
-      ElNotification.error({
-        title: '批量翻译失败',
-        message: error.message || '批量翻译服务出错',
-        duration: 0,
-      });
+      toast.close(notificationId);
+      toast.error(`${i18n.global.t('notifications.batchTranslateFailed')}：${error.message || i18n.global.t('notifications.batchTranslationServiceError')}`, 0);
     } finally {
       isLoading.value = false;
     }
@@ -295,7 +329,7 @@ export const useTranslatorStore = defineStore('translator', () => {
 
   const exportCardAsImage = async () => {
     if (!characterCard.value || !characterImageB64.value) {
-      ElMessage.error('没有角色卡数据或基础图片可供导出');
+      toast.error(i18n.global.t('notifications.missingCardImage'));
       return;
     }
     isLoading.value = true;
@@ -309,14 +343,14 @@ export const useTranslatorStore = defineStore('translator', () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${get(characterCard.value, 'data.name', 'character')}.png`;
+      link.download = `${getCardField(characterCard.value, 'data.name') ?? 'character'}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      ElMessage.success('角色卡已成功导出为图片！');
+      toast.success(i18n.global.t('notifications.imageExportSuccess'));
     } catch (error: any) {
-      ElNotification.error({ title: '导出失败', message: error.message || '无法生成角色卡图片' });
+      toast.error(`${i18n.global.t('notifications.exportFailed')}：${error.message || i18n.global.t('notifications.imageExportError')}`);
     } finally {
       isLoading.value = false;
     }
@@ -327,12 +361,12 @@ export const useTranslatorStore = defineStore('translator', () => {
     characterImageB64.value = null;
     localStorage.removeItem(CARD_STORAGE_KEY);
     localStorage.removeItem(IMAGE_STORAGE_KEY);
-    ElMessage.info('已清除当前角色卡数据');
+    toast.info(i18n.global.t('notifications.cardCleared'));
   };
 
   const exportCardAsJson = () => {
     if (!characterCard.value) {
-      ElMessage.error('没有角色卡数据可供导出');
+      toast.error(i18n.global.t('notifications.missingCard'));
       return;
     }
     try {
@@ -341,31 +375,25 @@ export const useTranslatorStore = defineStore('translator', () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${get(characterCard.value, 'data.name', 'character')}.json`;
+      link.download = `${getCardField(characterCard.value, 'data.name') ?? 'character'}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      ElMessage.success('角色卡已成功导出为 JSON！');
+      toast.success(i18n.global.t('notifications.jsonExportSuccess'));
     } catch {
-      ElNotification.error({ title: '导出失败', message: '导出 JSON 文件失败' });
+      toast.error(`${i18n.global.t('notifications.exportFailed')}：${i18n.global.t('notifications.jsonExportFailed')}`);
     }
   };
 
   const handleJsonUpload = async (file: File) => {
-    try {
-      await ElMessageBox.confirm(
-        '上传 JSON 文件将替换当前的角色卡数据。您确定要继续吗？',
-        '确认上传',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
-      );
-    } catch {
-      return;
-    }
+    const confirmed = await confirm({
+      title: i18n.global.t('notifications.confirmUpload'),
+      message: i18n.global.t('notifications.uploadJsonConfirm'),
+      confirmText: i18n.global.t('messages.confirm.confirm'),
+      cancelText: i18n.global.t('messages.confirm.cancel'),
+    });
+    if (!confirmed) return;
 
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
@@ -373,26 +401,26 @@ export const useTranslatorStore = defineStore('translator', () => {
         const jsonData = JSON.parse(e.target!.result as string);
         characterCard.value = jsonData;
         characterImageB64.value = null;
-        ElMessage.success('JSON 文件解析成功！');
+        toast.success(i18n.global.t('notifications.jsonParseSuccess'));
       } catch {
-        ElMessage.error('解析 JSON 文件失败，请确保文件格式正确。');
+        toast.error(i18n.global.t('notifications.jsonParseFailed'));
       }
     };
     reader.onerror = () => {
-      ElMessage.error('读取 JSON 文件失败。');
+      toast.error(i18n.global.t('notifications.jsonReadFailed'));
     };
     reader.readAsText(file);
   };
 
   const updateCardField = (path: string, value: any) => {
     if (!characterCard.value) return;
-    set(characterCard.value, path, value);
+    setCardField(characterCard.value, path, value);
   };
 
   const createNewCard = () => {
     characterCard.value = {
       data: {
-        name: '新角色',
+        name: i18n.global.t('editor.newCharacter'),
         description: '',
         personality: '',
         scenario: '',
@@ -420,7 +448,7 @@ export const useTranslatorStore = defineStore('translator', () => {
       last_update_human: new Date().toLocaleString(),
     } as CharacterCard;
     characterImageB64.value = null;
-    ElMessage.success('已创建新的空白角色卡！');
+    toast.success(i18n.global.t('notifications.blankCardCreated'));
   };
 
   // --- Watchers ---

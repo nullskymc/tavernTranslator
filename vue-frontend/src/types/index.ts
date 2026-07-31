@@ -31,11 +31,13 @@ export interface CharacterCard {
   last_update_human: string;
 }
 
+export type PromptLanguage = 'zh' | 'en' | 'ja';
+
 export interface TranslationSettings {
   api_key: string;
   base_url: string;
   model_name: string;
-  prompt_language: string;
+  prompt_language: PromptLanguage;
   prompts: {
     base_template: string;
     description_template: string;
@@ -48,7 +50,7 @@ export interface GlossaryEntry {
   source: string;      // Original term (e.g. "Elara")
   target: string;      // Translated term (e.g. "艾拉拉")
   category: 'name' | 'term' | 'other';  // Category for organization
-  note?: string;       // Optional note for context
+  note: string;        // Optional note for context（空字符串表示无备注）
 }
 
 export interface ErrorInfo {

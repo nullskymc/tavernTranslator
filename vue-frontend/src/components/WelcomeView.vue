@@ -29,25 +29,25 @@
       <div class="features fade-slide-up stagger-3">
         <div class="feature-card">
           <div class="feature-icon feature-icon--edit">
-            <el-icon><EditPen /></el-icon>
+            <AppIcon name="edit" :size="16" />
           </div>
           <span>{{ $t('welcome.features.onlineEdit') }}</span>
         </div>
         <div class="feature-card">
           <div class="feature-icon feature-icon--data">
-            <el-icon><DataLine /></el-icon>
+            <AppIcon name="chart" :size="16" />
           </div>
           <span>{{ $t('welcome.features.localStorage') }}</span>
         </div>
         <div class="feature-card">
           <div class="feature-icon feature-icon--translate">
-            <el-icon><Switch /></el-icon>
+            <AppIcon name="switch" :size="16" />
           </div>
           <span>{{ $t('welcome.features.oneClickTranslate') }}</span>
         </div>
         <div class="feature-card">
           <div class="feature-icon feature-icon--export">
-            <el-icon><Download /></el-icon>
+            <AppIcon name="download" :size="16" />
           </div>
           <span>{{ $t('welcome.features.imageExport') }}</span>
         </div>
@@ -57,7 +57,7 @@
       <div class="drop-zone fade-slide-up stagger-4">
         <div class="drop-zone-inner">
           <div class="drop-icon-wrapper">
-            <el-icon class="drop-icon"><Upload /></el-icon>
+            <AppIcon class="drop-icon" name="upload" :size="22" />
           </div>
           <div class="drop-text">
             <i18n-t keypath="welcome.instructions" tag="span">
@@ -80,7 +80,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { EditPen, DataLine, Switch, Download, Upload } from '@element-plus/icons-vue';
+import AppIcon from './ui/AppIcon.vue';
 import { useTranslatorStore } from '@/stores/translator';
 
 const store = useTranslatorStore();

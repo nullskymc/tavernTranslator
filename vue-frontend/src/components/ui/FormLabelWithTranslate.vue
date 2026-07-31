@@ -1,20 +1,22 @@
 <template>
   <div class="label-with-btn">
     <span class="label-text">{{ label }}</span>
-    <el-button
+    <AppButton
       v-if="showButton"
       class="translate-btn"
-      type="primary"
-      text
+      variant="text"
+      size="sm"
       :loading="loading"
       @click="$emit('translate')"
     >
       {{ buttonText }}
-    </el-button>
+    </AppButton>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppButton from './AppButton.vue';
+
 withDefaults(
   defineProps<{
     label: string;
@@ -34,7 +36,7 @@ withDefaults(
   width: 100%;
 }
 
-/* The label text — inherit from el-form-item__label (uppercase micro style via index.css).
+/* The label text — inherit from form field label (uppercase micro style).
    Override font-size/weight only for the inline translate context where it may
    be rendered outside the normal form-item label slot. */
 .label-text {
@@ -51,7 +53,7 @@ withDefaults(
   padding: 2px 0;
   height: auto;
   line-height: 1.4;
-  color: var(--el-color-primary);
+  color: var(--apple-color-primary);
 }
 
 .translate-btn:hover {

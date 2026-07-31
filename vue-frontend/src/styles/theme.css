@@ -1,6 +1,8 @@
 /* ============================================
-   Element Plus Theme — Emerald & Gold Premium
+   Theme — Emerald & Gold Premium
    翡翠绿 + 暖金色双色调色板
+   注：--el-* 变量仅作为设计 token 保留（命名沿用历史），
+   已与 Element Plus 库解耦。
    ============================================ */
 :root {
   /* Primary — Emerald */
@@ -103,6 +105,24 @@
   --tt-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --tt-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* ============================================
+   UI 基础组件别名（AppButton/AppInput/AppDialog 等）
+   映射到项目原生 token，保持翡翠主题一致性
+   ============================================ */
+:root {
+  --color-primary: var(--apple-color-primary);
+  --color-danger: var(--apple-color-danger);
+  --color-warning: var(--apple-color-warning);
+  --color-success: var(--el-color-success);
+  --color-surface: var(--apple-bg-color);
+  --color-bg: var(--apple-bg-color);
+  --color-text: var(--apple-text-color-primary);
+  --color-text-secondary: var(--apple-text-color-secondary);
+  --color-border: var(--apple-border-color-strong);
+  --radius-md: var(--apple-border-radius-medium);
+  --shadow-lg: var(--apple-shadow-large);
+}
+
 
 /* ============================================
    Dark Theme
@@ -200,6 +220,21 @@
   --tt-glass-border: rgba(255, 255, 255, 0.06);
   --tt-glass-blur: 20px;
 }
+/* 暗色主题：别名跟随 apple token 变化 */
+.dark-theme {
+  --color-primary: var(--apple-color-primary);
+  --color-danger: var(--apple-color-danger);
+  --color-warning: var(--apple-color-warning);
+  --color-success: var(--el-color-success);
+  --color-surface: var(--apple-bg-color);
+  --color-bg: var(--apple-bg-color);
+  --color-text: var(--apple-text-color-primary);
+  --color-text-secondary: var(--apple-text-color-secondary);
+  --color-border: var(--apple-border-color-strong);
+  --radius-md: var(--apple-border-radius-medium);
+  --shadow-lg: var(--apple-shadow-large);
+}
+
 
 /* ============================================
    Theme transition
@@ -210,60 +245,4 @@
 .theme-transition *:after {
   transition: background-color 250ms ease, border-color 250ms ease, color 250ms ease, box-shadow 250ms ease !important;
   transition-delay: 0 !important;
-}
-
-/* ============================================
-   Dark theme button overrides
-   ============================================ */
-.dark-theme .el-button--primary.is-text {
-  color: var(--el-color-primary);
-  background-color: transparent;
-  border-color: transparent;
-}
-.dark-theme .el-button--primary.is-text:hover {
-  color: var(--el-color-primary);
-  background-color: var(--el-color-primary-light-9);
-}
-.dark-theme .el-button--primary.is-plain {
-  color: var(--el-color-primary);
-  background-color: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary-light-7);
-}
-.dark-theme .el-button--primary.is-plain:hover {
-  color: #ffffff;
-  background-color: var(--el-color-primary);
-  border-color: var(--el-color-primary);
-}
-.dark-theme .el-button--danger.is-text {
-  color: var(--el-color-danger);
-  background-color: transparent;
-  border-color: transparent;
-}
-.dark-theme .el-button--danger.is-text:hover {
-  color: var(--el-color-danger);
-  background-color: var(--el-color-danger-light-9);
-}
-.dark-theme .el-button--default {
-  color: var(--el-text-color-primary);
-  background-color: var(--el-fill-color);
-  border-color: var(--el-border-color);
-}
-.dark-theme .el-button--default:hover {
-  color: var(--el-color-primary);
-  background-color: var(--el-color-primary-light-9);
-  border-color: var(--el-color-primary);
-}
-.dark-theme .el-button.is-circle {
-  background-color: var(--el-fill-color);
-  border-color: var(--el-border-color);
-  color: var(--el-text-color-primary);
-}
-.dark-theme .el-button--danger.is-circle {
-  background-color: var(--el-color-danger);
-  border-color: var(--el-color-danger);
-  color: #ffffff;
-}
-.dark-theme .el-button--danger.is-circle:hover {
-  background-color: var(--el-color-danger-dark-2);
-  border-color: var(--el-color-danger-dark-2);
 }

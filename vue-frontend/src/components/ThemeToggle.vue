@@ -1,15 +1,18 @@
 <template>
-  <el-tooltip :content="isDarkTheme ? $t('sidebar.actions.theme') + ' (Light)' : $t('sidebar.actions.theme') + ' (Dark)'" placement="top">
-    <button class="control-btn" @click="toggleTheme" :aria-label="isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'">
-      <el-icon><component :is="isDarkTheme ? Sunny : Moon" /></el-icon>
-    </button>
-  </el-tooltip>
+  <button
+    class="control-btn"
+    :title="isDarkTheme ? $t('sidebar.actions.theme') + ' (Light)' : $t('sidebar.actions.theme') + ' (Dark)'"
+    @click="toggleTheme"
+    :aria-label="isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'"
+  >
+    <AppIcon :name="isDarkTheme ? 'sun' : 'moon'" :size="15" />
+  </button>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { useThemeStore } from '../stores/theme';
-import { Sunny, Moon } from '@element-plus/icons-vue';
+import AppIcon from './ui/AppIcon.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t: $t } = useI18n();

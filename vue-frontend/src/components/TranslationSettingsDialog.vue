@@ -1,72 +1,112 @@
 <template>
-  <el-dialog
-    v-model="dialogVisible"
+  <AppDialog
+    :open="dialogVisible"
     :title="$t('settings.title')"
     :width="isMobile ? '95%' : '700px'"
-    :close-on-click-modal="false"
-    append-to-body
+    :close-on-backdrop="false"
+    :close-on-escape="false"
+    @close="dialogVisible = false"
   >
-    <el-form label-position="top" :model="settings">
-      <el-form-item :label="$t('settings.api')">
-        <el-input v-model="settings.api_key" :placeholder="$t('settings.apiPlaceholder')" show-password />
-      </el-form-item>
-      <el-form-item :label="$t('settings.baseUrl')">
-        <el-input v-model="settings.base_url" :placeholder="$t('settings.baseUrlPlaceholder')" />
-      </el-form-item>
-      <el-form-item :label="$t('settings.model')">
-        <el-input v-model="settings.model_name" :placeholder="$t('settings.modelPlaceholder')" />
-      </el-form-item>
-      
-      <el-form-item :label="$t('settings.promptLanguage')">
-        <el-radio-group v-model="settings.prompt_language">
-          <el-radio label="zh">{{ $t('settings.promptLanguageZh') }}</el-radio>
-          <el-radio label="en">{{ $t('settings.promptLanguageEn') }}</el-radio>
-        </el-radio-group>
-      </el-form-item>
+    <div class="settings-form">
+      <div class="form-field">
+        <label class="form-field__label">{{ $t('settings.api') }}</label>
+        <AppInput v-model="settings.api_key" type="password" :placeholder="$t('settings.apiPlaceholder')" />
+        <p class="form-field__hint">{{ $t('settings.apiKeyNotice') }}</p>
+      </div>
+      <div class="form-field">
+        <label class="form-field__label">{{ $t('settings.baseUrl') }}</label>
+        <AppInput v-model="settings.base_url" :placeholder="$t('settings.baseUrlPlaceholder')" />
+      </div>
+      <div class="form-field">
+        <label class="form-field__label">{{ $t('settings.model') }}</label>
+        <AppInput v-model="settings.model_name" :placeholder="$t('settings.modelPlaceholder')" />
+      </div>
 
-      <el-collapse v-model="activePrompt">
-        <el-collapse-item :title="$t('settings.prompts.base_template')" name="1">
-          <el-input
+      <div class="form-field">
+        <label class="form-field__label">{{ $t('settings.promptLanguage') }}</label>
+        <div class="radio-group" role="radiogroup">
+          <label class="radio-option">
+            <input
+              type="radio"
+              value="zh"
+              :checked="settings.prompt_language === 'zh'"
+              @change="settings.prompt_language = 'zh'"
+            />
+            <span>{{ $t('settings.promptLanguageZh') }}</span>
+          </label>
+          <label class="radio-option">
+            <input
+              type="radio"
+              value="en"
+              :checked="settings.prompt_language === 'en'"
+              @change="settings.prompt_language = 'en'"
+            />
+            <span>{{ $t('settings.promptLanguageEn') }}</span>
+          </label>
+          <label class="radio-option">
+            <input
+              type="radio"
+              value="ja"
+              :checked="settings.prompt_language === 'ja'"
+              @change="settings.prompt_language = 'ja'"
+            />
+            <span>{{ $t('settings.promptLanguageJa') }}</span>
+          </label>
+        </div>
+      </div>
+
+      <details class="collapse" :open="activePrompt === '1'">
+        <summary @click.prevent="togglePrompt('1')">{{ $t('settings.prompts.base_template') }}</summary>
+        <div class="collapse__content">
+          <AppInput
             v-model="settings.prompts.base_template"
             type="textarea"
             :rows="8"
             :placeholder="$t('settings.prompts.placeholder')"
           />
-        </el-collapse-item>
-        <el-collapse-item :title="$t('settings.prompts.description_template')" name="2">
-          <el-input
+        </div>
+      </details>
+      <details class="collapse" :open="activePrompt === '2'">
+        <summary @click.prevent="togglePrompt('2')">{{ $t('settings.prompts.description_template') }}</summary>
+        <div class="collapse__content">
+          <AppInput
             v-model="settings.prompts.description_template"
             type="textarea"
             :rows="8"
             :placeholder="$t('settings.prompts.placeholder')"
           />
-        </el-collapse-item>
-        <el-collapse-item :title="$t('settings.prompts.dialogue_template')" name="3">
-          <el-input
+        </div>
+      </details>
+      <details class="collapse" :open="activePrompt === '3'">
+        <summary @click.prevent="togglePrompt('3')">{{ $t('settings.prompts.dialogue_template') }}</summary>
+        <div class="collapse__content">
+          <AppInput
             v-model="settings.prompts.dialogue_template"
             type="textarea"
             :rows="8"
             :placeholder="$t('settings.prompts.placeholder')"
           />
-        </el-collapse-item>
-      </el-collapse>
-
-    </el-form>
+        </div>
+      </details>
+    </div>
     <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="dialogVisible = false">{{ $t('settings.cancel') }}</el-button>
-        <el-button type="primary" @click="saveSettings">
+      <div class="dialog-footer">
+        <AppButton @click="dialogVisible = false">{{ $t('settings.cancel') }}</AppButton>
+        <AppButton variant="primary" @click="saveSettings">
           {{ $t('settings.save') }}
-        </el-button>
-      </span>
+        </AppButton>
+      </div>
     </template>
-  </el-dialog>
+  </AppDialog>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
-import { useTranslatorStore, defaultPromptsZh, defaultPromptsEn } from '@/stores/translator';
-import { ElMessage } from 'element-plus';
+import { useTranslatorStore, getDefaultPrompts } from '@/stores/translator';
+import { useToast } from '@/components/ui/useToast';
+import AppDialog from './ui/AppDialog.vue';
+import AppInput from './ui/AppInput.vue';
+import AppButton from './ui/AppButton.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -78,6 +118,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const store = useTranslatorStore();
+const toast = useToast();
 
 const isMobile = ref(false);
 const activePrompt = ref('1');
@@ -111,12 +152,12 @@ watch(dialogVisible, (val) => {
 });
 
 watch(() => settings.value.prompt_language, (newLang) => {
-  if (newLang === 'en') {
-    settings.value.prompts = { ...defaultPromptsEn };
-  } else {
-    settings.value.prompts = { ...defaultPromptsZh };
-  }
+  settings.value.prompts = getDefaultPrompts(newLang);
 });
+
+const togglePrompt = (name: string) => {
+  activePrompt.value = activePrompt.value === name ? '' : name;
+};
 
 const saveSettings = () => {
   store.translationSettings.api_key = settings.value.api_key;
@@ -124,76 +165,102 @@ const saveSettings = () => {
   store.translationSettings.model_name = settings.value.model_name;
   store.translationSettings.prompt_language = settings.value.prompt_language;
   store.translationSettings.prompts = settings.value.prompts;
-  
-  ElMessage.success(t('settings.saveSuccess'));
+
+  toast.success(t('settings.saveSuccess'));
   dialogVisible.value = false;
 };
 </script>
 
 <style scoped>
-/* Tighten the form to match the flat OpenAI aesthetic */
-:deep(.el-dialog__header) {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  margin-right: 0;
+/* 表单标签：小写微型标签风格 */
+.form-field {
+  margin-bottom: 16px;
 }
 
-:deep(.el-dialog__title) {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--el-text-color-primary);
-}
-
-:deep(.el-dialog__body) {
-  padding: 20px 24px;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 12px 24px 20px;
-  border-top: 1px solid var(--el-border-color-light);
-}
-
-/* Form labels: uppercase micro-label style */
-:deep(.el-form-item__label) {
+.form-field__label {
+  display: block;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--el-text-color-secondary);
+  color: var(--apple-text-color-secondary);
   line-height: 1.4;
   padding-bottom: 6px;
 }
 
-/* Tighter form item spacing */
-:deep(.el-form-item) {
-  margin-bottom: 16px;
+.form-field__hint {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--apple-text-color-tertiary, var(--apple-text-color-secondary));
+}
+
+/* Radio group — flat, native */
+.radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--apple-text-color-primary);
+  cursor: pointer;
+}
+
+.radio-option input[type='radio'] {
+  accent-color: var(--apple-color-primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
 }
 
 /* Collapse section — flat, no card shadow */
-:deep(.el-collapse) {
-  border-top: 1px solid var(--el-border-color-light);
+.collapse {
+  border-top: 1px solid var(--apple-border-color);
   border-bottom: none;
   margin-top: 4px;
 }
 
-:deep(.el-collapse-item__header) {
+.collapse + .collapse {
+  margin-top: 0;
+  border-top: none;
+}
+
+.collapse summary {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--el-text-color-secondary);
-  height: 40px;
-  line-height: 40px;
+  color: var(--apple-text-color-secondary);
+  padding: 10px 0;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
 }
 
-:deep(.el-collapse-item__content) {
-  padding-bottom: 12px;
+.collapse summary::-webkit-details-marker {
+  display: none;
 }
 
-/* Radio buttons */
-:deep(.el-radio__label) {
-  font-size: 13px;
+.collapse summary::after {
+  content: '+';
+  font-size: 14px;
+  color: var(--apple-text-color-tertiary);
+  transition: transform 0.2s var(--apple-transition-easing);
+}
+
+.collapse[open] summary::after {
+  content: '−';
+}
+
+.collapse__content {
+  padding: 4px 0 12px;
 }
 
 .dialog-footer {

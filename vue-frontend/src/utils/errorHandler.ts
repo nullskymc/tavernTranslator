@@ -3,8 +3,11 @@
  * 用于捕获和处理应用中的各种错误
  */
 
-import { ElMessage, ElNotification } from 'element-plus'
+import { useToast } from '@/components/ui/useToast'
+import i18n from '@/i18n'
 import type { ErrorInfo, ErrorRecord } from '@/types'
+
+const toast = useToast();
 
 // 错误类型枚举
 export const ErrorTypes = {
@@ -44,7 +47,7 @@ export class ErrorHandler {
       console.error('未处理的Promise错误:', event.reason)
       this.handleError({
         type: ErrorTypes.UNKNOWN_ERROR,
-        message: event.reason?.message || '未知错误',
+        message: event.reason?.message || i18n.global.t('notifications.unknownError'),
         level: ErrorLevels.ERROR,
         context: 'unhandledrejection',
         originalError: event.reason
@@ -56,7 +59,7 @@ export class ErrorHandler {
       console.error('全局JavaScript错误:', event.error)
       this.handleError({
         type: ErrorTypes.UNKNOWN_ERROR,
-        message: event.error?.message || event.message || '脚本错误',
+        message: event.error?.message || event.message || i18n.global.t('common.scriptError'),
         level: ErrorLevels.ERROR,
         context: 'global',
         originalError: event.error
@@ -71,7 +74,7 @@ export class ErrorHandler {
   handleError(errorInfo: ErrorInfo): ErrorRecord {
     const {
       type = ErrorTypes.UNKNOWN_ERROR,
-      message = '发生了未知错误',
+      message = i18n.global.t('common.unhandledError'),
       level = ErrorLevels.ERROR,
       context = 'unknown',
       originalError = null,
@@ -116,38 +119,27 @@ export class ErrorHandler {
 
     switch (level) {
       case ErrorLevels.INFO:
-        ElMessage.info(message)
+        toast.info(message)
         break
 
       case ErrorLevels.WARNING:
-        ElMessage.warning(message)
+        toast.warning(message)
         break
 
       case ErrorLevels.ERROR:
         if (type === ErrorTypes.TRANSLATION_ERROR) {
-          ElNotification({
-            title: '翻译错误',
-            message: message,
-            type: 'error',
-            duration: 8000
-          })
+          toast.error(`翻译错误：${message}`, 8000)
         } else {
-          ElMessage.error(message)
+          toast.error(message)
         }
         break
 
       case ErrorLevels.CRITICAL:
-        ElNotification({
-          title: '严重错误',
-          message: message + '\n\n建议刷新页面或重新开始操作',
-          type: 'error',
-          duration: 12000,
-          dangerouslyUseHTMLString: false
-        })
+        toast.error(`严重错误：${message}\n\n建议刷新页面或重新开始操作`, 12000)
         break
 
       default:
-        ElMessage.error(message)
+        toast.error(message)
     }
   }
 
@@ -170,7 +162,7 @@ export class ErrorHandler {
 
       case ErrorTypes.NETWORK_ERROR:
         // 网络错误，建议用户检查网络
-        ElMessage.warning('网络连接异常，请检查网络后重试')
+        toast.warning(i18n.global.t('common.networkError'))
         break
 
       default:

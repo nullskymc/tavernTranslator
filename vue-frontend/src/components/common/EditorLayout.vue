@@ -53,7 +53,7 @@
 }
 
 @media (max-width: 480px) {
-  .header-actions .el-button {
+  .header-actions .app-btn {
     font-size: 12px;
     padding: 4px 8px;
   }
