@@ -40,10 +40,9 @@ function buildSystemPrompt(characterCard?: Record<string, unknown> | null): stri
   return prompt;
 }
 
-/** 构造发送给模型的完整消息列表（系统提示 + 对话历史） */
+/** 构造发送给模型的对话历史；系统提示通过独立字段传入。 */
 function buildMessages(request: AIChatRequest) {
   return [
-    { role: 'system' as const, content: buildSystemPrompt(request.character_card) },
     ...request.messages.map((m) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
@@ -123,8 +122,9 @@ export function streamChat(request: AIChatRequest) {
   try {
     return streamText({
       model: getModel(request.settings),
+      system: buildSystemPrompt(request.character_card),
       messages: buildMessages(request),
-      maxTokens: 8192,
+      maxOutputTokens: 8192,
       // 关闭 AI SDK 内置重试：错误映射与批量重试由本层负责
       maxRetries: 0,
     });
@@ -147,8 +147,9 @@ export async function generateChat(request: AIChatRequest): Promise<{
   try {
     const { text } = await generateText({
       model: getModel(request.settings),
+      system: buildSystemPrompt(request.character_card),
       messages: buildMessages(request),
-      maxTokens: 8192,
+      maxOutputTokens: 8192,
       // 关闭 AI SDK 内置重试：错误映射与批量重试由本层负责
       maxRetries: 0,
     });

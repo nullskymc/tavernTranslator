@@ -62,7 +62,7 @@ export async function translateText(params: {
       model: getModel(settings),
       system: systemPrompt,
       prompt: text,
-      maxTokens: 8192,
+      maxOutputTokens: 8192,
       // 关闭 AI SDK 内置重试：批量翻译层负责重试，避免多层退避叠加
       maxRetries: 0,
     });
@@ -96,7 +96,7 @@ export async function translateCharacterBookContent(params: {
       model: getModel(settings),
       system: systemPrompt,
       prompt: content,
-      maxTokens: 8192,
+      maxOutputTokens: 8192,
       // 关闭 AI SDK 内置重试：批量翻译层负责重试，避免多层退避叠加
       maxRetries: 0,
     });

@@ -28,12 +28,17 @@ const dialogRef = ref<HTMLDialogElement>();
 
 watch(() => props.open, async (val) => {
   await nextTick();
-  if (val) {
-    dialogRef.value?.showModal();
-  } else {
-    dialogRef.value?.close();
+  const dialog = dialogRef.value;
+  if (!dialog) return;
+
+  // ConfirmDialog 使用 v-if 按需挂载，首次挂载时 open 已经是 true，
+  // 因此必须立即同步原生 dialog 状态，而不能只等待后续 prop 变化。
+  if (val && !dialog.open) {
+    dialog.showModal();
+  } else if (!val && dialog.open) {
+    dialog.close();
   }
-});
+}, { immediate: true });
 
 function onClose() {
   emit('close');

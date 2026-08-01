@@ -55,72 +55,54 @@
       <input type="file" ref="imageUploader" @change="handleImageChange" accept="image/png" style="display:none;" />
 
       <div class="action-grid">
-        <button
-          class="action-btn"
-          :title="$t('sidebar.actions.uploadCard')"
-          @click="triggerFileUpload"
-        >
-          <AppIcon name="upload" :size="18" />
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.uploadCard')">
+          <button class="action-btn" @click="triggerFileUpload">
+            <AppIcon name="upload" :size="18" />
+          </button>
+        </AppTooltip>
 
-        <button
-          class="action-btn"
-          :title="$t('sidebar.actions.uploadJson')"
-          @click="triggerJsonUpload"
-        >
-          <AppIcon name="folder" :size="18" />
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.uploadJson')">
+          <button class="action-btn" @click="triggerJsonUpload">
+            <AppIcon name="folder" :size="18" />
+          </button>
+        </AppTooltip>
 
-        <button
-          class="action-btn"
-          :title="$t('sidebar.actions.newBlank')"
-          @click="createNewCard"
-        >
-          <AppIcon name="doc-add" :size="18" />
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.newBlank')">
+          <button class="action-btn" @click="createNewCard">
+            <AppIcon name="doc-add" :size="18" />
+          </button>
+        </AppTooltip>
 
-        <button
-          class="action-btn"
-          :title="$t('sidebar.actions.changeImage')"
-          @click="triggerImageUpload"
-          :disabled="!store.characterCard"
-        >
-          <AppIcon name="image" :size="18" />
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.changeImage')">
+          <button class="action-btn" @click="triggerImageUpload" :disabled="!store.characterCard">
+            <AppIcon name="image" :size="18" />
+          </button>
+        </AppTooltip>
 
-        <button
-          class="action-btn"
-          :title="$t('sidebar.actions.translationSettings')"
-          @click="settingsDialogVisible = true"
-        >
-          <AppIcon name="settings" :size="18" />
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.translationSettings')">
+          <button class="action-btn" @click="settingsDialogVisible = true">
+            <AppIcon name="settings" :size="18" />
+          </button>
+        </AppTooltip>
 
-        <button
-          class="action-btn"
-          :title="$t('sidebar.actions.glossary')"
-          @click="glossaryDialogVisible = true"
-        >
-          <AppIcon name="notebook" :size="18" />
-          <span v-if="store.glossaryEntries.length > 0" class="action-btn-badge">{{ store.glossaryEntries.length > 99 ? '99+' : store.glossaryEntries.length }}</span>
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.glossary')">
+          <button class="action-btn" @click="glossaryDialogVisible = true">
+            <AppIcon name="notebook" :size="18" />
+            <span v-if="store.glossaryEntries.length > 0" class="action-btn-badge">{{ store.glossaryEntries.length > 99 ? '99+' : store.glossaryEntries.length }}</span>
+          </button>
+        </AppTooltip>
 
-        <button
-          class="action-btn action-btn--ai"
-          :title="$t('sidebar.actions.aiAssistant')"
-          @click="openAIChat"
-        >
-          <AppIcon name="chat" :size="18" />
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.aiAssistant')">
+          <button class="action-btn action-btn--ai" @click="openAIChat">
+            <AppIcon name="chat" :size="18" />
+          </button>
+        </AppTooltip>
 
-        <button
-          class="action-btn action-btn--danger"
-          :title="$t('sidebar.actions.clearCard')"
-          @click="confirmReset"
-          :disabled="!store.characterCard"
-        >
-          <AppIcon name="delete" :size="18" />
-        </button>
+        <AppTooltip :content="$t('sidebar.actions.clearCard')">
+          <button class="action-btn action-btn--danger" @click="confirmReset" :disabled="!store.characterCard">
+            <AppIcon name="delete" :size="18" />
+          </button>
+        </AppTooltip>
       </div>
     </div>
 
@@ -151,6 +133,7 @@ import { useConfirm } from './ui/useConfirm';
 import { useToast } from './ui/useToast';
 import AppIcon from './ui/AppIcon.vue';
 import AppButton from './ui/AppButton.vue';
+import AppTooltip from './ui/AppTooltip.vue';
 import TranslationSettingsDialog from './TranslationSettingsDialog.vue';
 import GlossaryDialog from './GlossaryDialog.vue';
 import ThemeToggle from './ThemeToggle.vue';

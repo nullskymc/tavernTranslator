@@ -164,8 +164,8 @@ import { useI18n } from 'vue-i18n';
 import { useTranslatorStore } from '@/stores/translator';
 
 const { t: $t } = useI18n();
-import axios from 'axios';
 import { useToast } from '@/components/ui/useToast';
+import { translateCharacterBook } from '@/services/api';
 import AppButton from './ui/AppButton.vue';
 import AppInput from './ui/AppInput.vue';
 import AppSwitch from './ui/AppSwitch.vue';
@@ -293,24 +293,25 @@ const translateContent = async (index: number) => {
 
   store.isLoading = true;
   try {
-    const response = await axios.post('/api/v2/translate-character-book', {
+    const response = await translateCharacterBook({
       content: characterBook.value.lore[index].content,
       settings: {
         api_key: store.translationSettings.api_key,
         base_url: store.translationSettings.base_url,
         model_name: store.translationSettings.model_name,
+        api_mode: store.translationSettings.api_mode,
       },
       prompts: store.translationSettings.prompts,
     });
 
     // 更新内容
     const newEntries = [...(entries.value || [])];
-    newEntries[index].content = response.data.translated_content;
+    newEntries[index].content = response.translated_content;
     store.updateCardField('data.character_book.lore', newEntries);
 
     toast.success($t('notifications.characterBookContentTranslated'));
   } catch (error: any) {
-    const errorMessage = error.response?.data?.detail || $t('notifications.translationServiceError');
+    const errorMessage = error.message || $t('notifications.translationServiceError');
     toast.error(`翻译失败: ${errorMessage}`);
   } finally {
     store.isLoading = false;

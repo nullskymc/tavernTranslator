@@ -11,8 +11,9 @@ import { z } from 'zod';
 /** 翻译 API 设置（BYOK，请求级传入，不持久化） */
 export const TranslationSettingsSchema = z.object({
   api_key: z.string().min(1, 'API Key 不能为空'),
-  base_url: z.string().url().default('https://api.openai.com/v1'),
+  base_url: z.string().url().default('https://api.openai.com'),
   model_name: z.string().default('gpt-4-1106-preview'),
+  api_mode: z.enum(['chat', 'responses']).default('chat'),
 });
 
 /** 翻译提示词模板 */

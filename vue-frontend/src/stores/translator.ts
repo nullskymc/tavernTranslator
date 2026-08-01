@@ -143,8 +143,9 @@ export const useTranslatorStore = defineStore('translator', () => {
   const { confirm } = useConfirm();
   const translationSettings = ref<TranslationSettings>({
     api_key: '',
-    base_url: 'https://api.openai.com/v1',
+    base_url: 'https://api.openai.com',
     model_name: 'gpt-4-1106-preview',
+    api_mode: 'chat',
     prompt_language: 'zh',
     prompts: { ...defaultPromptsZh },
   });
@@ -167,6 +168,9 @@ export const useTranslatorStore = defineStore('translator', () => {
     if (savedSettings) try {
       const parsedSettings = JSON.parse(savedSettings);
       Object.assign(translationSettings.value, parsedSettings);
+      if (parsedSettings.api_mode !== 'chat' && parsedSettings.api_mode !== 'responses') {
+        translationSettings.value.api_mode = 'chat';
+      }
       if (!parsedSettings.prompts) {
         translationSettings.value.prompts = getDefaultPrompts(parsedSettings.prompt_language);
       }
@@ -188,6 +192,7 @@ export const useTranslatorStore = defineStore('translator', () => {
     api_key: translationSettings.value.api_key,
     base_url: translationSettings.value.base_url,
     model_name: translationSettings.value.model_name,
+    api_mode: translationSettings.value.api_mode,
   });
 
   const handleCardUpload = async (file: File) => {

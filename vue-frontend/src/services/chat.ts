@@ -6,13 +6,14 @@
  * 服务端负责从回复中提取并校验可应用字段（fields），
  * 前端不再解析 Markdown code fence 中的 JSON。
  */
-import axios from 'axios';
 import i18n from '@/i18n';
+import { requestJson } from './http';
 
 export interface ChatSettingsPayload {
   api_key: string;
   base_url: string;
   model_name: string;
+  api_mode: 'chat' | 'responses';
 }
 
 export interface ChatMessagePayload {
@@ -47,7 +48,7 @@ function buildRequestBody(params: Omit<ChatRequestParams, 'signal'>): Record<str
  */
 export async function streamChat(
   params: ChatRequestParams,
-  onTextDelta?: (delta: string) => void
+  onTextDelta?: (delta: string) => void | Promise<void>
 ): Promise<ChatStreamResult> {
   const res = await fetch('/api/v2/chat', {
     method: 'POST',
@@ -83,7 +84,8 @@ export async function streamChat(
         const event = JSON.parse(line.slice(6));
         if (event.type === 'text-delta') {
           reply += event.textDelta;
-          onTextDelta?.(event.textDelta);
+          // 等待调用方完成一次渲染，避免同一个网络 chunk 内的增量被 Vue 合并。
+          await onTextDelta?.(event.textDelta);
         } else if (event.type === 'fields') {
           fields = event.fields ?? null;
         } else if (event.type === 'error') {
@@ -96,6 +98,21 @@ export async function streamChat(
     }
   }
 
+  // 处理服务端关闭连接前未带换行符的最后一条 SSE 事件。
+  if (buffer.startsWith('data: ')) {
+    try {
+      const event = JSON.parse(buffer.slice(6));
+      if (event.type === 'text-delta') {
+        reply += event.textDelta;
+        await onTextDelta?.(event.textDelta);
+      } else if (event.type === 'fields') {
+        fields = event.fields ?? null;
+      }
+    } catch {
+      // 不完整或非 JSON 的尾部数据无需影响已完成的回复。
+    }
+  }
+
   return { reply, fields };
 }
 
@@ -103,9 +120,8 @@ export async function streamChat(
 export async function chatSync(
   params: Omit<ChatRequestParams, 'signal'>
 ): Promise<ChatStreamResult> {
-  const { data } = await axios.post<{ reply: string; fields: Record<string, unknown> | null }>(
+  return requestJson<{ reply: string; fields: Record<string, unknown> | null }>(
     '/api/v2/chat/sync',
-    buildRequestBody(params)
+    buildRequestBody(params),
   );
-  return { reply: data.reply, fields: data.fields ?? null };
 }

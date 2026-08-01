@@ -1,9 +1,10 @@
 /**
  * /api/v2/export — 将角色卡 JSON 嵌入 PNG 并返回下载
- * 纯内存处理，不依赖本地文件系统
+ * 生成 PNG 后保存到 .outputs/ 并返回下载
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { embedCharacterData } from '../lib/character-card-png';
+import { saveExportedPng } from '../lib/file-storage';
 import { sendError, readMultipartFields } from './_helpers';
 
 /** POST /api/v2/export — multipart/form-data, fields: "json_data" + "image_file" */
@@ -53,6 +54,7 @@ export async function handleExport(req: IncomingMessage, res: ServerResponse) {
 
     // 嵌入数据到 PNG
     const outputPng = embedCharacterData(imageBuffer, characterData);
+    await saveExportedPng(outputPng);
 
     // 确定下载文件名
     const data = characterData.data as Record<string, unknown> | undefined;

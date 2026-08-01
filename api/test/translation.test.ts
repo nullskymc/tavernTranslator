@@ -12,7 +12,10 @@ const settings = {
   api_key: 'sk-test-123',
   base_url: 'https://api.example.com/v1',
   model_name: 'test-model',
+  api_mode: 'chat' as const,
 };
+
+const responsesSettings = { ...settings, api_mode: 'responses' as const };
 
 const prompts = {
   base_template: '你是翻译助手，请将内容翻译成中文。',
@@ -60,6 +63,45 @@ describe('translateText', () => {
     const result = await translateText({ text: '   ', fieldName: 'name', settings, prompts, glossary: '' });
     expect(result).toBe('');
     expect(mock.calls.length).toBe(0);
+    mock.restore();
+  });
+
+  it('Responses API 模式请求 /responses 并解析输出文本', async () => {
+    const mock = installMockFetch({
+      json: {
+        id: 'resp-test',
+        created_at: 1_700_000_000,
+        model: 'test-model',
+        output: [{
+          type: 'message',
+          role: 'assistant',
+          id: 'msg-test',
+          content: [{ type: 'output_text', text: 'Responses 翻译结果', annotations: [] }],
+        }],
+        usage: {
+          input_tokens: 10,
+          input_tokens_details: { cached_tokens: 0 },
+          output_tokens: 20,
+          output_tokens_details: { reasoning_tokens: 0 },
+        },
+      },
+      onRequest: (url, init) => {
+        expect(url).toBe('https://api.example.com/responses');
+        const body = JSON.parse(String(init.body));
+        expect(body.model).toBe('test-model');
+        expect(Array.isArray(body.input)).toBe(true);
+      },
+    });
+
+    const result = await translateText({
+      text: '原文内容',
+      fieldName: 'description',
+      settings: responsesSettings,
+      prompts,
+      glossary: '',
+    });
+
+    expect(result).toBe('Responses 翻译结果');
     mock.restore();
   });
 

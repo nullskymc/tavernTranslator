@@ -1,9 +1,10 @@
 /**
  * /api/v2/upload — 上传 PNG 角色卡，提取嵌入的 JSON 数据
- * 纯内存处理，不写入磁盘
+ * 解析前保留上传文件到 .uploads/，同时返回角色卡数据和图片内容
  */
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extractCharacterData } from '../lib/character-card-png';
+import { saveUploadedPng } from '../lib/file-storage';
 import { sendJson, sendError, readMultipartField } from './_helpers';
 
 /** POST /api/v2/upload — multipart/form-data, field: "file" */
@@ -49,6 +50,9 @@ export async function handleUpload(req: IncomingMessage, res: ServerResponse) {
     } else if (!('data' in characterData)) {
       characterData = { data: characterData };
     }
+
+    // 保留旧版上传行为：按角色名保存，并通过哈希避免覆盖不同文件。
+    await saveUploadedPng(fileBuffer, characterData);
 
     // 生成 base64 data URI
     const imageB64 = `data:image/png;base64,${fileBuffer.toString('base64')}`;

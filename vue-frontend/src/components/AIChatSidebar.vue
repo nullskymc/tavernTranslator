@@ -7,17 +7,16 @@
         <h3>{{ $t('aiChat.title') }}</h3>
       </div>
       <div class="chat-header-actions">
-        <button
-          class="header-btn"
-          :title="$t('aiChat.clearChat')"
-          @click="handleClear"
-          :disabled="chatStore.messages.length === 0"
-        >
-          <AppIcon name="delete" :size="14" />
-        </button>
-        <button class="header-btn close-btn" @click="$emit('close')">
-          <AppIcon name="close" :size="14" />
-        </button>
+        <AppTooltip :content="$t('aiChat.clearChat')">
+          <button class="header-btn" @click="handleClear" :disabled="chatStore.messages.length === 0">
+            <AppIcon name="delete" :size="14" />
+          </button>
+        </AppTooltip>
+        <AppTooltip :content="$t('common.close')" placement="bottom">
+          <button class="header-btn close-btn" @click="$emit('close')">
+            <AppIcon name="close" :size="14" />
+          </button>
+        </AppTooltip>
       </div>
     </div>
 
@@ -55,7 +54,15 @@
           <AppIcon v-else name="magic" :size="14" />
         </div>
         <div class="message-body">
-          <div class="message-content" v-html="renderMarkdown(message.content)"></div>
+          <div class="message-content">
+            <div
+              v-if="message.role === 'assistant' && chatStore.isLoading && !message.content"
+              class="loading-dots"
+            >
+              <span></span><span></span><span></span>
+            </div>
+            <div v-else v-html="renderMarkdown(message.content)"></div>
+          </div>
 
           <!-- ===== Enhanced Apply-to-Card Panel ===== -->
           <div
@@ -170,17 +177,6 @@
         </div>
       </div>
 
-      <!-- Loading indicator -->
-      <div v-if="chatStore.isLoading" class="chat-message chat-message--assistant">
-        <div class="message-avatar">
-          <AppIcon name="magic" :size="14" />
-        </div>
-        <div class="message-body">
-          <div class="message-content loading-dots">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Input area -->
@@ -243,6 +239,7 @@ import { useAIChatStore, type ApplyFieldInfo, type ChatMessage } from '@/stores/
 import { useI18n } from 'vue-i18n';
 import { useConfirm } from './ui/useConfirm';
 import AppIcon from './ui/AppIcon.vue';
+import AppTooltip from './ui/AppTooltip.vue';
 import AppInput from './ui/AppInput.vue';
 
 const props = defineProps<{
@@ -442,18 +439,132 @@ const scrollToBottom = () => {
   });
 };
 
-// Simple markdown renderer
+// 仅使用原生代码实现常用 Markdown，避免为聊天窗口增加 Markdown 依赖。
+const escapeHtml = (value: string): string => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+/** 只允许安全的外链协议，避免 Markdown 链接注入脚本。 */
+const sanitizeHref = (href: string): string => {
+  const value = href.trim();
+  return /^(https?:|mailto:)/i.test(value) ? value : '#';
+};
+
+/** 渲染行内 Markdown；代码片段先占位，避免被其他规则二次解析。 */
+const renderInlineMarkdown = (value: string): string => {
+  const codeTokens: string[] = [];
+  let html = escapeHtml(value).replace(/`([^`\n]+)`/g, (_match, code: string) => {
+    const token = `@@INLINE_CODE_${codeTokens.length}@@`;
+    codeTokens.push(`<code>${code}</code>`);
+    return token;
+  });
+
+  html = html
+    .replace(/!?\[([^\]]+)\]\(([^)\s]+)(?:\s+["']([^"']*)["'])?\)/g, (_match, label: string, href: string, title?: string) => {
+      const safeHref = escapeHtml(sanitizeHref(href));
+      const safeTitle = title ? ` title="${escapeHtml(title)}"` : '';
+      return `<a href="${safeHref}"${safeTitle} target="_blank" rel="noopener noreferrer">${label}</a>`;
+    })
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_\n]+)__/g, '<strong>$1</strong>')
+    .replace(/~~([^~\n]+)~~/g, '<del>$1</del>')
+    .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>')
+    .replace(/(^|[^_])_([^_\n]+)_(?!_)/g, '$1<em>$2</em>');
+
+  return html.replace(/@@INLINE_CODE_(\d+)@@/g, (_match, index: string) => codeTokens[Number(index)]);
+};
+
+/** 渲染常见块级 Markdown，并保留未闭合代码块的实时流式内容。 */
 const renderMarkdown = (text: string): string => {
-  let html = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/\n/g, '<br>');
-  return html;
+  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  const html: string[] = [];
+  let inCodeBlock = false;
+  let codeLanguage = '';
+  let codeLines: string[] = [];
+  let listType: 'ul' | 'ol' | null = null;
+
+  const closeList = () => {
+    if (listType) {
+      html.push(`</${listType}>`);
+      listType = null;
+    }
+  };
+
+  const closeCodeBlock = () => {
+    if (!inCodeBlock) return;
+    const className = codeLanguage ? ` class="language-${escapeHtml(codeLanguage)}"` : '';
+    html.push(`<pre><code${className}>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+    inCodeBlock = false;
+    codeLanguage = '';
+    codeLines = [];
+  };
+
+  for (const line of lines) {
+    const fence = line.match(/^\s*```\s*([\w+-]*)\s*$/);
+    if (fence) {
+      if (inCodeBlock) closeCodeBlock();
+      else {
+        closeList();
+        inCodeBlock = true;
+        codeLanguage = fence[1] ?? '';
+      }
+      continue;
+    }
+
+    if (inCodeBlock) {
+      codeLines.push(line);
+      continue;
+    }
+
+    if (!line.trim()) {
+      closeList();
+      continue;
+    }
+
+    const heading = line.match(/^\s*(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (heading) {
+      closeList();
+      const level = heading[1].length;
+      html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+      continue;
+    }
+
+    if (/^\s{0,3}([-*_])(?:\s*\1){2,}\s*$/.test(line)) {
+      closeList();
+      html.push('<hr>');
+      continue;
+    }
+
+    const unordered = line.match(/^\s*[-*+]\s+(.+)$/);
+    const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    if (unordered || ordered) {
+      const nextType = unordered ? 'ul' : 'ol';
+      if (listType !== nextType) {
+        closeList();
+        listType = nextType;
+        html.push(`<${listType}>`);
+      }
+      html.push(`<li>${renderInlineMarkdown((unordered ?? ordered)![1])}</li>`);
+      continue;
+    }
+
+    const quote = line.match(/^\s*>\s?(.*)$/);
+    if (quote) {
+      closeList();
+      html.push(`<blockquote>${renderInlineMarkdown(quote[1])}</blockquote>`);
+      continue;
+    }
+
+    closeList();
+    html.push(`<p>${renderInlineMarkdown(line)}</p>`);
+  }
+
+  if (inCodeBlock) closeCodeBlock();
+  closeList();
+  return html.join('');
 };
 
 watch(() => chatStore.messages.length, () => {

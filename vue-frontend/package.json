@@ -9,7 +9,6 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "axios": "^1.6.0",
     "pinia": "^2.1.0",
     "vue": "^3.4.0",
     "vue-i18n": "^9.14.5"

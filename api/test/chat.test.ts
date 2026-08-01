@@ -11,6 +11,7 @@ const settings = {
   api_key: 'sk-test-123',
   base_url: 'https://api.example.com/v1',
   model_name: 'test-model',
+  api_mode: 'chat' as const,
 };
 
 afterEach(() => {

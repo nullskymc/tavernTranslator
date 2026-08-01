@@ -29,10 +29,16 @@ export async function handleChatStream(req: IncomingMessage, res: ServerResponse
     // 设置 SSE 响应头
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
+      'Content-Encoding': 'identity',
       'Connection': 'keep-alive',
       'X-Accel-Buffering': 'no',
+      'X-Stream-Mode': 'sse',
     });
+
+    // 立即刷新 SSE 响应，避免浏览器或反向代理等到首个模型 token 才建立流。
+    res.flushHeaders();
+    res.write(': stream-connected\n\n');
 
     // 逐 token 写入 SSE
     let fullText = '';

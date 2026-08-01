@@ -2,42 +2,8 @@
  * API 服务层
  * 封装所有后端 API 调用，提供类型安全的接口
  */
-import axios, { type AxiosInstance, type AxiosError } from 'axios';
-import i18n from '@/i18n';
-
-// ------------------------------------------------------------------
-// Axios 实例
-// ------------------------------------------------------------------
-
-const apiClient: AxiosInstance = axios.create({
-  baseURL: '/api/v2',
-  timeout: 120_000, // 翻译可能耗时较长
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// 响应拦截器：统一错误提取
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError<{ detail?: string }>) => {
-    const detail = error.response?.data?.detail || error.message || i18n.global.t('notifications.unknownError');
-    return Promise.reject(new ApiError(detail, error.response?.status));
-  }
-);
-
-// ------------------------------------------------------------------
-// 错误类型
-// ------------------------------------------------------------------
-
-export class ApiError extends Error {
-  status?: number;
-  constructor(message: string, status?: number) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-  }
-}
+import { request, requestBlob, requestForm, requestJson } from './http';
+export { ApiError } from './http';
 
 // ------------------------------------------------------------------
 // 类型定义
@@ -47,6 +13,7 @@ export interface TranslationSettings {
   api_key: string;
   base_url: string;
   model_name: string;
+  api_mode: 'chat' | 'responses';
 }
 
 export interface Prompts {
@@ -77,13 +44,10 @@ export interface BatchResultItem {
 export async function uploadCharacterCard(file: File) {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await apiClient.post('/character/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return response.data as {
+  return requestForm<{
     character_data: Record<string, any>;
     image_b64: string;
-  };
+  }>('/character/upload', formData);
 }
 
 // ------------------------------------------------------------------
@@ -97,11 +61,10 @@ export async function translateField(params: {
   prompts: Prompts;
   glossary?: string;
 }) {
-  const response = await apiClient.post('/character/translate', {
+  return requestJson<{ translated_text: string }>('/character/translate', {
     ...params,
     glossary: params.glossary ?? '',
   });
-  return response.data as { translated_text: string };
 }
 
 export async function translateCharacterBook(params: {
@@ -110,11 +73,10 @@ export async function translateCharacterBook(params: {
   prompts: Prompts;
   glossary?: string;
 }) {
-  const response = await apiClient.post('/character/translate-character-book', {
+  return requestJson<{ translated_content: string }>('/character/translate-character-book', {
     ...params,
     glossary: params.glossary ?? '',
   });
-  return response.data as { translated_content: string };
 }
 
 export async function batchTranslate(params: {
@@ -123,14 +85,13 @@ export async function batchTranslate(params: {
   prompts: Prompts;
   glossary?: string;
 }) {
-  const response = await apiClient.post('/character/batch-translate', {
+  return requestJson<{
+    results: BatchResultItem[];
+    progress: { completed: number; total: number };
+  }>('/character/batch-translate', {
     ...params,
     glossary: params.glossary ?? '',
   });
-  return response.data as {
-    results: BatchResultItem[];
-    progress: { completed: number; total: number };
-  };
 }
 
 // ------------------------------------------------------------------
@@ -144,11 +105,7 @@ export async function exportCardAsImage(params: {
   const formData = new FormData();
   formData.append('json_data', params.json_data);
   formData.append('image_file', params.image_blob, 'character_base.png');
-  const response = await apiClient.post('/character/export', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    responseType: 'blob',
-  });
-  return response.data as Blob;
+  return requestBlob('/character/export', formData);
 }
 
 // ------------------------------------------------------------------
@@ -156,8 +113,5 @@ export async function exportCardAsImage(params: {
 // ------------------------------------------------------------------
 
 export async function healthCheck() {
-  const response = await apiClient.get('/health');
-  return response.data as { status: string; version: string };
+  return request<{ status: string; version: string }>('/health', { method: 'GET' });
 }
-
-export default apiClient;

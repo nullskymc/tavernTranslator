@@ -32,11 +32,13 @@ export interface CharacterCard {
 }
 
 export type PromptLanguage = 'zh' | 'en' | 'ja';
+export type ApiMode = 'chat' | 'responses';
 
 export interface TranslationSettings {
   api_key: string;
   base_url: string;
   model_name: string;
+  api_mode: ApiMode;
   prompt_language: PromptLanguage;
   prompts: {
     base_template: string;

@@ -57,7 +57,7 @@ export function createAppServer(): Server {
 /** 启动本地开发服务器（仅直接运行时执行，测试 import 不触发） */
 export function startServer(): Server {
   const server = createAppServer();
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`[tavern-translator-api] v2 服务运行于 http://localhost:${PORT}`);
     console.log(`[tavern-translator-api] 健康检查: http://localhost:${PORT}/api/v2/health`);
   });

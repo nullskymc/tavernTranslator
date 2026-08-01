@@ -10,7 +10,7 @@ A tool for translating SillyTavern character cards between Chinese, English, and
 
 ## Features
 
-- **Smart Extraction**: Extracts embedded character card data from PNG files (pure in-memory processing, no local file storage).
+- **Smart Extraction**: Extracts embedded character card data from PNG files and keeps local upload/export files in `.uploads/` and `.outputs/` when running the Node server locally.
 - **Multilingual Translation**: Translates character descriptions, dialogue, and personality settings between Chinese, English, and Japanese.
 - **Internationalized UI**: Supports Chinese, English, and Japanese interfaces and remembers the selected language.
 - **Custom Configuration**: Supports any OpenAI-compatible LLM API (base URL, model name, per-request API key).
@@ -64,9 +64,11 @@ npm test            # API unit tests (mock provider + PNG codec regression)
 - **API Base URL**: The API server address (any OpenAI-compatible service).
 - **API Key**: Your API access key, sent per request.
 
+The settings panel lets you choose between `Chat Completions` and `Responses API`. Responses API requires the configured model service to expose the `/responses` endpoint.
+
 ## Privacy (BYOK)
 
-API keys are sent with each request directly to the model service you configure. The server never writes keys to logs, databases, or persistent files, and does not host them. Keys are kept in your browser's local storage for convenience; avoid using this on untrusted devices.
+API keys are sent with each request directly to the model service you configure. The server never writes keys to logs, databases, or persistent files, and does not host them. Uploaded and exported PNG files are stored locally in `.uploads/` and `.outputs/` when using the local Node server. Keys are kept in your browser's local storage for convenience; avoid using this on untrusted devices.
 
 ## License
 

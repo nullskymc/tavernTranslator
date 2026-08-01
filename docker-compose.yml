@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  api:
+    image: ghcr.io/nullskymc/taverntranslator-api:latest
+    container_name: tavern-translator-api
+    environment:
+      API_PORT: 3001
+    volumes:
+      # 兼容旧版 Compose 的宿主机目录命名。
+      - ./uploads:/app/.uploads
+      - ./output:/app/.outputs
+    expose:
+      - "3001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/v2/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    image: ghcr.io/nullskymc/taverntranslator-web:latest
+    container_name: tavern-translator
+    depends_on:
+      - api
+    ports:
+      # 保持旧版生产部署端口。
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

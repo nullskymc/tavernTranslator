@@ -1,18 +1,16 @@
 <template>
-  <button
-    class="control-btn"
-    :title="isDarkTheme ? $t('sidebar.actions.theme') + ' (Light)' : $t('sidebar.actions.theme') + ' (Dark)'"
-    @click="toggleTheme"
-    :aria-label="isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'"
-  >
-    <AppIcon :name="isDarkTheme ? 'sun' : 'moon'" :size="15" />
-  </button>
+  <AppTooltip :content="isDarkTheme ? $t('sidebar.actions.theme') + ' (Light)' : $t('sidebar.actions.theme') + ' (Dark)'">
+    <button class="control-btn" @click="toggleTheme" :aria-label="isDarkTheme ? 'Switch to light mode' : 'Switch to dark mode'">
+      <AppIcon :name="isDarkTheme ? 'sun' : 'moon'" :size="15" />
+    </button>
+  </AppTooltip>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { useThemeStore } from '../stores/theme';
 import AppIcon from './ui/AppIcon.vue';
+import AppTooltip from './ui/AppTooltip.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t: $t } = useI18n();

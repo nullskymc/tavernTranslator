@@ -16,10 +16,36 @@
       <div class="form-field">
         <label class="form-field__label">{{ $t('settings.baseUrl') }}</label>
         <AppInput v-model="settings.base_url" :placeholder="$t('settings.baseUrlPlaceholder')" />
+        <p class="form-field__hint">{{ $t('settings.baseUrlNotice') }}</p>
       </div>
       <div class="form-field">
         <label class="form-field__label">{{ $t('settings.model') }}</label>
         <AppInput v-model="settings.model_name" :placeholder="$t('settings.modelPlaceholder')" />
+      </div>
+
+      <div class="form-field">
+        <label class="form-field__label">{{ $t('settings.apiMode') }}</label>
+        <div class="radio-group" role="radiogroup">
+          <label class="radio-option">
+            <input
+              type="radio"
+              value="chat"
+              :checked="settings.api_mode === 'chat'"
+              @change="settings.api_mode = 'chat'"
+            />
+            <span>{{ $t('settings.apiModeChat') }}</span>
+          </label>
+          <label class="radio-option">
+            <input
+              type="radio"
+              value="responses"
+              :checked="settings.api_mode === 'responses'"
+              @change="settings.api_mode = 'responses'"
+            />
+            <span>{{ $t('settings.apiModeResponses') }}</span>
+          </label>
+        </div>
+        <p class="form-field__hint">{{ $t('settings.apiModeNotice') }}</p>
       </div>
 
       <div class="form-field">
@@ -163,6 +189,7 @@ const saveSettings = () => {
   store.translationSettings.api_key = settings.value.api_key;
   store.translationSettings.base_url = settings.value.base_url;
   store.translationSettings.model_name = settings.value.model_name;
+  store.translationSettings.api_mode = settings.value.api_mode;
   store.translationSettings.prompt_language = settings.value.prompt_language;
   store.translationSettings.prompts = settings.value.prompts;
 

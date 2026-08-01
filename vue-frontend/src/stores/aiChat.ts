@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { nextTick, ref, watch } from 'vue';
 import { useToast } from '@/components/ui/useToast';
 import { streamChat, chatSync } from '@/services/chat';
 import i18n from '@/i18n';
@@ -107,6 +107,7 @@ export const useAIChatStore = defineStore('aiChat', () => {
         api_key: settings.api_key,
         base_url: settings.base_url,
         model_name: settings.model_name,
+        api_mode: settings.api_mode,
       },
       character_card: translatorStore.characterCard,
     };
@@ -115,7 +116,11 @@ export const useAIChatStore = defineStore('aiChat', () => {
       // 流式请求：文本增量实时追加，fields 由服务端校验后下发
       const streamResult = await streamChat(
         { ...requestParams, signal: streamAbort.signal },
-        (delta) => { assistantMessage.content += delta; }
+        async (delta) => {
+          assistantMessage.content += delta;
+          // 确保每个增量都能先落到 DOM，再继续消费下一段流。
+          await nextTick();
+        }
       );
       assistantMessage.content = streamResult.reply || assistantMessage.content;
       assistantMessage.fields = streamResult.fields ?? null;

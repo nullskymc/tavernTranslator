@@ -19,8 +19,9 @@ dist/
 *.swo
 .DS_Store
 
-# Uploads (legacy)
+# Local upload/export files
 .uploads/
+.outputs/
 
 # Logs
 *.log

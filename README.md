@@ -6,7 +6,7 @@ SillyTavern 角色卡翻译工具 — 支持单字段翻译、批量翻译、AI 
 
 - **前端**: Vue 3 + Vite + Pinia + vue-i18n（原生轻量 UI 组件，无 Element Plus）
 - **后端**: TypeScript API（Vercel AI SDK + Zod + OpenAI-compatible provider）
-- **部署**: Vercel Functions / 本地 Node.js（无 Docker / Python 依赖）
+- **部署**: Vercel Functions / 本地 Node.js（无 Docker / Python 依赖；本地运行保留 `.uploads/` 与 `.outputs/` 文件）
 
 ## 快速开始
 
@@ -20,6 +20,15 @@ npm run dev
 
 - 前端: http://localhost:3000
 - API: http://localhost:3001/api/v2/health
+
+## Docker Compose
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+访问 http://localhost:8080。前端和 API 使用多容器部署，前端保留旧版生产端口；上传的角色卡和导出的 PNG 分别持久化在宿主机的 `uploads/` 和 `output/` 目录中。GitHub Actions 会为 `linux/amd64` 与 `linux/arm64` 构建并推送两个 GHCR 镜像，Nginx 已关闭 API SSE 缓冲。
 
 ## 常用命令
 
@@ -65,7 +74,9 @@ AI 助手流式端点事件类型：`text-delta`（增量文本）、`fields`（
 
 ## BYOK 隐私说明
 
-API Key 仅在当前请求中传递到您配置的模型服务；服务端不写入日志、数据库或持久化文件，也不托管密钥。密钥会保存在浏览器本地存储中以便下次使用，建议不要在不信任的设备上使用。
+API Key 仅在当前请求中传递到您配置的模型服务；服务端不写入日志、数据库或持久化文件，也不托管密钥。角色卡 PNG 上传和导出文件会在本地 Node 运行时分别保存到 `.uploads/` 和 `.outputs/`，密钥会保存在浏览器本地存储中以便下次使用，建议不要在不信任的设备上使用。
+
+设置中的 API 协议可选择 `Chat Completions` 或 `Responses API`。Responses API 需要填写的模型服务支持 `/responses` 端点。
 
 ## 环境变量
 
