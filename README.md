@@ -1,85 +1,92 @@
 # Tavern Translator
 
-SillyTavern 角色卡翻译工具 — 支持单字段翻译、批量翻译、AI 助手和 PNG 角色卡导入导出。
+A SillyTavern character-card translation tool for Chinese, English, and Japanese. It supports PNG character-card import/export, field translation, batch translation, and an AI assistant.
 
-## 技术栈
+[中文](docs/README.zh-CN.md) · [日本語](docs/README.ja.md)
 
-- **前端**: Vue 3 + Vite + Pinia + vue-i18n（原生轻量 UI 组件，无 Element Plus）
-- **后端**: TypeScript API（Vercel AI SDK + Zod + OpenAI-compatible provider）
-- **部署**: Vercel Functions / 本地 Node.js（无 Docker / Python 依赖；本地运行保留 `.uploads/` 与 `.outputs/` 文件）
+## Features
 
-## 快速开始
+- Extracts embedded character-card data from PNG files.
+- Translates descriptions, dialogue, personality, and character-book content.
+- Supports single-field, character-book, and batch translation.
+- Provides a streaming AI assistant that can apply validated fields to a card.
+- Supports Chinese, English, and Japanese interfaces.
+- Exports translated cards as JSON or PNG.
+- Stores local uploads and exports in `.uploads/` and `.outputs/` when running the Node server directly.
+
+## Tech Stack
+
+- **Frontend**: Vue 3, Vite, Pinia, and vue-i18n
+- **Backend**: TypeScript API, Vercel AI SDK, and Zod
+- **Provider**: OpenAI-compatible Chat Completions and Responses API
+- **Deployment**: Vercel, local Node.js, or Docker Compose
+
+## Local Development
 
 ```bash
-# 安装依赖
 npm run install:all
-
-# 启动开发环境（API + 前端）
 npm run dev
 ```
 
-- 前端: http://localhost:3000
-- API: http://localhost:3001/api/v2/health
+- Frontend: <http://localhost:3000>
+- API health check: <http://localhost:3001/api/v2/health>
 
 ## Docker Compose
+
+GitHub Actions builds multi-architecture frontend and API images for `linux/amd64` and `linux/arm64` and publishes them to GHCR.
 
 ```bash
 docker compose pull
 docker compose up -d
 ```
 
-访问 http://localhost:8080。前端和 API 使用多容器部署，前端保留旧版生产端口；上传的角色卡和导出的 PNG 分别持久化在宿主机的 `uploads/` 和 `output/` 目录中。GitHub Actions 会为 `linux/amd64` 与 `linux/arm64` 构建并推送两个 GHCR 镜像，Nginx 已关闭 API SSE 缓冲。
+Open <http://localhost:8080>. The frontend keeps the original production port. Uploaded cards and exported PNG files are persisted in the host `uploads/` and `output/` directories.
 
-## 常用命令
+To stop the services:
 
 ```bash
-npm run dev         # 同时启动 API 与前端开发服务器
-npm run build       # 前端生产构建（输出到 vue-frontend/dist）
-npm run typecheck   # API + 前端 TypeScript 检查
-npm test            # API 单元测试（mock provider / PNG 编解码回归）
+docker compose down
 ```
 
-## 项目结构
+## Commands
 
-```
-api/                    # TypeScript API 服务
-├── lib/                # 核心逻辑（schemas, provider, translation, chat, PNG codec）
-├── v2/                 # HTTP 端点处理（routes.ts 集中路由表）
-├── test/               # Vitest 单元测试与 PNG fixture 构造
-└── server.ts           # 本地开发服务器（纯 Node HTTP，无框架）
-
-vue-frontend/           # Vue 3 前端
-├── src/components/ui/  # 自建轻量基础组件
-├── src/services/       # API 调用层（api.ts + chat.ts SSE 流式）
-├── src/stores/         # Pinia 状态管理
-└── src/i18n/           # 中/英/日 国际化
+```bash
+npm run dev         # Start the API and frontend development servers
+npm run build       # Build the production frontend
+npm run typecheck   # Type-check the API and frontend
+npm test            # Run API unit tests
 ```
 
-## API 端点
+## API Endpoints
 
-每条端点同时支持两种路径：`/api/v2/*`（短路径）与 `/api/v2/character/*`（与旧 v1 路径语义一致，前端默认使用）。
+All endpoints are available under `/api/v2/*`; the `/api/v2/character/*` aliases are retained for compatibility.
 
-| 端点 | 方法 | 说明 |
-|------|------|------|
-| `/api/v2/translate`（`/character/translate`） | POST | 单字段翻译 |
-| `/api/v2/translate-character-book`（`/character/translate-character-book`） | POST | 角色书内容翻译 |
-| `/api/v2/batch-translate`（`/character/batch-translate`） | POST | 批量翻译 |
-| `/api/v2/chat`（`/character/ai-chat`） | POST | AI 助手（流式 SSE） |
-| `/api/v2/chat/sync`（`/character/ai-chat/sync`） | POST | AI 助手（非流式降级） |
-| `/api/v2/upload`（`/character/upload`） | POST | PNG 角色卡上传提取 |
-| `/api/v2/export`（`/character/export`） | POST | PNG 角色卡嵌入导出 |
-| `/api/v2/health` | GET | 健康检查 |
+| Endpoint | Method | Description |
+|---|---:|---|
+| `/api/v2/translate` | POST | Translate one field |
+| `/api/v2/translate-character-book` | POST | Translate character-book content |
+| `/api/v2/batch-translate` | POST | Translate multiple fields |
+| `/api/v2/chat` | POST | Streaming AI assistant via SSE |
+| `/api/v2/chat/sync` | POST | Non-streaming AI assistant fallback |
+| `/api/v2/upload` | POST | Parse a PNG character card |
+| `/api/v2/export` | POST | Export a PNG character card |
+| `/api/v2/health` | GET | Health check |
 
-AI 助手流式端点事件类型：`text-delta`（增量文本）、`fields`（服务端校验后的可应用字段）、`finish`（结束）、`error`（错误）。可应用字段由服务端从回复中提取并经过 schema 校验，前端不再解析 Markdown 代码围栏中的 JSON。
+The streaming chat endpoint emits `text-delta`, `fields`, `finish`, and `error` events.
 
-## BYOK 隐私说明
+## API Configuration
 
-API Key 仅在当前请求中传递到您配置的模型服务；服务端不写入日志、数据库或持久化文件，也不托管密钥。角色卡 PNG 上传和导出文件会在本地 Node 运行时分别保存到 `.uploads/` 和 `.outputs/`，密钥会保存在浏览器本地存储中以便下次使用，建议不要在不信任的设备上使用。
+The settings panel accepts an API key, service root URL, and model name. The selected protocol determines the endpoint path automatically:
 
-设置中的 API 协议可选择 `Chat Completions` 或 `Responses API`。Responses API 需要填写的模型服务支持 `/responses` 端点。
+- **Chat Completions**: uses `/v1/chat/completions`
+- **Responses API**: uses `/responses`
 
-## 环境变量
+Enter the service root URL without manually adding `/v1`.
 
-| 变量 | 说明 | 默认值 |
-|------|------|--------|
-| `API_PORT` | API 服务端口 | `3001` |
+## Privacy (BYOK)
+
+API keys are sent with each request directly to the model service configured by the user. The server does not store keys in logs, databases, or persistent files. Keys are kept in browser local storage for convenience; avoid using the application on untrusted devices.
+
+## License
+
+MIT License
